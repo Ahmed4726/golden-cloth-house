@@ -1,1 +1,1 @@
-@extends('layouts.app') @section('content')<div class="top"><h1>Add Product</h1></div><form class="card form" method="post" action="{{route('products.store')}}">@csrf @include('products.form')<button class="btn">Save Product</button></form>@endsection
+@extends('layouts.app') @section('content')<div class="top"><h1>Add Product</h1></div><form class="card form" method="post" action="{{route('products.store')}}" enctype="multipart/form-data">@csrf @include('products.form')<button class="btn">Save Product</button></form>@endsection
