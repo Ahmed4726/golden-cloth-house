@@ -22,5 +22,5 @@
 <body>
 <header class="site header"><a class="logo" href="{{ route('home') }}">GOLDEN CLOTH HOUSE</a><nav class="nav"><a href="{{ route('home') }}">Home</a><a href="{{ route('shop') }}">Shop</a><a href="mailto:{{ config('mail.from.address') }}">Contact</a></nav></header>
 <main class="site">@yield('content')</main>
-<footer class="site footer">© {{ date('Y') }} Golden Cloth House. All rights reserved.</footer>
+<footer class="site footer">© {{ date('Y') }} Golden Cloth House. All rights reserved. · <a href="{{ route('privacy') }}">Privacy</a> · <a href="{{ route('terms') }}">Terms</a></footer>
 </body></html>
