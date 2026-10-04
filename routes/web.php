@@ -5,12 +5,19 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SocialConnectionController;
 use App\Http\Controllers\SocialPostController;
 use App\Http\Controllers\SocialProviderController;
+use App\Http\Controllers\StorefrontController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/', [StorefrontController::class, 'home'])->name('home');
+Route::get('/shop', [StorefrontController::class, 'shop'])->name('shop');
+Route::get('/shop/{product:slug}', [StorefrontController::class, 'product'])->name('shop.product');
+
 Route::get('/login',[AuthController::class,'showLogin'])->name('login');
 Route::post('/login',[AuthController::class,'login'])->name('login.store');
 Route::get('/register',[AuthController::class,'showRegister'])->name('register');
 Route::post('/register',[AuthController::class,'register'])->name('register.store');
-Route::middleware('admin.session')->group(function(){
+
+Route::middleware('admin.session')->prefix('admin')->group(function(){
  Route::post('/logout',[AuthController::class,'logout'])->name('logout');
  Route::get('/',DashboardController::class)->name('dashboard');
  Route::resource('/products',ProductController::class)->except(['show']);
