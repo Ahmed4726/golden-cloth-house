@@ -15,10 +15,12 @@ class PublishSocialPost implements ShouldQueue {
   $p->increment('attempts'); $p->update(['status'=>'processing','error'=>null]);
   try {
    $result=$manager->driver($p->connection)->publish($p->post,$p->connection,$p);
-   $p->update(['status'=>'published','external_id'=>$result['external_id']??null,'response'=>$result,'published_at'=>now()]);
+   $p->update(['status'=>($result['pending']??false)?'processing':'published','external_id'=>$result['external_id']??null,'response'=>$result,'published_at'=>($result['pending']??false)?null:now()]);
    $p->connection->update(['status'=>'connected','last_error'=>null,'active'=>true]);
-   $post=$p->post->fresh()->load('publications');
-   if($post->publications->every(fn($x)=>$x->status==='published'))$post->update(['status'=>'published','published_at'=>now()]);
+   if(!($result['pending']??false)){
+    $post=$p->post->fresh()->load('publications');
+    if($post->publications->every(fn($x)=>$x->status==='published'))$post->update(['status'=>'published','published_at'=>now()]);
+   }
   } catch(\Throwable $e) {
    $p->update(['status'=>'failed','error'=>mb_substr($e->getMessage(),0,5000)]);
    $p->connection->update(['status'=>'error','last_error'=>mb_substr($e->getMessage(),0,5000)]);
