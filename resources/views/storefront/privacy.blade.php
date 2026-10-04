@@ -1,0 +1,5 @@
+@extends('storefront.layout')
+@section('content')
+<section class="page-head"><span class="eyebrow">LEGAL</span><h1>Privacy Policy</h1><p>Golden Cloth House uses this website and its social publishing tools to manage products and authorized social accounts.</p></section>
+<section class="section"><h2>Information we process</h2><p>We may process administrator account details, product information, uploaded product media, and social-account authorization tokens needed to publish content at your request.</p><h2>Social accounts</h2><p>Social access tokens are stored encrypted by the application and are used only for the connected publishing features. We do not sell social-account data.</p><h2>Contact</h2><p>For privacy questions, contact the Golden Cloth House administrator using the contact details shown on this website.</p></section>
+@endsection
