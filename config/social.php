@@ -37,7 +37,7 @@ return [
             'client_id' => env('GOOGLE_CLIENT_ID'), 'client_secret' => env('GOOGLE_CLIENT_SECRET'),
             'authorize_url' => env('GOOGLE_AUTHORIZE_URL', 'https://accounts.google.com/o/oauth2/v2/auth'),
             'token_url' => env('GOOGLE_TOKEN_URL', 'https://oauth2.googleapis.com/token'),
-            'scopes' => ['https://www.googleapis.com/auth/youtube.upload'],
+            'scopes' => ['https://www.googleapis.com/auth/youtube.upload','https://www.googleapis.com/auth/youtube.readonly'],
         ],
     ],
 ];
