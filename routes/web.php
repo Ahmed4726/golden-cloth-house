@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [StorefrontController::class, 'home'])->name('home');
 Route::get('/shop', [StorefrontController::class, 'shop'])->name('shop');
 Route::get('/shop/{product:slug}', [StorefrontController::class, 'product'])->name('shop.product');
+Route::view('/privacy', 'storefront.privacy')->name('privacy');
+Route::view('/terms', 'storefront.terms')->name('terms');
 
 Route::get('/login',[AuthController::class,'showLogin'])->name('login');
 Route::post('/login',[AuthController::class,'login'])->name('login.store');
