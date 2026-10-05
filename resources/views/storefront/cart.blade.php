@@ -13,53 +13,48 @@
     @if (count($items))
         <div class="cart-layout">
             <div>
-                <form method="POST" action="{{ route('cart.update') }}">
-                    @csrf
-                    @method('PATCH')
+                @foreach ($items as $item)
+                    @php
+                        $image = $item['product']->images()[0] ?? null;
+                    @endphp
 
-                    @foreach ($items as $item)
-                        @php
-                            $image = $item['product']->images()[0] ?? null;
-                        @endphp
+                    <form method="POST" action="{{ route('cart.update') }}" class="cart-item">
+                        @csrf
+                        @method('PATCH')
 
-                        <div class="cart-item">
-                            @if ($image)
-                                <img src="{{ str_starts_with($image, 'http') ? $image : asset('storage/'.$image) }}" alt="{{ $item['product']->name }}">
-                            @else
-                                <div style="width:92px;height:115px;background:#eee7df;border-radius:8px;display:grid;place-items:center;">GCH</div>
-                            @endif
+                        @if ($image)
+                            <img src="{{ str_starts_with($image, 'http') ? $image : asset('storage/'.$image) }}" alt="{{ $item['product']->name }}">
+                        @else
+                            <div style="width:92px;height:115px;background:#eee7df;border-radius:8px;display:grid;place-items:center;">GCH</div>
+                        @endif
 
+                        <div>
+                            <a href="{{ route('shop.product', $item['product']) }}"><strong>{{ $item['product']->name }}</strong></a>
+                            <div class="muted">{{ number_format((float) $item['product']->price, 0) }} {{ $item['product']->currency }}</div>
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="qty-{{ $item['product']->id }}">Qty</label>
+                            <input
+                                class="input cart-qty"
+                                id="qty-{{ $item['product']->id }}"
+                                type="number"
+                                name="quantities[{{ $item['product']->id }}]"
+                                value="{{ $item['quantity'] }}"
+                                min="0"
+                                max="{{ min($item['product']->stock_quantity, 20) }}"
+                            >
+                        </div>
+
+                        <div class="cart-price">
+                            <strong>{{ number_format($item['lineTotal'], 0) }} {{ $item['product']->currency }}</strong>
                             <div>
-                                <a href="{{ route('shop.product', $item['product']) }}"><strong>{{ $item['product']->name }}</strong></a>
-                                <div class="muted">{{ number_format((float) $item['product']->price, 0) }} {{ $item['product']->currency }}</div>
-                            </div>
-
-                            <div>
-                                <label class="form-label" for="qty-{{ $item['product']->id }}">Qty</label>
-                                <input
-                                    class="input cart-qty"
-                                    id="qty-{{ $item['product']->id }}"
-                                    type="number"
-                                    name="quantities[{{ $item['product']->id }}]"
-                                    value="{{ $item['quantity'] }}"
-                                    min="0"
-                                    max="{{ min($item['product']->stock_quantity, 20) }}"
-                                >
-                            </div>
-
-                            <div class="cart-price">
-                                <strong>{{ number_format($item['lineTotal'], 0) }} {{ $item['product']->currency }}</strong>
-                                <form method="POST" action="{{ route('cart.remove', $item['product']) }}" class="remove">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn secondary" style="padding:6px 9px;margin-top:8px;">Remove</button>
-                                </form>
+                                <button type="submit" class="btn secondary" style="padding:6px 9px;margin-top:8px;">Update</button>
+                                <button type="submit" name="remove_product" value="{{ $item['product']->id }}" class="btn secondary" style="padding:6px 9px;margin-top:8px;">Remove</button>
                             </div>
                         </div>
-                    @endforeach
-
-                    <button class="btn secondary" type="submit">Update cart</button>
-                </form>
+                    </form>
+                @endforeach
             </div>
 
             <aside class="summary">
