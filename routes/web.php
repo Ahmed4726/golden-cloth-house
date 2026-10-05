@@ -6,6 +6,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomepageSlideController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderTrackingController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SocialConnectionController;
 use App\Http\Controllers\SocialPostController;
@@ -25,6 +26,8 @@ Route::delete('/cart/{product}', [CartController::class, 'remove'])->name('cart.
 Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 Route::get('/order/{order:order_number}/success', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('/track-order', [OrderTrackingController::class, 'index'])->name('order.track');
+Route::post('/track-order', [OrderTrackingController::class, 'show'])->name('order.track.submit');
 
 Route::view('/privacy', 'storefront.privacy')->name('privacy');
 Route::view('/terms', 'storefront.terms')->name('terms');
