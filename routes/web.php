@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomepageSlideController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SocialConnectionController;
@@ -27,12 +28,21 @@ Route::get('/order/{order:order_number}/success', [CheckoutController::class, 's
 
 Route::view('/privacy', 'storefront.privacy')->name('privacy');
 Route::view('/terms', 'storefront.terms')->name('terms');
+
 Route::get('/robots.txt', function () {
-    return response("User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /checkout\nDisallow: /cart\nSitemap: ".url('/sitemap.xml'), 200, ['Content-Type' => 'text/plain']);
+    return response(
+        "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /checkout\nDisallow: /cart\nSitemap: ".url('/sitemap.xml'),
+        200,
+        ['Content-Type' => 'text/plain']
+    );
 })->name('robots');
+
 Route::get('/sitemap.xml', function () {
     $products = \App\Models\Product::where('active', true)->get();
-    return response()->view('storefront.sitemap', compact('products'))->header('Content-Type', 'application/xml');
+
+    return response()
+        ->view('storefront.sitemap', compact('products'))
+        ->header('Content-Type', 'application/xml');
 })->name('sitemap');
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -45,6 +55,7 @@ Route::middleware('admin.session')->prefix('admin')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
 
     Route::resource('/products', ProductController::class)->except(['show']);
+    Route::resource('/slides', HomepageSlideController::class)->except(['show']);
 
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
