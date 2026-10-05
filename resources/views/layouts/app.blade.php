@@ -3,9 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>{{ $title ?? 'Golden Cloth House' }}</title>
-
     <style>
         :root { --bg:#f6f7fb; --card:#fff; --ink:#171923; --muted:#697386; --line:#e7e9ef; }
         * { box-sizing:border-box; }
@@ -53,37 +51,28 @@
     <div class="shell">
         <aside class="side">
             <div class="brand">Golden Cloth House</div>
-
             <nav class="nav">
                 <a href="{{ route('home') }}">View Shop</a>
                 <a class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Dashboard</a>
                 <a class="{{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}">Products</a>
+                <a class="{{ request()->routeIs('categories.*') ? 'active' : '' }}" href="{{ route('categories.index') }}">Categories</a>
+                <a class="{{ request()->routeIs('brands.*') ? 'active' : '' }}" href="{{ route('brands.index') }}">Brands</a>
                 <a class="{{ request()->routeIs('slides.*') ? 'active' : '' }}" href="{{ route('slides.index') }}">Homepage Slider</a>
                 <a class="{{ request()->routeIs('orders.*') ? 'active' : '' }}" href="{{ route('orders.index') }}">Orders</a>
                 <a class="{{ request()->routeIs('connections.*') ? 'active' : '' }}" href="{{ route('connections.index') }}">Social Connections</a>
                 <a class="{{ request()->routeIs('posts.*') ? 'active' : '' }}" href="{{ route('posts.index') }}">Social Posts</a>
                 <a href="{{ route('posts.create') }}">+ Create Post</a>
             </nav>
-
             <form method="POST" action="{{ route('logout') }}" style="margin-top:30px;">
                 @csrf
                 <button type="submit" class="btn secondary" style="width:100%;">Sign out</button>
             </form>
         </aside>
-
         <main class="main">
-            @if (session('success'))
-                <div class="flash">{{ session('success') }}</div>
-            @endif
-
+            @if (session('success')) <div class="flash">{{ session('success') }}</div> @endif
             @if ($errors->any())
-                <div class="error">
-                    @foreach ($errors->all() as $error)
-                        <div>{{ $error }}</div>
-                    @endforeach
-                </div>
+                <div class="error">@foreach ($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>
             @endif
-
             @yield('content')
         </main>
     </div>
