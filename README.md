@@ -1,25 +1,50 @@
-# Golden Cloth House — Social Commerce
+# Golden Cloth House — Commerce + Social Publishing
 
-Laravel 13 application for a clothing shop catalogue, public storefront, and multi-channel social publishing.
+Laravel 13 application for a production clothing storefront with Cash on Delivery, product management, orders, responsive product galleries, SEO, and multi-channel social publishing.
 
-## What is included
+The Laravel project is the website. There is no separate website project and there is no social-commerce catalogue/checkout integration. Products are managed internally and can be published as normal social posts.
 
-- Public Golden Cloth House storefront at `/`
-- Product catalogue at `/shop`
-- Admin dashboard at `/admin`
-- Product CRUD with price, SKU, category and description
-- Local product-image uploads with public storage
-- Product images automatically reused by the social composer
+## Commerce features
+
+- Responsive public clothing storefront
+- Homepage hero slider with admin management
+- Product catalogue with search and category filtering
+- Product detail pages with multi-image gallery
+- Local image uploads plus optional external image URLs
+- Inventory / stock quantities
+- Featured products and product sorting
+- Compare-at pricing
+- Session shopping cart
+- Cash on Delivery checkout for Pakistan
+- Shipping fee and free-shipping threshold configuration
+- Atomic stock reservation/decrement during checkout
+- Customer order confirmation page
+- Optional queued customer confirmation email
+- Public order tracking using order number + phone
+- Admin order list, search and status workflow
+- Automatic stock restoration when an order is cancelled
+- SEO titles and descriptions
+- Canonical URLs
+- Open Graph and Twitter metadata
+- Product JSON-LD structured data
+- XML sitemap
+- robots.txt
+- Responsive mobile/tablet/desktop layouts
+- Privacy and terms pages
+
+## Social publishing features
+
 - Facebook Page publishing
 - Instagram Professional publishing
 - TikTok photo/video Direct Post flow with asynchronous status checks
 - YouTube video publishing with OAuth and token refresh
 - Encrypted social access/refresh tokens
-- One-click multi-channel publishing
+- One-click multi-channel normal social posts
 - Per-channel publication records, errors and retries
 - Scheduled publishing every minute
 - Provider readiness endpoint
-- Feature tests and GitHub Actions CI
+
+Social posts are normal posts containing captions, media and platform-specific metadata. The system does not depend on Facebook/Instagram/TikTok/YouTube Shops, product catalogues or social checkout.
 
 ## Local setup
 
@@ -33,122 +58,164 @@ Laravel 13 application for a clothing shop catalogue, public storefront, and mul
 8. Run `php artisan queue:work`.
 9. Run `php artisan schedule:work` locally.
 
-For social media publishing, `APP_URL` must be a real HTTPS public URL in production because Meta and TikTok need to fetch product media from the public internet.
+For uploaded images to display correctly, the `public/storage` link must exist. For social publishing, `APP_URL` must be a real HTTPS public URL so Meta, TikTok and other providers can fetch media.
 
-## Website / domain deployment
+## Production / cPanel deployment
 
-This project is the website; no separate website project is required.
+The Laravel `public` directory is the web document root.
 
-For cPanel:
-- Point the domain/subdomain document root to the Laravel `public` directory.
-- Configure the production `.env` with the real `APP_URL=https://your-domain.com`.
-- Run `composer install --no-dev --optimize-autoloader`.
-- Run `php artisan migrate --force`.
-- Run `php artisan storage:link`.
-- Run `php artisan optimize`.
-- Keep the queue worker running. If Supervisor is unavailable, a cron job can run `php artisan queue:work --stop-when-empty --tries=3` frequently.
-- Add a cron entry that runs `php artisan schedule:run` every minute.
+1. Configure the production `.env`.
+2. Use `APP_ENV=production` and `APP_DEBUG=false`.
+3. Set a real HTTPS `APP_URL`.
+4. Configure MySQL and persistent sessions/cache/queue as appropriate for the server.
+5. Run:
 
-Example cPanel cron:
+```bash
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan storage:link
+php artisan optimize
 ```
+
+6. Run a persistent queue worker. Prefer Supervisor where available:
+
+```bash
+php artisan queue:work --tries=3 --timeout=120
+```
+
+7. Add a cron job every minute:
+
+```bash
 cd /home/USER/golden-cloth-house && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1
 ```
 
-The public site is `/`, while administration is `/admin`.
+8. Ensure PHP has file uploads enabled and the server allows image uploads up to the application's 10 MB per-image limit.
+9. Ensure `storage/` and `bootstrap/cache/` are writable by the web/queue user.
+10. Configure SMTP if customer order confirmation emails are required.
+
+## Store configuration
+
+The `.env.example` contains:
+
+- `STORE_NAME`
+- `STORE_CURRENCY`
+- `STORE_SHIPPING_FEE`
+- `STORE_FREE_SHIPPING_THRESHOLD`
+- `STORE_COD_ENABLED`
+- `STORE_CONTACT_PHONE`
+- `STORE_CONTACT_EMAIL`
+- `STORE_WHATSAPP`
+- `STORE_ADDRESS`
+- social profile URLs
+
+The default commerce configuration is PKR with Cash on Delivery enabled.
+
+## Customer workflow
+
+1. Customer visits `/`.
+2. Customer browses `/shop` or searches by product/category/SKU.
+3. Customer opens a product detail page and browses the photo gallery.
+4. Customer selects quantity and adds the product to the cart.
+5. Customer reviews the cart.
+6. Customer enters Pakistani delivery information at checkout.
+7. Customer places a Cash on Delivery order.
+8. Stock is decremented inside a database transaction.
+9. The customer receives an order confirmation page and, when email is configured, a queued confirmation email.
+10. Admin manages the order from `/admin/orders`.
+11. Customers can track orders from `/track-order` using their order number and phone number.
+
+## Admin workflow
+
+- `/admin` — dashboard
+- `/admin/products` — products and inventory
+- `/admin/slides` — homepage slider
+- `/admin/orders` — Cash on Delivery orders
+- `/admin/connections` — social account connections
+- `/admin/posts` — normal social posts
+
+## Product images
+
+The product form accepts up to 20 local images per save, with JPG, JPEG, PNG and WebP support and a maximum of 10 MB per image.
+
+Uploaded files are stored on Laravel's `public` disk under `products/` and the relative paths are stored in `products.media_paths`.
+
+If an image is uploaded successfully but is not visible in the browser, run:
+
+```bash
+php artisan storage:link
+```
+
+and verify that `public/storage` points to `storage/app/public`.
 
 ## Meta: Facebook + Instagram
 
-The application currently uses the Meta/Facebook Login flow for a Facebook Page and a linked Instagram Professional account.
+The application uses Meta/Facebook Login for a Facebook Page and a linked Instagram Professional account.
 
 1. Create an app in Meta for Developers.
-2. Add the Facebook Login product/configuration required by the app.
-3. Configure the app's OAuth redirect URL to:
+2. Configure the required Facebook Login functionality.
+3. Add:
    - `https://YOUR-DOMAIN.com/admin/connections/facebook/callback`
-4. Also register:
    - `https://YOUR-DOMAIN.com/admin/connections/instagram/callback`
-5. Copy the Meta App ID into `META_APP_ID`.
-6. Copy the Meta App Secret into `META_APP_SECRET`.
-7. Keep the graph/authorize/token URLs from `.env.example` unless Meta gives you a different current endpoint.
-8. The Facebook account used to connect must manage the Page.
-9. For Instagram publishing, use an Instagram Professional account and link it to the Facebook Page. The app discovers the linked Instagram account during connection.
+4. Set `META_APP_ID` and `META_APP_SECRET`.
+5. The Facebook account must manage the target Page.
+6. The Instagram account must be a Professional account linked to the Page.
 
-For the current Facebook Login publishing flow, the project requests:
-- Facebook: `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`
-- Instagram: `instagram_basic`, `instagram_content_publish`, `pages_show_list`
-
-Meta may require App Review, Business Verification, or additional approval before an app can publish for accounts outside its development/test roles. Do not assume a production account will work until Meta approves the requested permissions.
+The application requests the provider permissions defined in `config/social.php`. Meta may require App Review and Business Verification for production publishing.
 
 ## TikTok
 
-1. Create a developer app at TikTok for Developers.
-2. Add the Content Posting API product.
+1. Create a TikTok developer app.
+2. Add Content Posting API.
 3. Enable Direct Post.
-4. Configure the web OAuth redirect URL:
+4. Configure:
    - `https://YOUR-DOMAIN.com/admin/connections/tiktok/callback`
-5. Copy the Client Key to `TIKTOK_CLIENT_KEY`.
-6. Copy the Client Secret to `TIKTOK_CLIENT_SECRET`.
-7. Request/enable the required Content Posting permissions.
-8. Connect the TikTok account from Admin → Social Connections.
+5. Set `TIKTOK_CLIENT_KEY` and `TIKTOK_CLIENT_SECRET`.
+6. Complete TikTok's required approval/audit for public publishing.
+7. Verify the production media domain/URL prefix when required by TikTok.
 
-TikTok's current Direct Post flow requires `video.publish` authorization/approval. Unaudited clients are restricted to private viewing. TikTok also requires public media URLs to come from a verified domain or URL prefix when using URL-based transfer. The application polls the returned `publish_id` until TikTok reports completion/failure.
+The implementation supports TikTok photo/video Direct Post and asynchronous status polling.
 
 ## YouTube
 
-1. Open Google Cloud Console and create a project.
+1. Create a Google Cloud project.
 2. Enable YouTube Data API v3.
-3. Configure the OAuth consent screen.
-4. Create OAuth 2.0 credentials for a Web application.
-5. Add this authorized redirect URI:
+3. Configure OAuth consent.
+4. Create a Web Application OAuth client.
+5. Configure:
    - `https://YOUR-DOMAIN.com/admin/connections/youtube/callback`
-6. Copy the OAuth Client ID to `GOOGLE_CLIENT_ID`.
-7. Copy the OAuth Client Secret to `GOOGLE_CLIENT_SECRET`.
-8. Connect the desired YouTube channel from Admin → Social Connections.
+6. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+7. Connect the desired YouTube channel from the admin panel.
 
-The application requests:
-- `https://www.googleapis.com/auth/youtube.upload`
-- `https://www.googleapis.com/auth/youtube.readonly`
+YouTube publishing is video-only and uses the YouTube Data API upload flow.
 
-YouTube uploads from unverified API projects can be restricted to private viewing until the project passes Google's required audit.
+## SEO
 
-## Posting workflow
+The storefront includes:
 
-1. Admin creates a product.
-2. Upload product images in the product form.
-3. Product appears automatically on the public storefront.
-4. Open Admin → Create Post.
-5. Select the product.
-6. The title, description and stored product images are prefilled.
-7. Select the connected social accounts.
-8. Choose Publish Now or Schedule.
-9. Laravel queues each platform publication independently.
-10. The dashboard/publication history records success or the exact platform error.
-
-### Platform media rules
-
-- Facebook: current implementation publishes image posts.
-- Instagram: current implementation publishes image posts through the Professional account flow.
-- TikTok: supports photo and video Direct Post, subject to TikTok approval/audit.
-- YouTube: requires a video URL; image-only products cannot be uploaded as YouTube videos.
-
-## Important production requirement
-
-Uploaded product images are stored under Laravel public storage and converted to absolute URLs for social publishing. Your production domain must be reachable from the public internet over HTTPS and `APP_URL` must be correct.
-
-## OAuth callback paths
-
-- `/admin/connections/facebook/callback`
-- `/admin/connections/instagram/callback`
-- `/admin/connections/tiktok/callback`
-- `/admin/connections/youtube/callback`
+- unique page titles
+- meta descriptions
+- canonical URLs
+- Open Graph metadata
+- Twitter cards
+- Product JSON-LD
+- ClothingStore JSON-LD on the homepage
+- XML sitemap at `/sitemap.xml`
+- robots.txt at `/robots.txt`
+- clean product slugs
+- crawlable product detail pages
+- responsive image handling and lazy loading on product cards
 
 ## Testing
 
-Run:
-```
+Run locally:
+
+```bash
 php artisan test
 ```
 
-CI is configured in `.github/workflows/tests.yml`.
+GitHub Actions runs the test suite on pushes to `master` and pull requests using PHP 8.3.
+
+Commerce tests cover product image uploads, cart/checkout, Cash on Delivery order creation, inventory decrement and empty-cart protection.
 
 ## Security checklist
 
@@ -156,6 +223,8 @@ CI is configured in `.github/workflows/tests.yml`.
 - Use HTTPS in production.
 - Use a strong `APP_KEY`.
 - Keep provider secrets server-side only.
-- Registration closes after the first administrator is created.
-- Use a persistent queue backend and a supervised worker in production.
-- Review provider permissions and audit requirements before enabling customer-facing publishing.
+- Keep registration closed after the first administrator is created.
+- Use a persistent queue backend and supervised worker in production.
+- Restrict access to `/admin` through the application's admin session middleware.
+- Review social provider permissions and audit requirements before enabling production publishing.
+- Configure production mail credentials only on the server.
