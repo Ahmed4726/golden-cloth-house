@@ -43,13 +43,21 @@ class CartController extends Controller
     public function update(Request $request)
     {
         $data = $request->validate([
-            'quantities' => ['required', 'array'],
+            'quantities' => ['nullable', 'array'],
             'quantities.*' => ['nullable', 'integer', 'min:0', 'max:20'],
+            'remove_product' => ['nullable', 'integer'],
         ]);
 
         $cart = $request->session()->get('cart', []);
 
-        foreach ($data['quantities'] as $productId => $quantity) {
+        if (! empty($data['remove_product'])) {
+            unset($cart[(string) $data['remove_product']]);
+            $request->session()->put('cart', $cart);
+
+            return back()->with('success', 'Product removed from your cart.');
+        }
+
+        foreach ($data['quantities'] ?? [] as $productId => $quantity) {
             $key = (string) $productId;
 
             if (! isset($cart[$key])) {
