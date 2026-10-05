@@ -67,7 +67,7 @@ class ProductController extends Controller
 
         $product->update([
             'name' => $data['name'],
-            'slug' => $data['slug'],
+            'slug' => $data['slug'] ?: Str::slug($data['name']),
             'sku' => ($data['sku'] ?? '') ?: null,
             'price' => $data['price'],
             'currency' => strtoupper($data['currency']),
