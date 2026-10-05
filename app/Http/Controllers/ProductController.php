@@ -31,19 +31,19 @@ class ProductController extends Controller
 
         Product::create([
             'name' => $data['name'],
-            'slug' => $data['slug'] ?: Str::slug($data['name']),
+            'slug' => ($data['slug'] ?? null) ?: Str::slug($data['name']),
             'sku' => ($data['sku'] ?? '') ?: null,
             'price' => $data['price'],
             'currency' => strtoupper($data['currency']),
             'stock_quantity' => $data['stock_quantity'],
-            'compare_at_price' => $data['compare_at_price'],
+            'compare_at_price' => $data['compare_at_price'] ?? null,
             'category' => $data['category'] ?? null,
             'description' => $data['description'] ?? null,
             'image_urls' => $this->imageUrls($data['image_urls'] ?? ''),
             'media_paths' => $paths,
             'active' => $request->boolean('active', true),
             'featured' => $request->boolean('featured'),
-            'sort_order' => $data['sort_order'],
+            'sort_order' => $data['sort_order'] ?? 0,
         ]);
 
         return redirect()
@@ -67,19 +67,19 @@ class ProductController extends Controller
 
         $product->update([
             'name' => $data['name'],
-            'slug' => $data['slug'] ?: Str::slug($data['name']),
+            'slug' => ($data['slug'] ?? null) ?: Str::slug($data['name']),
             'sku' => ($data['sku'] ?? '') ?: null,
             'price' => $data['price'],
             'currency' => strtoupper($data['currency']),
             'stock_quantity' => $data['stock_quantity'],
-            'compare_at_price' => $data['compare_at_price'],
+            'compare_at_price' => $data['compare_at_price'] ?? null,
             'category' => $data['category'] ?? null,
             'description' => $data['description'] ?? null,
             'image_urls' => $this->imageUrls($data['image_urls'] ?? ''),
             'media_paths' => $paths,
             'active' => $request->boolean('active'),
             'featured' => $request->boolean('featured'),
-            'sort_order' => $data['sort_order'],
+            'sort_order' => $data['sort_order'] ?? 0,
         ]);
 
         return redirect()
