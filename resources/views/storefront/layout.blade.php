@@ -62,7 +62,7 @@
         img { max-width: 100%; }
         button, input, select, textarea { font: inherit; }
         a { color: inherit; text-decoration: none; }
-        .site { width: min(1240px, calc(100% - 32px)); margin-inline: auto; }
+        .site { width: min(1280px, calc(100% - 48px)); margin-inline: auto; }
 
         .announcement {
             background: var(--ink);
@@ -77,17 +77,24 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 24px;
+            gap: 28px;
             border-bottom: 1px solid var(--line);
-            background: rgba(250, 248, 244, .96);
+            background: rgba(250, 248, 244, .97);
             position: sticky;
             top: 0;
             z-index: 30;
             backdrop-filter: blur(12px);
+            padding-top: 8px;
+            padding-bottom: 8px;
         }
 
-        .logo { font-weight: 900; letter-spacing: .1em; white-space: nowrap; }
-        .nav { display: flex; align-items: center; gap: 22px; }
+        .brand-logo {
+            width: 210px;
+            height: auto;
+            display: block;
+        }
+
+        .nav { display: flex; align-items: center; gap: 24px; }
         .nav a { color: #4f4943; font-weight: 600; }
         .nav a:hover { color: var(--accent-dark); }
         .cart-link { display: inline-flex; align-items: center; gap: 8px; }
@@ -113,13 +120,8 @@
             border-radius: 20px;
             background: #eee7df;
         }
-        .hero-image {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .hero-slide { width: 100%; height: 100%; }
+        .hero-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
         .hero-overlay { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20, 15, 10, .68), rgba(20, 15, 10, .08)); }
         .hero-content { position: relative; z-index: 2; color: #fff; max-width: 680px; padding: 70px 7%; }
         .hero-content p { color: rgba(255,255,255,.86); font-size: 18px; max-width: 600px; }
@@ -161,9 +163,30 @@
         .btn.full { width: 100%; }
         .btn.danger { background: var(--danger); border-color: var(--danger); }
         .page-head { padding: 55px 0 25px; }
+        .page-head h1 { font-size: clamp(42px, 6vw, 64px); line-height: 1.05; margin: 10px 0; }
         .page-head p { font-size: 18px; color: var(--muted); max-width: 700px; }
 
-        .filters { display: grid; grid-template-columns: 1fr 220px auto; gap: 12px; margin-bottom: 28px; }
+        .shop-filters {
+            display: grid;
+            grid-template-columns: minmax(260px, 2fr) minmax(170px, 1fr) minmax(170px, 1fr);
+            gap: 16px;
+            padding: 22px;
+            margin: 0 0 18px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            box-shadow: 0 8px 28px rgba(23, 19, 15, .04);
+        }
+        .filter-search { grid-column: span 1; }
+        .price-filter { grid-column: span 2; }
+        .price-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stock-filter { display: flex; align-items: center; gap: 9px; min-height: 46px; font-weight: 700; }
+        .stock-filter input { width: 18px; height: 18px; accent-color: var(--ink); }
+        .filter-actions { display: flex; align-items: center; gap: 10px; }
+        .filter-actions .btn { margin-top: 0; }
+        .shop-results-bar { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin: 16px 0 22px; }
+        .filter-active { padding: 5px 10px; border-radius: 999px; background: #f1eadf; color: var(--accent-dark); font-size: 12px; font-weight: 800; }
+
         .input, .select, .textarea {
             width: 100%;
             border: 1px solid #d8d1c8;
@@ -175,7 +198,7 @@
         .input:focus, .select:focus, .textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(139,106,67,.12); }
         .form-label { display: block; font-weight: 700; margin-bottom: 7px; }
         .field { margin-bottom: 18px; }
-        .error-box, .success-box { padding: 13px 15px; border-radius: 9px; margin-bottom: 18px; }
+        .error-box, .success-box { padding: 13px 15px; border-radius: 9px; margin: 18px 0; }
         .error-box { background: #fef2f2; color: #991b1b; }
         .success-box { background: #ecfdf5; color: #166534; }
 
@@ -213,29 +236,51 @@
         .footer-title { color: var(--ink); font-weight: 800; margin-bottom: 8px; }
         .footer-links { display: grid; gap: 7px; }
         .empty { padding: 50px; background: #fff; border: 1px dashed var(--line); border-radius: 12px; text-align: center; }
-        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
+        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; flex-wrap: wrap; }
         .pagination a, .pagination span { padding: 8px 12px; background: #fff; border: 1px solid var(--line); border-radius: 7px; }
 
-        @media (max-width: 950px) {
+        @media (max-width: 1050px) {
             .product-grid { grid-template-columns: repeat(3, 1fr); }
             .product-detail, .cart-layout, .checkout-layout { grid-template-columns: 1fr; }
             .summary { position: static; }
+            .shop-filters { grid-template-columns: 1fr 1fr; }
+            .filter-search { grid-column: span 2; }
+            .price-filter { grid-column: span 2; }
         }
+
         @media (max-width: 700px) {
-            .header { flex-wrap: wrap; padding: 14px 0; }
-            .nav { width: 100%; justify-content: space-between; gap: 10px; overflow-x: auto; }
+            .site { width: min(100% - 28px, 1280px); }
+            .header { flex-wrap: wrap; gap: 10px 18px; padding: 12px 0; }
+            .brand-logo { width: 185px; }
+            .nav { width: 100%; justify-content: space-between; gap: 10px; overflow-x: auto; padding-bottom: 2px; }
+            .nav a { white-space: nowrap; font-size: 14px; }
+            .hero { min-height: 470px; margin-top: 18px; border-radius: 14px; }
+            .hero-content { padding: 45px 25px; }
+            .hero-content p { font-size: 16px; }
             .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .filters { grid-template-columns: 1fr; }
+            .shop-filters { grid-template-columns: 1fr; padding: 16px; gap: 12px; }
+            .filter-search, .price-filter { grid-column: span 1; }
+            .price-fields { grid-template-columns: 1fr 1fr; }
+            .filter-actions { display: grid; grid-template-columns: 1fr 1fr; }
+            .filter-actions .btn { width: 100%; }
+            .shop-results-bar { align-items: flex-start; flex-direction: column; }
             .cart-item { grid-template-columns: 70px 1fr auto; }
             .cart-item img { width: 70px; height: 90px; }
             .cart-price { grid-column: 2; }
             .thumbs { grid-template-columns: repeat(5, 1fr); }
             .footer-grid { grid-template-columns: 1fr; }
+            .section { padding: 35px 0; }
+            .section-head { align-items: flex-start; flex-direction: column; }
+            h2 { font-size: 29px; }
         }
+
         @media (max-width: 460px) {
-            .site { width: min(100% - 24px, 1240px); }
-            .hero { min-height: 470px; margin-top: 12px; }
-            .hero-content { padding: 45px 25px; }
+            .site { width: calc(100% - 24px); }
+            .brand-logo { width: 165px; }
+            .announcement { font-size: 11px; padding-inline: 10px; }
+            .hero { min-height: 430px; }
+            .hero-content { padding: 32px 20px; }
+            .hero h1 { font-size: 40px; }
             .product-grid { grid-template-columns: 1fr 1fr; }
             .card-body { padding: 11px; }
             .card-body h3 { font-size: 15px; }
@@ -243,6 +288,9 @@
             .cart-item { grid-template-columns: 64px 1fr; }
             .cart-item > * { grid-column: auto; }
             .cart-item .remove { grid-column: 2; }
+            .quantity-row { flex-wrap: wrap; }
+            .quantity { width: 100%; }
+            .quantity-row .btn { width: 100%; }
         }
     </style>
 </head>
@@ -250,7 +298,9 @@
     <div class="announcement">Cash on Delivery available across Pakistan · Free delivery on orders over {{ number_format(config('store.free_shipping_threshold')) }} {{ config('store.currency') }}</div>
 
     <header class="site header">
-        <a class="logo" href="{{ route('home') }}">GOLDEN CLOTH HOUSE</a>
+        <a href="{{ route('home') }}" aria-label="{{ config('store.name') }} home">
+            <img class="brand-logo" src="{{ asset('images/golden-cloth-house-logo.svg') }}" alt="{{ config('store.name') }}">
+        </a>
 
         <nav class="nav" aria-label="Main navigation">
             <a href="{{ route('home') }}">Home</a>
@@ -296,9 +346,15 @@
             <div>
                 <div class="footer-title">Contact</div>
                 <div class="footer-links">
-                    @if (config('store.contact_phone')) <a href="tel:{{ config('store.contact_phone') }}">{{ config('store.contact_phone') }}</a> @endif
-                    @if (config('store.contact_email')) <a href="mailto:{{ config('store.contact_email') }}">{{ config('store.contact_email') }}</a> @endif
-                    @if (config('store.whatsapp')) <a href="https://wa.me/{{ preg_replace('/\D+/', '', config('store.whatsapp')) }}">WhatsApp</a> @endif
+                    @if (config('store.contact_phone'))
+                        <a href="tel:{{ config('store.contact_phone') }}">{{ config('store.contact_phone') }}</a>
+                    @endif
+                    @if (config('store.contact_email'))
+                        <a href="mailto:{{ config('store.contact_email') }}">{{ config('store.contact_email') }}</a>
+                    @endif
+                    @if (config('store.whatsapp'))
+                        <a href="https://wa.me/{{ preg_replace('/\D+/', '', config('store.whatsapp')) }}">WhatsApp</a>
+                    @endif
                 </div>
             </div>
         </div>
