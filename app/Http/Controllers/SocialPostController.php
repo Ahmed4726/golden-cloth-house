@@ -15,9 +15,7 @@ class SocialPostController extends Controller
     public function index()
     {
         return view('posts.index', [
-            'posts' => SocialPost::with(['publications.connection', 'product'])
-                ->latest()
-                ->paginate(15),
+            'posts' => SocialPost::with(['publications.connection', 'product'])->latest()->paginate(15),
         ]);
     }
 
@@ -25,7 +23,8 @@ class SocialPostController extends Controller
     {
         return view('posts.create', [
             'connections' => SocialConnection::where('active', true)->get(),
-            'products' => Product::where('active', true)->latest()->get(),
+            'products' => Product::with(['categoryRelation', 'brand'])
+                ->where('active', true)->latest()->get(),
         ]);
     }
 
@@ -44,46 +43,30 @@ class SocialPostController extends Controller
             'scheduled_at' => ['nullable', 'date', 'after:now'],
         ]);
 
-        $product = ! empty($data['product_id'])
-            ? Product::findOrFail($data['product_id'])
-            : null;
-
-        $caption = $data['caption'] ?? '';
-        $rawUrls = $data['media_urls'] ?? '';
+        $product = ! empty($data['product_id']) ? Product::findOrFail($data['product_id']) : null;
+        $caption = trim($data['caption'] ?? '');
+        $title = trim($data['title'] ?? '');
+        $rawUrls = trim($data['media_urls'] ?? '');
 
         if ($product) {
-            $caption = $caption ?: $product->name.' — '.$product->description;
-            $data['title'] = $data['title'] ?? $product->name;
-
-            if (! trim($rawUrls)) {
-                $rawUrls = implode("\n", $this->productMediaUrls($product));
-            }
+            $title = $title ?: $product->name;
+            $caption = $caption ?: $product->description ?: $product->name;
+            $rawUrls = $rawUrls ?: implode("\n", $this->productMediaUrls($product));
         }
 
-        if ($data['media_type'] === 'image' && ! trim($rawUrls)) {
-            return back()
-                ->withErrors(['media_urls' => 'At least one product image or image URL is required.'])
-                ->withInput();
+        if ($data['media_type'] === 'image' && ! $rawUrls) {
+            return back()->withErrors(['media_urls' => 'At least one product image or image URL is required.'])->withInput();
         }
 
-        $urls = collect(preg_split('/\r?\n/', $rawUrls))
-            ->map(fn ($value) => trim($value))
-            ->filter()
-            ->values()
-            ->all();
+        $urls = collect(preg_split('/\r?\n/', $rawUrls))->map(fn ($value) => trim($value))->filter()->values()->all();
 
         validator(
             ['media_urls' => $urls],
-            [
-                'media_urls' => ['array', 'max:10'],
-                'media_urls.*' => ['url'],
-            ]
+            ['media_urls' => ['array', 'max:10'], 'media_urls.*' => ['url', 'max:2048']]
         )->validate();
 
         if ($data['action'] === 'schedule' && empty($data['scheduled_at'])) {
-            return back()
-                ->withErrors(['scheduled_at' => 'A future date/time is required.'])
-                ->withInput();
+            return back()->withErrors(['scheduled_at' => 'A future date/time is required.'])->withInput();
         }
 
         $status = match ($data['action']) {
@@ -92,10 +75,10 @@ class SocialPostController extends Controller
             default => 'queued',
         };
 
-        $post = DB::transaction(function () use ($data, $urls, $status, $caption) {
+        $post = DB::transaction(function () use ($data, $urls, $status, $caption, $title) {
             $post = SocialPost::create([
                 'product_id' => $data['product_id'] ?? null,
-                'title' => $data['title'] ?? null,
+                'title' => $title ?: null,
                 'caption' => $caption,
                 'media_type' => $data['media_type'],
                 'media_urls' => $urls,
@@ -106,10 +89,7 @@ class SocialPostController extends Controller
             ]);
 
             foreach ($data['connections'] as $id) {
-                $connection = SocialConnection::whereKey($id)
-                    ->where('active', true)
-                    ->firstOrFail();
-
+                $connection = SocialConnection::whereKey($id)->where('active', true)->firstOrFail();
                 $publication = $post->publications()->create([
                     'social_connection_id' => $connection->id,
                     'provider' => $connection->provider,
@@ -124,31 +104,22 @@ class SocialPostController extends Controller
             return $post;
         });
 
-        return redirect()
-            ->route('posts.show', $post)
-            ->with('success', $status === 'queued' ? 'Publishing has been queued.' : 'Post saved.');
+        return redirect()->route('posts.show', $post)->with('success', $status === 'queued' ? 'Publishing has been queued.' : 'Post saved.');
     }
 
     public function show(SocialPost $post)
     {
-        return view('posts.show', [
-            'post' => $post->load(['publications.connection', 'product']),
-        ]);
+        return view('posts.show', ['post' => $post->load(['publications.connection', 'product'])]);
     }
 
     public function publish(SocialPost $post)
     {
         foreach ($post->publications()->whereIn('status', ['queued', 'failed', 'draft'])->get() as $publication) {
-            $publication->update([
-                'status' => 'queued',
-                'error' => null,
-            ]);
-
+            $publication->update(['status' => 'queued', 'error' => null]);
             PublishSocialPost::dispatch($publication->id);
         }
 
         $post->update(['status' => 'queued']);
-
         return back()->with('success', 'Publishing queued.');
     }
 
