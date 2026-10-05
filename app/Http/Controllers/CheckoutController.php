@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\OrderPlacedMail;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
@@ -34,13 +36,18 @@ class CheckoutController extends Controller
         ]);
 
         if (! config('store.cod_enabled')) {
-            return back()->withErrors(['payment' => 'Cash on Delivery is currently unavailable.']);
+            return back()->withErrors([
+                'payment' => 'Cash on Delivery is currently unavailable.',
+            ]);
         }
 
         $order = DB::transaction(function () use ($request, $data) {
             $cart = $request->session()->get('cart', []);
             $ids = array_map('intval', array_keys($cart));
-            $products = Product::whereIn('id', $ids)->lockForUpdate()->get()->keyBy('id');
+            $products = Product::whereIn('id', $ids)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
 
             if ($products->isEmpty()) {
                 abort(422, 'Your cart is empty.');
@@ -110,6 +117,10 @@ class CheckoutController extends Controller
 
         $request->session()->forget('cart');
 
+        if ($order->customer_email) {
+            Mail::to($order->customer_email)->queue(new OrderPlacedMail($order));
+        }
+
         return redirect()->route('checkout.success', $order);
     }
 
@@ -127,6 +138,7 @@ class CheckoutController extends Controller
 
         foreach ($raw as $productId => $line) {
             $product = $products->get((int) $productId);
+
             if (! $product || ! $product->active || $product->stock_quantity < 1) {
                 continue;
             }
