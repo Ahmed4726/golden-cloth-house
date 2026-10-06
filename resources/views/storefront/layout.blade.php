@@ -58,16 +58,13 @@
     <header class="site-header">
         <div class="container header-main">
             <button class="mobile-menu" type="button" aria-label="Open menu" data-mobile-menu>☰</button>
-
             <form class="header-search" method="get" action="{{ route('shop') }}">
                 <input type="search" name="q" placeholder="Search unstitched wear..." aria-label="Search products">
                 <button type="submit" aria-label="Search">⌕</button>
             </form>
-
             <a class="brand" href="{{ route('home') }}" aria-label="{{ $siteName }} home">
                 <img src="{{ asset('images/golden-cloth-house-logo.svg') }}" alt="{{ $siteName }}" style="width:190px;height:auto;display:block;">
             </a>
-
             <div class="header-actions">
                 <a class="icon-link" href="{{ route('order.track') }}"><span>⌖</span><span class="label">Track</span></a>
                 <a class="icon-link" href="{{ route('cart.index') }}"><span>Bag</span><span class="cart-count">{{ $cartCount }}</span></a>
@@ -134,7 +131,7 @@
                     </div>
                 </div>
                 <a class="nav-link" href="{{ route('shop', ['sort' => 'newest']) }}">New In</a>
-                <a class="nav-link sale-link" href="{{ route('shop', ['q' => 'Sale']) }}">Sale</a>
+                <a class="nav-link sale-link" href="{{ route('shop', ['sale' => 1]) }}">Sale</a>
                 <a class="nav-link" href="{{ route('order.track') }}">Track Order</a>
             </div>
         </nav>
@@ -175,7 +172,7 @@
                     <a href="{{ route('shop', ['sort' => 'newest']) }}">New Arrivals</a>
                     <a href="{{ route('shop', ['category' => 'women-unstitched']) }}">Women Unstitched</a>
                     <a href="{{ route('shop', ['category' => 'men-unstitched']) }}">Men Unstitched</a>
-                    <a href="{{ route('shop', ['q' => 'Sale']) }}">Sale</a>
+                    <a href="{{ route('shop', ['sale' => 1]) }}">Sale</a>
                 </div></div>
                 <div><div class="footer-title">Customer Care</div><div class="footer-links">
                     <a href="{{ route('order.track') }}">Track Order</a>
