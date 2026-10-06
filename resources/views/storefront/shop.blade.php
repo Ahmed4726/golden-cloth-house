@@ -20,7 +20,7 @@
             <button class="btn outline mobile-filter-button" type="button" data-filter-toggle>Filter & sort</button>
 
             <div class="shop-layout">
-                <aside class="filters collapsed" data-filters>
+                <aside class="filters" data-filters>
                     <form class="filter-form" method="get" action="{{ route('shop') }}">
                         <div class="filter-group">
                             <div class="filter-title">Search</div>
@@ -83,10 +83,7 @@
                 <div>
                     <div class="shop-top">
                         <div class="count">{{ $products->total() }} products</div>
-                        <div class="count">
-                            Showing {{ $products->firstItem() ?? 0 }}–{{ $products->lastItem() ?? 0 }}
-                            @if ($filter['sale']) · Sale @endif
-                        </div>
+                        <div class="count">Showing {{ $products->firstItem() ?? 0 }}–{{ $products->lastItem() ?? 0 }} @if ($filter['sale']) · Sale @endif</div>
                     </div>
 
                     @if ($products->isNotEmpty())
@@ -102,9 +99,7 @@
                             @else
                                 <a href="{{ $products->previousPageUrl() }}">Previous</a>
                             @endif
-
                             <span>Page {{ $products->currentPage() }} of {{ $products->lastPage() }}</span>
-
                             @if ($products->hasMorePages())
                                 <a href="{{ $products->nextPageUrl() }}">Next</a>
                             @else
@@ -132,8 +127,19 @@
 
             if (!button || !filters) return;
 
+            const syncMobileFilters = () => {
+                if (window.innerWidth <= 1050) {
+                    filters.style.display = 'none';
+                } else {
+                    filters.style.display = '';
+                }
+            };
+
+            syncMobileFilters();
+            window.addEventListener('resize', syncMobileFilters);
+
             button.addEventListener('click', () => {
-                filters.classList.toggle('collapsed');
+                filters.style.display = filters.style.display === 'none' ? 'block' : 'none';
             });
         });
     </script>
