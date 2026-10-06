@@ -12,18 +12,49 @@ class StorefrontController extends Controller
 {
     public function home()
     {
+        $categories = Category::where('active', true)
+            ->withCount(['products as active_products_count' => fn ($query) => $query->where('active', true)])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $categoryHighlights = $categories
+            ->filter(fn ($category) => $category->active_products_count > 0)
+            ->take(8)
+            ->map(function ($category) {
+                $product = Product::where('active', true)
+                    ->where('category_id', $category->id)
+                    ->where('stock_quantity', '>', 0)
+                    ->latest()
+                    ->first();
+
+                return [
+                    'category' => $category,
+                    'product' => $product,
+                ];
+            });
+
         return view('storefront.home', [
             'slides' => HomepageSlide::where('active', true)->orderBy('sort_order')->get(),
-            'products' => Product::where('active', true)->where('stock_quantity', '>', 0)->orderByDesc('featured')->orderBy('sort_order')->latest()->take(12)->get(),
-            'categories' => Category::where('active', true)->orderBy('sort_order')->orderBy('name')->pluck('name'),
+            'products' => Product::where('active', true)
+                ->where('stock_quantity', '>', 0)
+                ->orderByDesc('featured')
+                ->orderBy('sort_order')
+                ->latest()
+                ->take(12)
+                ->get(),
+            'categories' => $categories,
+            'categoryHighlights' => $categoryHighlights,
         ]);
     }
 
     public function shop(Request $request)
     {
-        $products = Product::with(['categoryRelation', 'brand'])->where('active', true)
+        $products = Product::with(['categoryRelation', 'brand'])
+            ->where('active', true)
             ->when($request->filled('q'), function ($query) use ($request) {
                 $term = trim((string) $request->input('q'));
+
                 $query->where(function ($q) use ($term) {
                     $q->where('name', 'like', "%{$term}%")
                         ->orWhere('category', 'like', "%{$term}%")
@@ -34,16 +65,26 @@ class StorefrontController extends Controller
             })
             ->when($request->filled('category'), function ($query) use ($request) {
                 $category = (string) $request->input('category');
+
                 $query->where(function ($q) use ($category) {
-                    $q->where('category_id', $category)->orWhere('category', $category);
+                    if (ctype_digit($category)) {
+                        $q->where('category_id', (int) $category);
+                    } else {
+                        $q->whereHas('categoryRelation', function ($categoryQuery) use ($category) {
+                            $categoryQuery->where('slug', $category)
+                                ->orWhere('name', $category);
+                        })->orWhere('category', $category);
+                    }
                 });
             })
             ->when($request->filled('brand'), fn ($query) => $query->where('brand_id', $request->integer('brand')))
             ->when($request->filled('min_price'), fn ($query) => $query->where('price', '>=', (float) $request->input('min_price')))
             ->when($request->filled('max_price'), fn ($query) => $query->where('price', '<=', (float) $request->input('max_price')))
-            ->when($request->boolean('in_stock'), fn ($query) => $query->where('stock_quantity', '>', 0));
+            ->when($request->boolean('in_stock'), fn ($query) => $query->where('stock_quantity', '>', 0))
+            ->when($request->boolean('sale'), fn ($query) => $query->whereColumn('compare_at_price', '>', 'price'));
 
         $sort = (string) $request->input('sort', 'featured');
+
         match ($sort) {
             'price_low' => $products->orderBy('price')->orderBy('name'),
             'price_high' => $products->orderByDesc('price')->orderBy('name'),
@@ -64,6 +105,7 @@ class StorefrontController extends Controller
                 'max_price' => $request->input('max_price', ''),
                 'sort' => $sort,
                 'in_stock' => $request->boolean('in_stock'),
+                'sale' => $request->boolean('sale'),
             ],
         ]);
     }
@@ -72,9 +114,13 @@ class StorefrontController extends Controller
     {
         abort_unless($product->active, 404);
 
-        $related = Product::where('active', true)->where('id', '!=', $product->id)
+        $related = Product::where('active', true)
+            ->where('id', '!=', $product->id)
             ->when($product->category_id, fn ($query) => $query->where('category_id', $product->category_id))
-            ->where('stock_quantity', '>', 0)->latest()->take(4)->get();
+            ->where('stock_quantity', '>', 0)
+            ->latest()
+            ->take(4)
+            ->get();
 
         return view('storefront.product', compact('product', 'related'));
     }
