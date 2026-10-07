@@ -58,6 +58,10 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.store');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.store');
 
+Route::middleware('admin.session')->get('/storage/catalog-imports/{filename}', [CatalogImportController::class, 'storagePdf'])
+    ->where('filename', '[^/]+')
+    ->name('catalog-imports.storage-pdf');
+
 Route::middleware('admin.session')->prefix('admin')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/', DashboardController::class)->name('dashboard');
@@ -75,10 +79,6 @@ Route::middleware('admin.session')->prefix('admin')->group(function () {
     Route::get('/catalog-imports/{catalogImport}/builder', [CatalogImportController::class, 'builder'])->name('catalog-imports.builder');
     Route::post('/catalog-imports/{catalogImport}/finalize', [CatalogImportController::class, 'finalize'])->name('catalog-imports.finalize');
     Route::delete('/catalog-imports/{catalogImport}', [CatalogImportController::class, 'destroy'])->name('catalog-imports.destroy');
-
-    Route::get('/storage/catalog-imports/{filename}', [CatalogImportController::class, 'storagePdf'])
-        ->where('filename', '[^/]+')
-        ->name('catalog-imports.storage-pdf');
 
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
