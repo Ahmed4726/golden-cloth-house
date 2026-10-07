@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class CatalogImportController extends Controller
 {
@@ -33,7 +34,30 @@ class CatalogImportController extends Controller
         ]);
 
         $file = $data['pdf'];
+
+        if (! $file->isValid() || (int) $file->getSize() <= 0) {
+            return back()
+                ->withInput()
+                ->withErrors(['pdf' => 'The uploaded PDF is empty or the server could not receive the file correctly. Please upload the PDF again.']);
+        }
+
         $path = $file->store('catalog-imports', 'public');
+
+        if (! $path || ! Storage::disk('public')->exists($path)) {
+            return back()
+                ->withInput()
+                ->withErrors(['pdf' => 'The PDF could not be saved to storage. Check storage permissions and try again.']);
+        }
+
+        $storedSize = (int) Storage::disk('public')->size($path);
+
+        if ($storedSize <= 0) {
+            Storage::disk('public')->delete($path);
+
+            return back()
+                ->withInput()
+                ->withErrors(['pdf' => 'The PDF was uploaded but the saved file is 0 bytes. Check the server PHP upload/storage limits and try again.']);
+        }
 
         $import = CatalogImport::create([
             'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
@@ -59,14 +83,24 @@ class CatalogImportController extends Controller
 
         abort_unless($disk->exists($catalogImport->pdf_path), 404, 'The catalog PDF could not be found.');
 
-        return response()->file(
-            $disk->path($catalogImport->pdf_path),
-            [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="'.basename($catalogImport->pdf_path).'"',
-                'Cache-Control' => 'private, max-age=0, must-revalidate',
-            ]
-        );
+        $size = (int) $disk->size($catalogImport->pdf_path);
+
+        abort_if($size <= 0, 422, 'The stored catalog PDF is empty. Please delete this catalog import and upload the PDF again.');
+
+        $stream = $disk->readStream($catalogImport->pdf_path);
+
+        abort_unless(is_resource($stream), 500, 'The catalog PDF could not be opened from storage.');
+
+        return response()->stream(function () use ($stream) {
+            fpassthru($stream);
+            fclose($stream);
+        }, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.basename($catalogImport->pdf_path).'"',
+            'Content-Length' => (string) $size,
+            'Cache-Control' => 'private, max-age=0, must-revalidate',
+            'X-Catalog-Pdf-Size' => (string) $size,
+        ]);
     }
 
     public function storagePdf(string $filename)
@@ -184,7 +218,7 @@ class CatalogImportController extends Controller
         $binary = base64_decode($encoded, true);
 
         if ($binary === false || strlen($binary) < 100) {
-            abort(422, 'One of the selected PDF images is invalid.');
+            throw new RuntimeException('One of the selected PDF images is invalid.');
         }
 
         $path = $directory.'/'.$filename.'-'.Str::lower(Str::random(8)).'.'.$mime;
