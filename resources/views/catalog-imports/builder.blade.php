@@ -48,298 +48,49 @@
             </aside>
         </div>
     </div>
-@endsection
 
-@push('styles')
     <style>
-        .container {
-            max-width: 1500px;
-            margin: 0 auto;
-            padding: 24px;
-        }
-
-        .page-header,
-        .panel-header,
-        .builder-actions {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-        }
-
-        .page-header {
-            margin-bottom: 24px;
-        }
-
-        .eyebrow {
-            margin: 0 0 4px;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-        }
-
-        h1,
-        h2 {
-            margin: 0;
-        }
-
-        .muted {
-            color: #6b7280;
-        }
-
-        .builder-layout {
-            display: grid;
-            grid-template-columns: minmax(0, 1.4fr) minmax(360px, .8fr);
-            gap: 24px;
-            align-items: start;
-        }
-
-        .panel {
-            padding: 20px;
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 18px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, .05);
-        }
-
-        .panel-header {
-            margin-bottom: 18px;
-        }
-
-        .progress-wrap {
-            min-width: 230px;
-        }
-
-        .status {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 13px;
-            text-align: right;
-        }
-
-        .progress {
-            height: 6px;
-            overflow: hidden;
-            background: #e5e7eb;
-            border-radius: 99px;
-        }
-
-        .progress span {
-            display: block;
-            width: 0;
-            height: 100%;
-            transition: width .2s ease;
-            background: #111827;
-        }
-
-        .pdf-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 14px;
-        }
-
-        .pdf-page {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            padding: 0;
-            overflow: hidden;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            background: #fff;
-            cursor: pointer;
-        }
-
-        .pdf-page.selected {
-            border-color: #111827;
-            box-shadow: 0 0 0 2px #111827 inset;
-        }
-
-        .pdf-page canvas {
-            display: block;
-            width: 100%;
-            height: auto;
-            background: #f8fafc;
-        }
-
-        .page-number,
-        .page-selected {
-            position: absolute;
-            z-index: 2;
-            top: 8px;
-            padding: 4px 8px;
-            font-size: 12px;
-            font-weight: 700;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, .94);
-        }
-
-        .page-number {
-            left: 8px;
-        }
-
-        .page-selected {
-            right: 8px;
-        }
-
-        .product-panel {
-            position: sticky;
-            top: 20px;
-        }
-
-        .product-card {
-            margin-bottom: 14px;
-            padding: 14px;
-            border: 1px solid #e5e7eb;
-            border-radius: 14px;
-        }
-
-        .product-card.active {
-            border-color: #111827;
-        }
-
-        .product-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .product-card-header button {
-            border: 0;
-            background: transparent;
-            cursor: pointer;
-        }
-
-        .field {
-            margin-bottom: 12px;
-        }
-
-        .field label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .field input,
-        .field select,
-        .field textarea {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 9px 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 9px;
-            background: #fff;
-        }
-
-        .field textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-
-        .builder-two-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .check {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            margin-top: 25px;
-            font-size: 13px;
-        }
-
-        .selected-pages {
-            padding-top: 8px;
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        .button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 40px;
-            padding: 0 14px;
-            border: 0;
-            border-radius: 9px;
-            text-decoration: none;
-            cursor: pointer;
-            font-weight: 700;
-        }
-
-        .button-primary {
-            color: #fff;
-            background: #111827;
-        }
-
-        .button-secondary {
-            color: #111827;
-            background: #f3f4f6;
-        }
-
-        .builder-actions {
-            padding-top: 16px;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .error-box {
-            padding: 16px;
-            border: 1px solid #fecaca;
-            border-radius: 12px;
-            color: #991b1b;
-            background: #fef2f2;
-            line-height: 1.6;
-        }
-
-        @media (max-width: 1000px) {
-            .builder-layout {
-                grid-template-columns: 1fr;
-            }
-
-            .product-panel {
-                position: static;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .container {
-                padding: 14px;
-            }
-
-            .page-header,
-            .panel-header,
-            .builder-actions {
-                align-items: stretch;
-                flex-direction: column;
-            }
-
-            .progress-wrap {
-                min-width: 0;
-            }
-
-            .status {
-                text-align: left;
-            }
-
-            .builder-two-col {
-                grid-template-columns: 1fr;
-            }
-
-            .check {
-                margin-top: 0;
-            }
-        }
+        .container { max-width: 1500px; margin: 0 auto; padding: 24px; }
+        .page-header, .panel-header, .builder-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .page-header { margin-bottom: 24px; }
+        .eyebrow { margin: 0 0 4px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+        h1, h2 { margin: 0; }
+        .muted { color: #6b7280; }
+        .builder-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(360px, .8fr); gap: 24px; align-items: start; }
+        .panel { padding: 20px; background: #fff; border: 1px solid #e5e7eb; border-radius: 18px; box-shadow: 0 8px 30px rgba(0,0,0,.05); }
+        .panel-header { margin-bottom: 18px; }
+        .progress-wrap { min-width: 230px; }
+        .status { display: block; margin-bottom: 6px; font-size: 13px; text-align: right; }
+        .progress { height: 6px; overflow: hidden; background: #e5e7eb; border-radius: 99px; }
+        .progress span { display: block; width: 0; height: 100%; transition: width .2s ease; background: #111827; }
+        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; }
+        .pdf-page { position: relative; display: flex; flex-direction: column; align-items: stretch; padding: 0; overflow: hidden; border: 2px solid #e5e7eb; border-radius: 12px; background: #fff; cursor: pointer; }
+        .pdf-page.selected { border-color: #111827; box-shadow: 0 0 0 2px #111827 inset; }
+        .pdf-page canvas { display: block; width: 100%; height: auto; background: #f8fafc; }
+        .page-number, .page-selected { position: absolute; z-index: 2; top: 8px; padding: 4px 8px; font-size: 12px; font-weight: 700; border-radius: 999px; background: rgba(255,255,255,.94); }
+        .page-number { left: 8px; }
+        .page-selected { right: 8px; }
+        .product-panel { position: sticky; top: 20px; }
+        .product-card { margin-bottom: 14px; padding: 14px; border: 1px solid #e5e7eb; border-radius: 14px; }
+        .product-card.active { border-color: #111827; }
+        .product-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+        .product-card-header button { border: 0; background: transparent; cursor: pointer; }
+        .field { margin-bottom: 12px; }
+        .field label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 700; }
+        .field input, .field select, .field textarea { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid #d1d5db; border-radius: 9px; background: #fff; }
+        .field textarea { min-height: 80px; resize: vertical; }
+        .builder-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .check { display: flex; align-items: center; gap: 7px; margin-top: 25px; font-size: 13px; }
+        .selected-pages { padding-top: 8px; font-size: 12px; color: #6b7280; }
+        .button { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 14px; border: 0; border-radius: 9px; text-decoration: none; cursor: pointer; font-weight: 700; }
+        .button-primary { color: #fff; background: #111827; }
+        .button-secondary { color: #111827; background: #f3f4f6; }
+        .builder-actions { padding-top: 16px; border-top: 1px solid #e5e7eb; }
+        .error-box { padding: 16px; border: 1px solid #fecaca; border-radius: 12px; color: #991b1b; background: #fef2f2; line-height: 1.6; }
+        @media (max-width: 1000px) { .builder-layout { grid-template-columns: 1fr; } .product-panel { position: static; } }
+        @media (max-width: 640px) { .container { padding: 14px; } .page-header, .panel-header, .builder-actions { align-items: stretch; flex-direction: column; } .progress-wrap { min-width: 0; } .status { text-align: left; } .builder-two-col { grid-template-columns: 1fr; } .check { margin-top: 0; } }
     </style>
-@endpush
 
-@push('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
         (() => {
@@ -373,9 +124,7 @@
             }
 
             function money(value) {
-                return new Intl.NumberFormat('en-PK', {
-                    maximumFractionDigits: 0,
-                }).format(Number(value) || 0);
+                return new Intl.NumberFormat('en-PK', { maximumFractionDigits: 0 }).format(Number(value) || 0);
             }
 
             function optionMarkup(items, selected, emptyLabel) {
@@ -404,7 +153,6 @@
                     featured: Boolean(data.featured),
                     pages: new Set(data.pages || []),
                 });
-
                 activeProduct = products.length - 1;
                 renderProducts();
                 updatePageSelection();
@@ -422,7 +170,6 @@
                                     ${products.length > 1 ? `<button type="button" data-remove="${index}">Remove</button>` : ''}
                                 </div>
                             </div>
-
                             <div class="field"><label>Product title</label><input data-field="name" data-index="${index}" value="${escapeHtml(product.name)}"></div>
                             <div class="builder-two-col">
                                 <div class="field"><label>Retail price (PKR)</label><input type="number" min="0" step="1" data-field="retail_price" data-index="${index}" value="${product.retail_price}"></div>
@@ -530,43 +277,12 @@
             async function renderPdf() {
                 pageStatus.textContent = 'Opening PDF…';
                 pageContainer.innerHTML = '<div class="muted">Opening uploaded PDF…</div>';
-
                 try {
-                    const response = await fetch(pdfUrl, {
-                        credentials: 'same-origin',
-                        cache: 'no-store',
-                        headers: { 'Accept': 'application/pdf' },
-                    });
-
-                    const contentType = response.headers.get('content-type') || 'unknown';
-                    const contentLength = response.headers.get('content-length') || 'unknown';
-                    const catalogSize = response.headers.get('x-catalog-pdf-size') || 'unknown';
-                    const finalUrl = response.url || pdfUrl;
-
-                    if (!response.ok) {
-                        throw new Error(`PDF request failed: HTTP ${response.status}. Type: ${contentType}.`);
-                    }
-
+                    const response = await fetch(pdfUrl, { credentials: 'same-origin', cache: 'no-store' });
+                    if (!response.ok) throw new Error(`PDF request failed with HTTP ${response.status}.`);
                     const buffer = await response.arrayBuffer();
-                    const bytes = new Uint8Array(buffer);
-                    const signature = new TextDecoder().decode(bytes.slice(0, 5));
+                    if (!buffer.byteLength) throw new Error('The uploaded PDF is empty.');
 
-                    if (!buffer.byteLength) {
-                        throw new Error(
-                            `PDF response body is empty. HTTP ${response.status}; ` +
-                            `Content-Type: ${contentType}; Content-Length: ${contentLength}; ` +
-                            `X-Catalog-Pdf-Size: ${catalogSize}; URL: ${finalUrl}`
-                        );
-                    }
-
-                    if (signature !== '%PDF-') {
-                        throw new Error(
-                            `PDF endpoint returned ${buffer.byteLength} bytes, but the response is not a PDF. ` +
-                            `First bytes: ${signature || '(none)'}; Content-Type: ${contentType}; URL: ${finalUrl}`
-                        );
-                    }
-
-                    pageStatus.textContent = `Downloaded ${(buffer.byteLength / 1024 / 1024).toFixed(2)} MB PDF…`;
                     pdfDocument = await pdfjsLib.getDocument({ data: buffer }).promise;
                     pageContainer.innerHTML = '';
                     pageStatus.textContent = `${pdfDocument.numPages} pages`;
@@ -574,7 +290,6 @@
                     for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
                         pageStatus.textContent = `Rendering page ${pageNumber} of ${pdfDocument.numPages}…`;
                         pageProgress.style.width = `${Math.round((pageNumber / pdfDocument.numPages) * 100)}%`;
-
                         const card = document.createElement('button');
                         card.type = 'button';
                         card.className = 'pdf-page';
@@ -586,7 +301,6 @@
                         card.appendChild(await renderThumbnail(pageNumber));
                         card.addEventListener('click', () => togglePage(pageNumber));
                         pageContainer.appendChild(card);
-
                         await new Promise(resolve => setTimeout(resolve, 0));
                     }
 
@@ -596,7 +310,7 @@
                 } catch (error) {
                     console.error('Catalog PDF builder error:', error);
                     pageStatus.textContent = 'PDF failed';
-                    pageContainer.innerHTML = `<div class="error-box"><strong>PDF could not be rendered.</strong><br>${escapeHtml(error.message)}<br><br>If this shows an empty response, the next thing to check is the Laravel/PHP server response rather than installing a PDF package.</div>`;
+                    pageContainer.innerHTML = `<div class="error-box"><strong>PDF could not be rendered.</strong><br>${escapeHtml(error.message)}<br><br>Please verify the uploaded PDF is valid and readable.</div>`;
                 }
             }
 
@@ -619,7 +333,7 @@
                     for (const product of products) {
                         productNumber++;
                         const images = [];
-                        const pages = [...product.pages].sort((a, b) => a - b);
+                        const pages = [...product.pages].sort((a,b) => a-b);
                         for (let i = 0; i < pages.length; i++) {
                             builderStatus.textContent = `Rendering images for product ${productNumber}/${products.length}: ${i + 1}/${pages.length}…`;
                             images.push(await renderSelectedImage(pages[i]));
@@ -659,28 +373,18 @@
                 knownCatalog.groups.forEach((pages, index) => addProduct({
                     name: `${knownCatalog.collection} — Design ${String(index + 1).padStart(2, '0')}`,
                     description: knownCatalog.description,
-                    retail_price: knownCatalog.retailPrice,
+                    retail_price: knownCatalog.retail_price,
                     discount_percent: 3,
                     gender: knownCatalog.gender,
-                    piece_count: knownCatalog.pieceCount,
+                    piece_count: knownCatalog.piece_count,
                     fabric: knownCatalog.fabric,
                     season: knownCatalog.season,
                     pages,
                 }));
-                activeProduct = 0;
-                renderProducts();
-                updatePageSelection();
             } else {
                 addProduct();
             }
 
-            if (!window.pdfjsLib) {
-                pageStatus.textContent = 'PDF.js failed to load';
-                pageContainer.innerHTML = '<div class="error-box"><strong>PDF.js could not be loaded.</strong><br>Check your internet connection or CDN access.</div>';
-                return;
-            }
-
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
             renderPdf();
         })();
     </script>
