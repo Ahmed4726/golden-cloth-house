@@ -47,7 +47,7 @@
     </div>
 
     <div id="catalogBuilder" class="catalog-builder"
-         data-pdf-url="{{ Storage::disk('public')->url($catalogImport->pdf_path) }}"
+         data-pdf-url="{{ route('catalog-imports.pdf', $catalogImport) }}"
          data-finalize-url="{{ route('catalog-imports.finalize', $catalogImport) }}">
         <section class="card">
             <div class="builder-heading">
@@ -306,7 +306,7 @@
                 } catch (error) {
                     console.error('Catalog PDF builder error:', error);
                     pageStatus.textContent = 'PDF failed';
-                    pageContainer.innerHTML = `<div class="error-box"><strong>PDF could not be rendered.</strong><br>${escapeHtml(error.message)}<br><br>Check that <code>php artisan storage:link</code> has been run and then refresh this page.</div>`;
+                    pageContainer.innerHTML = `<div class="error-box"><strong>PDF could not be rendered.</strong><br>${escapeHtml(error.message)}<br><br>The builder now loads the PDF through the authenticated Laravel PDF endpoint, so <code>php artisan storage:link</code> is not required for this step.</div>`;
                 }
             }
 
