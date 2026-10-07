@@ -85,7 +85,7 @@ The Lime catalogue explicitly describes the collection as Peach Slub Embroidered
 8. Run `php artisan queue:work`.
 9. Run `php artisan schedule:work` locally.
 
-For uploaded images to display correctly, the `public/storage` link must exist. Laravel's public disk stores public files under `storage/app/public`, and `php artisan storage:link` exposes them through `public/storage`. urlLaravel filesystem documentationturn1search0
+For uploaded images to display correctly, the `public/storage` link must exist. Laravel's public disk stores public files under `storage/app/public`, and `php artisan storage:link` exposes them through `public/storage`.
 
 For social publishing, `APP_URL` must be a real HTTPS public URL so Meta, TikTok and other providers can fetch media.
 
