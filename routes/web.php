@@ -58,7 +58,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.store');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.store');
 
-Route::middleware('admin.session')->get('/storage/catalog-imports/{filename}', [CatalogImportController::class, 'storagePdf'])
+Route::get('/storage/catalog-imports/{filename}', [CatalogImportController::class, 'storagePdf'])
     ->where('filename', '[^/]+')
     ->name('catalog-imports.storage-pdf');
 
