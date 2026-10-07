@@ -10,8 +10,10 @@ class Product extends Model
 {
     protected $fillable = [
         'name', 'slug', 'sku', 'price', 'currency', 'stock_quantity',
-        'compare_at_price', 'category', 'category_id', 'brand_id',
-        'description', 'image_urls', 'media_paths', 'active', 'featured', 'sort_order',
+        'compare_at_price', 'discount_percent', 'category', 'category_id', 'brand_id',
+        'gender', 'wear_type', 'piece_count', 'fabric', 'season', 'design_code',
+        'catalog_import_id', 'description', 'image_urls', 'media_paths', 'active',
+        'featured', 'sort_order',
     ];
 
     protected function casts(): array
@@ -23,6 +25,7 @@ class Product extends Model
             'featured' => 'boolean',
             'price' => 'decimal:2',
             'compare_at_price' => 'decimal:2',
+            'discount_percent' => 'decimal:2',
         ];
     }
 
@@ -34,6 +37,11 @@ class Product extends Model
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    public function catalogImport(): BelongsTo
+    {
+        return $this->belongsTo(CatalogImport::class);
     }
 
     public function socialPosts(): HasMany
@@ -54,5 +62,14 @@ class Product extends Model
     public function isInStock(int $quantity = 1): bool
     {
         return $this->active && $this->stock_quantity >= $quantity;
+    }
+
+    public function imageUrl(string $image): string
+    {
+        if (filter_var($image, FILTER_VALIDATE_URL)) {
+            return $image;
+        }
+
+        return asset('storage/'.ltrim($image, '/'));
     }
 }
