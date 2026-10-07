@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="ur">
 <head>
     @php
         $siteName = config('store.name');
         $pageTitle = $title ?? $siteName;
-        $pageDescription = $description ?? 'Golden Cloth House — women and men unstitched wear with Cash on Delivery across Pakistan.';
+        $pageDescription = $description ?? 'Golden Cloth House — خواتین اور مردوں کے معیاری ان سٹچڈ ملبوسات، پاکستان بھر میں Cash on Delivery کے ساتھ۔';
         $canonical = $canonical ?? url()->current();
         $shareImage = $shareImage ?? null;
         $cartCount = collect(session('cart', []))->sum('quantity');
@@ -15,6 +15,9 @@
     <meta name="description" content="{{ $pageDescription }}">
     <meta name="robots" content="index,follow,max-image-preview:large">
     <link rel="canonical" href="{{ $canonical }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600&display=swap" rel="stylesheet">
     <meta property="og:type" content="{{ $ogType ?? 'website' }}">
     <meta property="og:site_name" content="{{ $siteName }}">
     <meta property="og:title" content="{{ $pageTitle }}">
@@ -58,13 +61,16 @@
     <header class="site-header">
         <div class="container header-main">
             <button class="mobile-menu" type="button" aria-label="Open menu" data-mobile-menu>☰</button>
+
             <form class="header-search" method="get" action="{{ route('shop') }}">
                 <input type="search" name="q" placeholder="Search unstitched wear..." aria-label="Search products">
                 <button type="submit" aria-label="Search">⌕</button>
             </form>
+
             <a class="brand" href="{{ route('home') }}" aria-label="{{ $siteName }} home">
-                <img src="{{ asset('images/golden-cloth-house-logo.svg') }}" alt="{{ $siteName }}" style="width:190px;height:auto;display:block;">
+                <img src="{{ asset('images/golden-cloth-house-logo.svg') }}" alt="گولڈن کلاتھ ہاؤس" style="width:min(230px,52vw);height:auto;display:block;">
             </a>
+
             <div class="header-actions">
                 <a class="icon-link" href="{{ route('order.track') }}"><span>⌖</span><span class="label">Track</span></a>
                 <a class="icon-link" href="{{ route('cart.index') }}"><span>Bag</span><span class="cart-count">{{ $cartCount }}</span></a>
@@ -163,8 +169,8 @@
         <div class="container">
             <div class="footer-grid">
                 <div>
-                    <div class="footer-brand">{{ $siteName }}</div>
-                    <p>Modern women and men unstitched wear, delivered across Pakistan with Cash on Delivery.</p>
+                    <div class="footer-brand">گولڈن کلاتھ ہاؤس</div>
+                    <p>خواتین اور مردوں کے معیاری ان سٹچڈ ملبوسات، پاکستان بھر میں Cash on Delivery کے ساتھ۔</p>
                     @if (config('store.contact_phone'))<p>{{ config('store.contact_phone') }}</p>@endif
                     @if (config('store.contact_email'))<p>{{ config('store.contact_email') }}</p>@endif
                 </div>
