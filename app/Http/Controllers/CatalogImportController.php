@@ -38,7 +38,9 @@ class CatalogImportController extends Controller
         if (! $file->isValid() || (int) $file->getSize() <= 0) {
             return back()
                 ->withInput()
-                ->withErrors(['pdf' => 'The uploaded PDF is empty or the server could not receive the file correctly. Please upload the PDF again.']);
+                ->withErrors([
+                    'pdf' => 'The uploaded PDF is empty or the server could not receive the file correctly. Please upload the PDF again.',
+                ]);
         }
 
         $path = $file->store('catalog-imports', 'public');
@@ -46,7 +48,9 @@ class CatalogImportController extends Controller
         if (! $path || ! Storage::disk('public')->exists($path)) {
             return back()
                 ->withInput()
-                ->withErrors(['pdf' => 'The PDF could not be saved to storage. Check storage permissions and try again.']);
+                ->withErrors([
+                    'pdf' => 'The PDF could not be saved to storage. Check storage permissions and try again.',
+                ]);
         }
 
         $storedSize = (int) Storage::disk('public')->size($path);
@@ -56,7 +60,9 @@ class CatalogImportController extends Controller
 
             return back()
                 ->withInput()
-                ->withErrors(['pdf' => 'The PDF was uploaded but the saved file is 0 bytes. Check the server PHP upload/storage limits and try again.']);
+                ->withErrors([
+                    'pdf' => 'The PDF was uploaded but the saved file is 0 bytes. Check the server PHP upload/storage limits and try again.',
+                ]);
         }
 
         $import = CatalogImport::create([
@@ -72,8 +78,14 @@ class CatalogImportController extends Controller
     {
         return view('catalog-imports.builder', [
             'catalogImport' => $catalogImport,
-            'categories' => Category::where('active', true)->orderBy('sort_order')->orderBy('name')->get(),
-            'brands' => Brand::where('active', true)->orderBy('sort_order')->orderBy('name')->get(),
+            'categories' => Category::where('active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
+            'brands' => Brand::where('active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
@@ -81,22 +93,31 @@ class CatalogImportController extends Controller
     {
         $disk = Storage::disk('public');
 
-        abort_unless($disk->exists($catalogImport->pdf_path), 404, 'The catalog PDF could not be found.');
+        abort_unless(
+            $disk->exists($catalogImport->pdf_path),
+            404,
+            'The catalog PDF could not be found.'
+        );
 
         $size = (int) $disk->size($catalogImport->pdf_path);
 
-        abort_if($size <= 0, 422, 'The stored catalog PDF is empty. Please delete this catalog import and upload the PDF again.');
+        abort_if(
+            $size <= 0,
+            422,
+            'The stored catalog PDF is empty. Please delete this catalog import and upload the PDF again.'
+        );
 
-        $stream = $disk->readStream($catalogImport->pdf_path);
+        $absolutePath = $disk->path($catalogImport->pdf_path);
 
-        abort_unless(is_resource($stream), 500, 'The catalog PDF could not be opened from storage.');
+        abort_unless(
+            is_file($absolutePath) && is_readable($absolutePath),
+            500,
+            'The catalog PDF exists but cannot be read from storage.'
+        );
 
-        return response()->stream(function () use ($stream) {
-            fpassthru($stream);
-            fclose($stream);
-        }, 200, [
+        return response()->file($absolutePath, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="'.basename($catalogImport->pdf_path).'"',
+            'Content-Disposition' => 'inline; filename="' . basename($catalogImport->pdf_path) . '"',
             'Content-Length' => (string) $size,
             'Cache-Control' => 'private, max-age=0, must-revalidate',
             'X-Catalog-Pdf-Size' => (string) $size,
@@ -105,7 +126,10 @@ class CatalogImportController extends Controller
 
     public function storagePdf(string $filename)
     {
-        $catalogImport = CatalogImport::where('pdf_path', 'catalog-imports/'.$filename)->firstOrFail();
+        $catalogImport = CatalogImport::where(
+            'pdf_path',
+            'catalog-imports/' . $filename
+        )->firstOrFail();
 
         return $this->pdf($catalogImport);
     }
@@ -140,8 +164,8 @@ class CatalogImportController extends Controller
                 foreach ($item['images'] as $imageIndex => $dataUrl) {
                     $mediaPaths[] = $this->storeDataUrl(
                         $dataUrl,
-                        'products/catalog/'.$catalogImport->uuid,
-                        'design-'.($index + 1).'-'.($imageIndex + 1)
+                        'products/catalog/' . $catalogImport->uuid,
+                        'design-' . ($index + 1) . '-' . ($imageIndex + 1)
                     );
                 }
 
@@ -151,7 +175,10 @@ class CatalogImportController extends Controller
 
                 $retailPrice = (float) $item['retail_price'];
                 $discount = (float) ($item['discount_percent'] ?? 3);
-                $salePrice = round($retailPrice * (1 - ($discount / 100)), 2);
+                $salePrice = round(
+                    $retailPrice * (1 - ($discount / 100)),
+                    2
+                );
                 $name = trim($item['name']);
 
                 $product = Product::create([
@@ -191,7 +218,7 @@ class CatalogImportController extends Controller
         });
 
         return response()->json([
-            'message' => count($created).' products created successfully.',
+            'message' => count($created) . ' products created successfully.',
             'redirect' => route('products.index'),
         ]);
     }
@@ -202,6 +229,7 @@ class CatalogImportController extends Controller
             foreach ($product->media_paths ?? [] as $path) {
                 Storage::disk('public')->delete($path);
             }
+
             $product->delete();
         }
 
@@ -211,17 +239,22 @@ class CatalogImportController extends Controller
         return back()->with('success', 'Catalog import and its products were removed.');
     }
 
-    private function storeDataUrl(string $dataUrl, string $directory, string $filename): string
-    {
+    private function storeDataUrl(
+        string $dataUrl,
+        string $directory,
+        string $filename
+    ): string {
         [$meta, $encoded] = explode(',', $dataUrl, 2);
-        $mime = str_contains($meta, 'image/webp') ? 'webp' : (str_contains($meta, 'image/png') ? 'png' : 'jpg');
+        $mime = str_contains($meta, 'image/webp')
+            ? 'webp'
+            : (str_contains($meta, 'image/png') ? 'png' : 'jpg');
         $binary = base64_decode($encoded, true);
 
         if ($binary === false || strlen($binary) < 100) {
             throw new RuntimeException('One of the selected PDF images is invalid.');
         }
 
-        $path = $directory.'/'.$filename.'-'.Str::lower(Str::random(8)).'.'.$mime;
+        $path = $directory . '/' . $filename . '-' . Str::lower(Str::random(8)) . '.' . $mime;
         Storage::disk('public')->put($path, $binary);
 
         return $path;
@@ -234,7 +267,7 @@ class CatalogImportController extends Controller
         $counter = 2;
 
         while (Product::where('slug', $slug)->exists()) {
-            $slug = $base.'-'.$counter++;
+            $slug = $base . '-' . $counter++;
         }
 
         return $slug;
