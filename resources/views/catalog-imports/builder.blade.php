@@ -1,178 +1,437 @@
 @extends('layouts.app')
 
+@section('title', 'Catalog Product Builder')
+
 @section('content')
-    <style>
-        .catalog-builder { display:grid; grid-template-columns:minmax(0,1fr) minmax(420px,48%); gap:20px; align-items:start; }
-        .card { background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:20px; box-shadow:0 8px 30px rgba(0,0,0,.05); }
-        .builder-heading { display:flex; justify-content:space-between; gap:16px; align-items:center; margin-bottom:16px; }
-        .muted { color:#6b7280; }
-        .builder-note { padding:12px 14px; border-radius:10px; background:#faf7ef; border:1px solid #eadfca; margin-bottom:16px; font-size:14px; }
-        .product-builder-list { display:grid; gap:14px; }
-        .design-card { border:1px solid #e5e7eb; border-radius:14px; overflow:hidden; background:#fff; }
-        .design-card.active { border-color:#b89035; box-shadow:0 0 0 2px rgba(184,144,53,.12); }
-        .design-card-head { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:#fafafa; }
-        .design-select { border:0; background:none; display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:700; text-align:left; }
-        .design-number { width:32px; height:32px; display:grid; place-items:center; border-radius:50%; background:#111827; color:#fff; font-size:12px; }
-        .remove-design { border:0; background:#fee2e2; color:#991b1b; width:30px; height:30px; border-radius:8px; cursor:pointer; font-size:18px; }
-        .design-form { padding:14px; display:grid; gap:12px; }
-        .builder-two-col { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-        .field { display:grid; gap:6px; }
-        .field label, .check { font-size:13px; font-weight:600; color:#374151; }
-        .field input, .field select, .field textarea { width:100%; box-sizing:border-box; border:1px solid #d1d5db; border-radius:9px; padding:9px 10px; font:inherit; background:#fff; }
-        .field textarea { min-height:90px; resize:vertical; }
-        .sale-preview { padding:10px 12px; border-radius:9px; background:#f9fafb; border:1px solid #e5e7eb; }
-        .sale-preview span { color:#6b7280; font-size:12px; margin-left:6px; }
-        .selected-pages { padding:10px 12px; border-radius:9px; background:#f3f4f6; font-size:13px; }
-        .builder-actions { display:flex; align-items:center; gap:12px; margin-top:16px; }
-        .pdf-pages { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; max-height:calc(100vh - 190px); overflow:auto; padding-right:4px; }
-        .pdf-page { position:relative; display:block; width:100%; border:2px solid #e5e7eb; border-radius:10px; background:#fff; padding:7px; cursor:pointer; text-align:left; }
-        .pdf-page:hover { border-color:#b89035; }
-        .pdf-page.selected { border-color:#b89035; box-shadow:0 0 0 2px rgba(184,144,53,.18); }
-        .pdf-page canvas { display:block; width:100%; height:auto; border-radius:5px; background:#eee; }
-        .page-number { display:block; font-size:12px; font-weight:700; padding:3px 2px 7px; }
-        .page-selected { position:absolute; right:8px; top:8px; background:#111827; color:#fff; border-radius:6px; padding:4px 7px; font-size:11px; font-weight:700; }
-        .progress { height:8px; background:#e5e7eb; border-radius:99px; overflow:hidden; margin:10px 0 4px; }
-        .progress > span { display:block; height:100%; width:0; background:#b89035; transition:width .15s ease; }
-        .error-box { padding:14px; border-radius:10px; background:#fef2f2; color:#991b1b; border:1px solid #fecaca; line-height:1.5; }
-        @media (max-width:900px) { .catalog-builder { grid-template-columns:1fr; } .pdf-pages { max-height:none; } }
-        @media (max-width:600px) { .builder-two-col { grid-template-columns:1fr; } .pdf-pages { grid-template-columns:1fr 1fr; } }
-    </style>
-
-    <div class="top">
-        <div>
-            <h1>Product Builder</h1>
-            <p class="muted">{{ $catalogImport->name }} · Select catalogue pages, review product information, then create the listings.</p>
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Catalog import</p>
+                <h1>Product Builder</h1>
+                <p class="muted">Select the PDF pages that belong to each product, review the product details, then create the listings.</p>
+            </div>
+            <a class="button button-secondary" href="{{ route('catalog-imports.index') }}">Back to Imports</a>
         </div>
-        <a class="btn secondary" href="{{ route('catalog-imports.index') }}">Back to Catalogs</a>
-    </div>
 
-    <div id="catalogBuilder" class="catalog-builder"
-         data-pdf-url="{{ route('catalog-imports.pdf', $catalogImport) }}"
-         data-finalize-url="{{ route('catalog-imports.finalize', $catalogImport) }}">
-        <section class="card">
-            <div class="builder-heading">
-                <div><strong>Products / Designs</strong><div class="muted">Known catalog layouts are pre-filled when detected.</div></div>
-                <button class="btn secondary" type="button" id="addDesign">+ Add Design</button>
-            </div>
+        <div class="builder-layout">
+            <section class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>{{ $catalogImport->name }}</h2>
+                        <p class="muted">PDF pages</p>
+                    </div>
+                    <div class="progress-wrap">
+                        <span id="pageStatus" class="status">Preparing PDF…</span>
+                        <div class="progress"><span id="pageProgress"></span></div>
+                    </div>
+                </div>
+                <div id="pageContainer" class="pdf-grid">
+                    <div class="muted">Opening uploaded PDF…</div>
+                </div>
+            </section>
 
-            <div class="builder-note"><strong>Pricing:</strong> customer price is calculated from retail price using the default <strong>3% discount</strong>.</div>
-            <div id="productList" class="product-builder-list"></div>
-            <div class="builder-actions">
-                <button class="btn" type="button" id="createProducts">Create Selected Products</button>
-                <span id="builderStatus" class="muted"></span>
-            </div>
-        </section>
+            <aside class="panel product-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Products</h2>
+                        <p class="muted">Review each design before creating listings.</p>
+                    </div>
+                    <button type="button" class="button button-secondary" id="addDesign">+ Add design</button>
+                </div>
 
-        <aside class="card">
-            <div class="builder-heading">
-                <div><strong>PDF Pages</strong><div class="muted">Click a page to add/remove it from the active design.</div></div>
-                <span id="pageStatus" class="badge">Starting…</span>
-            </div>
-            <div class="progress"><span id="pageProgress"></span></div>
-            <div id="pdfPages" class="pdf-pages"><div class="muted">Preparing PDF…</div></div>
-        </aside>
+                <div id="productList"></div>
+
+                <div class="builder-actions">
+                    <button type="button" class="button button-primary" id="createProducts">Create Products</button>
+                    <div id="builderStatus" class="muted"></div>
+                </div>
+            </aside>
+        </div>
     </div>
 @endsection
+
+@push('styles')
+    <style>
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .page-header,
+        .panel-header,
+        .builder-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .eyebrow {
+            margin: 0 0 4px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        h1,
+        h2 {
+            margin: 0;
+        }
+
+        .muted {
+            color: #6b7280;
+        }
+
+        .builder-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(360px, .8fr);
+            gap: 24px;
+            align-items: start;
+        }
+
+        .panel {
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .05);
+        }
+
+        .panel-header {
+            margin-bottom: 18px;
+        }
+
+        .progress-wrap {
+            min-width: 230px;
+        }
+
+        .status {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .progress {
+            height: 6px;
+            overflow: hidden;
+            background: #e5e7eb;
+            border-radius: 99px;
+        }
+
+        .progress span {
+            display: block;
+            width: 0;
+            height: 100%;
+            transition: width .2s ease;
+            background: #111827;
+        }
+
+        .pdf-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .pdf-page {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 0;
+            overflow: hidden;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .pdf-page.selected {
+            border-color: #111827;
+            box-shadow: 0 0 0 2px #111827 inset;
+        }
+
+        .pdf-page canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #f8fafc;
+        }
+
+        .page-number,
+        .page-selected {
+            position: absolute;
+            z-index: 2;
+            top: 8px;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .94);
+        }
+
+        .page-number {
+            left: 8px;
+        }
+
+        .page-selected {
+            right: 8px;
+        }
+
+        .product-panel {
+            position: sticky;
+            top: 20px;
+        }
+
+        .product-card {
+            margin-bottom: 14px;
+            padding: 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+        }
+
+        .product-card.active {
+            border-color: #111827;
+        }
+
+        .product-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .product-card-header button {
+            border: 0;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .field {
+            margin-bottom: 12px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 9px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 9px;
+            background: #fff;
+        }
+
+        .field textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .builder-two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .check {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-top: 25px;
+            font-size: 13px;
+        }
+
+        .selected-pages {
+            padding-top: 8px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 0 14px;
+            border: 0;
+            border-radius: 9px;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .button-primary {
+            color: #fff;
+            background: #111827;
+        }
+
+        .button-secondary {
+            color: #111827;
+            background: #f3f4f6;
+        }
+
+        .builder-actions {
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .error-box {
+            padding: 16px;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            color: #991b1b;
+            background: #fef2f2;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 1000px) {
+            .builder-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .product-panel {
+                position: static;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 14px;
+            }
+
+            .page-header,
+            .panel-header,
+            .builder-actions {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .progress-wrap {
+                min-width: 0;
+            }
+
+            .status {
+                text-align: left;
+            }
+
+            .builder-two-col {
+                grid-template-columns: 1fr;
+            }
+
+            .check {
+                margin-top: 0;
+            }
+        }
+    </style>
+@endpush
 
 @push('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
         (() => {
-            'use strict';
+            const pdfUrl = @json(route('catalog-imports.pdf', $catalogImport));
+            const finalizeUrl = @json(route('catalog-imports.finalize', $catalogImport));
+            const categories = @json($categories);
+            const brands = @json($brands);
+            const knownCatalog = @json($catalogImport->presetData());
 
-            const root = document.getElementById('catalogBuilder');
-            const pdfUrl = root.dataset.pdfUrl;
-            const finalizeUrl = root.dataset.finalizeUrl;
-            const pageContainer = document.getElementById('pdfPages');
-            const productList = document.getElementById('productList');
+            const pageContainer = document.getElementById('pageContainer');
             const pageStatus = document.getElementById('pageStatus');
             const pageProgress = document.getElementById('pageProgress');
+            const productList = document.getElementById('productList');
             const builderStatus = document.getElementById('builderStatus');
-            const products = [];
+
             let pdfDocument = null;
+            let products = [];
             let activeProduct = 0;
 
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-            const catalogName = @json(strtolower($catalogImport->name));
-            const categories = @json($categories->map(fn ($item) => ['id' => $item->id, 'name' => $item->name])->values());
-            const brands = @json($brands->map(fn ($item) => ['id' => $item->id, 'name' => $item->name])->values());
-
-            const knownCatalog = catalogName.includes('lime')
-                ? {
-                    collection: 'Lime Vol-552', gender: 'women', retail: 6200,
-                    fabric: 'Peach Slub', season: 'Winter', piece_count: '',
-                    description: 'Peach Slub Embroidered with Peach Slub Embroidered Dupatta.',
-                    groups: [[2,3,4],[5,6,7],[8,9,10,11],[12,13,14,15],[16,17,18],[19,20,21,22]]
-                }
-                : catalogName.includes('leore')
-                    ? {
-                        collection: 'Leore Vol-01', gender: 'women', retail: 7800,
-                        fabric: 'Fancy Zari Slub Dhanak', season: 'Winter', piece_count: 3,
-                        description: 'Premium embroidered fancy zari slub dhanak shirt with fancy zari slub embroidered lace dupatta and comfort of same trouser.',
-                        groups: [[2,3,4,5,6],[7,8,9,10,11],[12,13,14,15,16],[17,18,19],[20,21,22],[23,24]]
-                    }
-                    : null;
+            window.addEventListener('error', event => {
+                console.error('Catalog builder JavaScript error:', event.error || event.message);
+            });
 
             function escapeHtml(value) {
-                return String(value ?? '').replace(/[&<>\"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[char]));
+                return String(value ?? '')
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#039;');
+            }
+
+            function money(value) {
+                return new Intl.NumberFormat('en-PK', {
+                    maximumFractionDigits: 0,
+                }).format(Number(value) || 0);
             }
 
             function optionMarkup(items, selected, emptyLabel) {
-                return `<option value="">${emptyLabel}</option>` + items.map(item =>
-                    `<option value="${item.id}" ${String(item.id) === String(selected) ? 'selected' : ''}>${escapeHtml(item.name)}</option>`
-                ).join('');
+                const options = [`<option value="">${escapeHtml(emptyLabel)}</option>`];
+                items.forEach(item => {
+                    const isSelected = String(item.id) === String(selected) ? 'selected' : '';
+                    options.push(`<option value="${item.id}" ${isSelected}>${escapeHtml(item.name)}</option>`);
+                });
+                return options.join('');
             }
 
-            function addProduct(seed = {}) {
-                const number = products.length + 1;
+            function addProduct(data = {}) {
                 products.push({
-                    name: seed.name || `Unstitched Design ${String(number).padStart(2,'0')}`,
-                    description: seed.description || '',
-                    retail_price: seed.retail_price ?? '',
-                    discount_percent: seed.discount_percent ?? 3,
-                    stock_quantity: seed.stock_quantity ?? 3,
-                    gender: seed.gender || 'women',
-                    piece_count: seed.piece_count || '',
-                    fabric: seed.fabric || '',
-                    season: seed.season || '',
-                    design_code: seed.design_code || `DES-${String(number).padStart(2,'0')}`,
-                    category_id: seed.category_id || '',
-                    brand_id: seed.brand_id || '',
-                    featured: seed.featured ?? false,
-                    pages: new Set(seed.pages || [])
+                    name: data.name || `Design ${String(products.length + 1).padStart(2, '0')}`,
+                    description: data.description || '',
+                    retail_price: Number(data.retail_price || 0),
+                    discount_percent: Number(data.discount_percent ?? 3),
+                    gender: data.gender || 'women',
+                    piece_count: data.piece_count ?? '',
+                    fabric: data.fabric || '',
+                    season: data.season || '',
+                    category_id: data.category_id || '',
+                    brand_id: data.brand_id || '',
+                    design_code: data.design_code || '',
+                    stock_quantity: Number(data.stock_quantity ?? 3),
+                    featured: Boolean(data.featured),
+                    pages: new Set(data.pages || []),
                 });
+
                 activeProduct = products.length - 1;
                 renderProducts();
                 updatePageSelection();
             }
 
-            function salePrice(product) {
-                const retail = Number(product.retail_price || 0);
-                const discount = Number(product.discount_percent || 0);
-                return retail ? Math.round(retail * (1 - discount / 100)) : 0;
-            }
-
             function renderProducts() {
-                productList.innerHTML = products.map((product, index) => `
-                    <article class="design-card ${index === activeProduct ? 'active' : ''}">
-                        <div class="design-card-head">
-                            <button type="button" class="design-select" data-select="${index}">
-                                <span class="design-number">${String(index + 1).padStart(2,'0')}</span>
-                                <span>${escapeHtml(product.name)}</span>
-                            </button>
-                            ${products.length > 1 ? `<button type="button" class="remove-design" data-remove="${index}">×</button>` : ''}
-                        </div>
-                        <div class="design-form">
+                productList.innerHTML = products.map((product, index) => {
+                    const salePrice = Number(product.retail_price) * (1 - (Number(product.discount_percent) / 100));
+                    return `
+                        <article class="product-card ${index === activeProduct ? 'active' : ''}">
+                            <div class="product-card-header">
+                                <strong>Design ${String(index + 1).padStart(2, '0')}</strong>
+                                <div>
+                                    <button type="button" data-select="${index}">${index === activeProduct ? 'Editing' : 'Select'}</button>
+                                    ${products.length > 1 ? `<button type="button" data-remove="${index}">Remove</button>` : ''}
+                                </div>
+                            </div>
+
                             <div class="field"><label>Product title</label><input data-field="name" data-index="${index}" value="${escapeHtml(product.name)}"></div>
                             <div class="builder-two-col">
                                 <div class="field"><label>Retail price (PKR)</label><input type="number" min="0" step="1" data-field="retail_price" data-index="${index}" value="${product.retail_price}"></div>
-                                <div class="field"><label>Discount %</label><input type="number" min="0" max="100" step="0.1" data-field="discount_percent" data-index="${index}" value="${product.discount_percent}"></div>
+                                <div class="field"><label>Discount (%)</label><input type="number" min="0" max="100" step="0.01" data-field="discount_percent" data-index="${index}" value="${product.discount_percent}"></div>
                             </div>
-                            <div class="sale-preview">Customer price: <strong>PKR ${salePrice(product).toLocaleString()}</strong> <span>after ${product.discount_percent}% discount</span></div>
+                            <div class="field"><label>Customer price</label><input value="PKR ${money(salePrice)}" readonly></div>
                             <div class="builder-two-col">
                                 <div class="field"><label>Gender</label><select data-field="gender" data-index="${index}"><option value="women" ${product.gender === 'women' ? 'selected' : ''}>Women</option><option value="men" ${product.gender === 'men' ? 'selected' : ''}>Men</option></select></div>
-                                <div class="field"><label>Pieces</label><input type="number" min="1" max="10" data-field="piece_count" data-index="${index}" value="${product.piece_count}" placeholder="e.g. 3"></div>
+                                <div class="field"><label>Pieces</label><input type="number" min="1" max="10" data-field="piece_count" data-index="${index}" value="${escapeHtml(product.piece_count)}"></div>
                             </div>
                             <div class="builder-two-col">
                                 <div class="field"><label>Fabric</label><input data-field="fabric" data-index="${index}" value="${escapeHtml(product.fabric)}"></div>
@@ -189,9 +448,9 @@
                                 <label class="check"><input type="checkbox" data-field="featured" data-index="${index}" ${product.featured ? 'checked' : ''}> Feature on homepage</label>
                             </div>
                             <div class="selected-pages"><strong>${product.pages.size}</strong> page(s) selected: ${product.pages.size ? [...product.pages].sort((a,b)=>a-b).join(', ') : 'none yet'}</div>
-                        </div>
-                    </article>
-                `).join('');
+                        </article>
+                    `;
+                }).join('');
 
                 productList.querySelectorAll('[data-select]').forEach(button => button.addEventListener('click', () => {
                     activeProduct = Number(button.dataset.select);
@@ -216,7 +475,7 @@
                 const input = event.currentTarget;
                 const product = products[Number(input.dataset.index)];
                 product[input.dataset.field] = input.type === 'checkbox' ? input.checked : input.value;
-                if (['name','retail_price','discount_percent'].includes(input.dataset.field)) {
+                if (['name', 'retail_price', 'discount_percent'].includes(input.dataset.field)) {
                     renderProducts();
                     updatePageSelection();
                 }
@@ -271,12 +530,43 @@
             async function renderPdf() {
                 pageStatus.textContent = 'Opening PDF…';
                 pageContainer.innerHTML = '<div class="muted">Opening uploaded PDF…</div>';
-                try {
-                    const response = await fetch(pdfUrl, { credentials: 'same-origin', cache: 'no-store' });
-                    if (!response.ok) throw new Error(`PDF request failed with HTTP ${response.status}.`);
-                    const buffer = await response.arrayBuffer();
-                    if (!buffer.byteLength) throw new Error('The uploaded PDF is empty.');
 
+                try {
+                    const response = await fetch(pdfUrl, {
+                        credentials: 'same-origin',
+                        cache: 'no-store',
+                        headers: { 'Accept': 'application/pdf' },
+                    });
+
+                    const contentType = response.headers.get('content-type') || 'unknown';
+                    const contentLength = response.headers.get('content-length') || 'unknown';
+                    const catalogSize = response.headers.get('x-catalog-pdf-size') || 'unknown';
+                    const finalUrl = response.url || pdfUrl;
+
+                    if (!response.ok) {
+                        throw new Error(`PDF request failed: HTTP ${response.status}. Type: ${contentType}.`);
+                    }
+
+                    const buffer = await response.arrayBuffer();
+                    const bytes = new Uint8Array(buffer);
+                    const signature = new TextDecoder().decode(bytes.slice(0, 5));
+
+                    if (!buffer.byteLength) {
+                        throw new Error(
+                            `PDF response body is empty. HTTP ${response.status}; ` +
+                            `Content-Type: ${contentType}; Content-Length: ${contentLength}; ` +
+                            `X-Catalog-Pdf-Size: ${catalogSize}; URL: ${finalUrl}`
+                        );
+                    }
+
+                    if (signature !== '%PDF-') {
+                        throw new Error(
+                            `PDF endpoint returned ${buffer.byteLength} bytes, but the response is not a PDF. ` +
+                            `First bytes: ${signature || '(none)'}; Content-Type: ${contentType}; URL: ${finalUrl}`
+                        );
+                    }
+
+                    pageStatus.textContent = `Downloaded ${(buffer.byteLength / 1024 / 1024).toFixed(2)} MB PDF…`;
                     pdfDocument = await pdfjsLib.getDocument({ data: buffer }).promise;
                     pageContainer.innerHTML = '';
                     pageStatus.textContent = `${pdfDocument.numPages} pages`;
@@ -306,7 +596,7 @@
                 } catch (error) {
                     console.error('Catalog PDF builder error:', error);
                     pageStatus.textContent = 'PDF failed';
-                    pageContainer.innerHTML = `<div class="error-box"><strong>PDF could not be rendered.</strong><br>${escapeHtml(error.message)}<br><br>The builder now loads the PDF through the authenticated Laravel PDF endpoint, so <code>php artisan storage:link</code> is not required for this step.</div>`;
+                    pageContainer.innerHTML = `<div class="error-box"><strong>PDF could not be rendered.</strong><br>${escapeHtml(error.message)}<br><br>If this shows an empty response, the next thing to check is the Laravel/PHP server response rather than installing a PDF package.</div>`;
                 }
             }
 
@@ -329,7 +619,7 @@
                     for (const product of products) {
                         productNumber++;
                         const images = [];
-                        const pages = [...product.pages].sort((a,b) => a-b);
+                        const pages = [...product.pages].sort((a, b) => a - b);
                         for (let i = 0; i < pages.length; i++) {
                             builderStatus.textContent = `Rendering images for product ${productNumber}/${products.length}: ${i + 1}/${pages.length}…`;
                             images.push(await renderSelectedImage(pages[i]));
@@ -367,22 +657,31 @@
 
             if (knownCatalog) {
                 knownCatalog.groups.forEach((pages, index) => addProduct({
-                    name: `${knownCatalog.collection} — Design ${String(index + 1).padStart(2,'0')}`,
+                    name: `${knownCatalog.collection} — Design ${String(index + 1).padStart(2, '0')}`,
                     description: knownCatalog.description,
-                    retail_price: knownCatalog.retail,
+                    retail_price: knownCatalog.retailPrice,
                     discount_percent: 3,
                     gender: knownCatalog.gender,
-                    piece_count: knownCatalog.piece_count,
+                    piece_count: knownCatalog.pieceCount,
                     fabric: knownCatalog.fabric,
                     season: knownCatalog.season,
-                    design_code: `DES-${String(index + 1).padStart(2,'0')}`,
-                    pages
+                    pages,
                 }));
+                activeProduct = 0;
+                renderProducts();
+                updatePageSelection();
             } else {
                 addProduct();
             }
 
+            if (!window.pdfjsLib) {
+                pageStatus.textContent = 'PDF.js failed to load';
+                pageContainer.innerHTML = '<div class="error-box"><strong>PDF.js could not be loaded.</strong><br>Check your internet connection or CDN access.</div>';
+                return;
+            }
+
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
             renderPdf();
         })();
     </script>
-@endpush
+@endsection
