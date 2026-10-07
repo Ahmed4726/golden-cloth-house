@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'name' => env('STORE_NAME', 'Golden Cloth House'),
+    'name' => env('STORE_NAME', 'گولڈن کلاتھ ہاؤس'),
     'currency' => env('STORE_CURRENCY', 'PKR'),
     'shipping_fee' => (float) env('STORE_SHIPPING_FEE', 250),
     'free_shipping_threshold' => (float) env('STORE_FREE_SHIPPING_THRESHOLD', 5000),
