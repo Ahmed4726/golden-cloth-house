@@ -1,9 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" role="img" aria-labelledby="title desc">
-  <title id="title">Golden Cloth House</title>
-  <desc id="desc">Golden Cloth House wordmark</desc>
-  <rect width="520" height="120" rx="18" fill="#17130f"/>
-  <path d="M54 26h42l10 17H64l-6 10h38l10 17H48z" fill="#e7c998"/>
-  <path d="M55 77h45l-10 17H45z" fill="#e7c998"/>
-  <text x="128" y="53" fill="#e7c998" font-family="Georgia, 'Times New Roman', serif" font-size="25" font-weight="700" letter-spacing="4">GOLDEN</text>
-  <text x="128" y="86" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" letter-spacing="3">CLOTH HOUSE</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 150" role="img" aria-labelledby="title desc">
+  <title id="title">گولڈن کلاتھ ہاؤس</title>
+  <desc id="desc">گولڈن کلاتھ ہاؤس اردو لوگو</desc>
+  <rect width="520" height="150" rx="20" fill="#fffaf4"/>
+  <path d="M55 47c22-24 49-28 76-8-11 4-21 10-28 19 12 3 23 8 31 17-24 1-47-5-67-18-6-4-10-7-12-10z" fill="#b88945"/>
+  <path d="M69 91c27-12 53-10 76 5-22 20-49 25-76 16l-16-10z" fill="#2a2520"/>
+  <text x="170" y="76" fill="#2a2520" font-family="Noto Nastaliq Urdu, Noto Naskh Arabic, serif" font-size="40" font-weight="600" direction="rtl" unicode-bidi="bidi-override">گولڈن کلاتھ ہاؤس</text>
+  <path d="M170 98h285" stroke="#b88945" stroke-width="2"/>
+  <text x="312" y="125" text-anchor="middle" fill="#8a6a3c" font-family="Noto Naskh Arabic, serif" font-size="12" letter-spacing="2">لباس • روایت • انداز</text>
 </svg>
