@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CatalogImportController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
@@ -62,9 +63,17 @@ Route::middleware('admin.session')->prefix('admin')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
 
     Route::resource('/products', ProductController::class)->except(['show']);
+    Route::delete('/products/{product}/images', [ProductController::class, 'removeImage'])->name('products.images.remove');
     Route::resource('/categories', CategoryController::class)->except(['show']);
     Route::resource('/brands', BrandController::class)->except(['show']);
     Route::resource('/slides', HomepageSlideController::class)->except(['show']);
+
+    Route::get('/catalog-imports', [CatalogImportController::class, 'index'])->name('catalog-imports.index');
+    Route::get('/catalog-imports/create', [CatalogImportController::class, 'create'])->name('catalog-imports.create');
+    Route::post('/catalog-imports', [CatalogImportController::class, 'store'])->name('catalog-imports.store');
+    Route::get('/catalog-imports/{catalogImport}/builder', [CatalogImportController::class, 'builder'])->name('catalog-imports.builder');
+    Route::post('/catalog-imports/{catalogImport}/finalize', [CatalogImportController::class, 'finalize'])->name('catalog-imports.finalize');
+    Route::delete('/catalog-imports/{catalogImport}', [CatalogImportController::class, 'destroy'])->name('catalog-imports.destroy');
 
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
