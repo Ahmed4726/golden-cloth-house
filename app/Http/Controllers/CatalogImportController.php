@@ -53,6 +53,22 @@ class CatalogImportController extends Controller
         ]);
     }
 
+    public function pdf(CatalogImport $catalogImport)
+    {
+        $disk = Storage::disk('public');
+
+        abort_unless($disk->exists($catalogImport->pdf_path), 404, 'The catalog PDF could not be found.');
+
+        return response()->file(
+            $disk->path($catalogImport->pdf_path),
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="'.basename($catalogImport->pdf_path).'"',
+                'Cache-Control' => 'private, max-age=0, must-revalidate',
+            ]
+        );
+    }
+
     public function finalize(Request $request, CatalogImport $catalogImport): JsonResponse
     {
         $data = $request->validate([
