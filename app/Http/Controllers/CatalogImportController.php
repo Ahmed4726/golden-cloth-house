@@ -115,12 +115,23 @@ class CatalogImportController extends Controller
             'The catalog PDF exists but cannot be read from storage.'
         );
 
-        return response()->file($absolutePath, [
+        // Read the bytes into the Laravel response body instead of relying on
+        // PHP/SAPI file streaming. This avoids empty fetch() bodies on local
+        // Apache/FastCGI setups while keeping the existing 50 MB upload limit.
+        $contents = $disk->get($catalogImport->pdf_path);
+
+        abort_if(
+            $contents === '' || strlen($contents) === 0,
+            500,
+            'The catalog PDF could not be read from storage.'
+        );
+
+        return response($contents, 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . basename($catalogImport->pdf_path) . '"',
-            'Content-Length' => (string) $size,
+            'Content-Length' => (string) strlen($contents),
             'Cache-Control' => 'private, max-age=0, must-revalidate',
-            'X-Catalog-Pdf-Size' => (string) $size,
+            'X-Catalog-Pdf-Size' => (string) strlen($contents),
         ]);
     }
 
