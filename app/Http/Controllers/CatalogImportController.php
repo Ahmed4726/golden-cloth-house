@@ -24,60 +24,7 @@ class CatalogImportController extends Controller
 
     public function create()
     {
-        return view('catalog-imports.create');
-    }
-
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'pdf' => ['required', 'file', 'mimes:pdf', 'max:51200'],
-        ]);
-
-        $file = $data['pdf'];
-
-        if (! $file->isValid() || (int) $file->getSize() <= 0) {
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'pdf' => 'The uploaded PDF is empty or the server could not receive the file correctly. Please upload the PDF again.',
-                ]);
-        }
-
-        $path = $file->store('catalog-imports', 'public');
-
-        if (! $path || ! Storage::disk('public')->exists($path)) {
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'pdf' => 'The PDF could not be saved to storage. Check storage permissions and try again.',
-                ]);
-        }
-
-        $storedSize = (int) Storage::disk('public')->size($path);
-
-        if ($storedSize <= 0) {
-            Storage::disk('public')->delete($path);
-
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'pdf' => 'The PDF was uploaded but the saved file is 0 bytes. Check the server PHP upload/storage limits and try again.',
-                ]);
-        }
-
-        $import = CatalogImport::create([
-            'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
-            'pdf_path' => $path,
-            'status' => 'uploaded',
-        ]);
-
-        return redirect()->route('catalog-imports.builder', $import);
-    }
-
-    public function builder(CatalogImport $catalogImport)
-    {
-        return view('catalog-imports.builder', [
-            'catalogImport' => $catalogImport,
+        return view('catalog-imports.create', [
             'categories' => Category::where('active', true)
                 ->orderBy('sort_order')
                 ->orderBy('name')
@@ -89,60 +36,84 @@ class CatalogImportController extends Controller
         ]);
     }
 
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'pdf' => ['required', 'file', 'mimes:pdf', 'max:51200'],
+        ]);
+
+        $file = $data['pdf'];
+
+        if (! $file->isValid() || (int) $file->getSize() <= 0) {
+            $message = 'The uploaded PDF is empty or the server could not receive the file correctly.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return back()->withInput()->withErrors(['pdf' => $message]);
+        }
+
+        $path = $file->store('catalog-imports', 'public');
+
+        if (! $path || ! Storage::disk('public')->exists($path)) {
+            $message = 'The PDF could not be saved to storage. Check storage permissions and try again.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 500);
+            }
+
+            return back()->withInput()->withErrors(['pdf' => $message]);
+        }
+
+        $storedSize = (int) Storage::disk('public')->size($path);
+
+        if ($storedSize <= 0) {
+            Storage::disk('public')->delete($path);
+            $message = 'The PDF was uploaded but the saved file is 0 bytes. Check the server PHP upload/storage limits and try again.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return back()->withInput()->withErrors(['pdf' => $message]);
+        }
+
+        $import = CatalogImport::create([
+            'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+            'pdf_path' => $path,
+            'status' => 'uploaded',
+        ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'PDF uploaded successfully.',
+                'import_id' => $import->id,
+                'import_uuid' => $import->uuid,
+                'name' => $import->name,
+                'preset' => $import->presetData(),
+                'finalize_url' => route('catalog-imports.finalize', $import),
+            ]);
+        }
+
+        return redirect()->route('catalog-imports.builder', $import);
+    }
+
+    public function builder(CatalogImport $catalogImport)
+    {
+        return redirect()
+            ->route('catalog-imports.create')
+            ->with('info', 'For a reliable import, please re-select the original PDF. The new builder reads the PDF directly from your computer and does not stream it through Laravel.');
+    }
+
     public function pdf(CatalogImport $catalogImport)
     {
-        $disk = Storage::disk('public');
-
-        abort_unless(
-            $disk->exists($catalogImport->pdf_path),
-            404,
-            'The catalog PDF could not be found.'
-        );
-
-        $size = (int) $disk->size($catalogImport->pdf_path);
-
-        abort_if(
-            $size <= 0,
-            422,
-            'The stored catalog PDF is empty. Please delete this catalog import and upload the PDF again.'
-        );
-
-        $absolutePath = $disk->path($catalogImport->pdf_path);
-
-        abort_unless(
-            is_file($absolutePath) && is_readable($absolutePath),
-            500,
-            'The catalog PDF exists but cannot be read from storage.'
-        );
-
-        // Read the bytes into the Laravel response body instead of relying on
-        // PHP/SAPI file streaming. This avoids empty fetch() bodies on local
-        // Apache/FastCGI setups while keeping the existing 50 MB upload limit.
-        $contents = $disk->get($catalogImport->pdf_path);
-
-        abort_if(
-            $contents === '' || strlen($contents) === 0,
-            500,
-            'The catalog PDF could not be read from storage.'
-        );
-
-        return response($contents, 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . basename($catalogImport->pdf_path) . '"',
-            'Content-Length' => (string) strlen($contents),
-            'Cache-Control' => 'private, max-age=0, must-revalidate',
-            'X-Catalog-Pdf-Size' => (string) strlen($contents),
-        ]);
+        abort(410, 'The catalog PDF endpoint is no longer used. Re-select the original PDF in the catalog builder.');
     }
 
     public function storagePdf(string $filename)
     {
-        $catalogImport = CatalogImport::where(
-            'pdf_path',
-            'catalog-imports/' . $filename
-        )->firstOrFail();
-
-        return $this->pdf($catalogImport);
+        abort(410, 'The catalog PDF endpoint is no longer used. Re-select the original PDF in the catalog builder.');
     }
 
     public function finalize(Request $request, CatalogImport $catalogImport): JsonResponse
@@ -186,10 +157,7 @@ class CatalogImportController extends Controller
 
                 $retailPrice = (float) $item['retail_price'];
                 $discount = (float) ($item['discount_percent'] ?? 3);
-                $salePrice = round(
-                    $retailPrice * (1 - ($discount / 100)),
-                    2
-                );
+                $salePrice = round($retailPrice * (1 - ($discount / 100)), 2);
                 $name = trim($item['name']);
 
                 $product = Product::create([
@@ -250,11 +218,8 @@ class CatalogImportController extends Controller
         return back()->with('success', 'Catalog import and its products were removed.');
     }
 
-    private function storeDataUrl(
-        string $dataUrl,
-        string $directory,
-        string $filename
-    ): string {
+    private function storeDataUrl(string $dataUrl, string $directory, string $filename): string
+    {
         [$meta, $encoded] = explode(',', $dataUrl, 2);
         $mime = str_contains($meta, 'image/webp')
             ? 'webp'
