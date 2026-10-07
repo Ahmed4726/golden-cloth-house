@@ -69,6 +69,13 @@ class CatalogImportController extends Controller
         );
     }
 
+    public function storagePdf(string $filename)
+    {
+        $catalogImport = CatalogImport::where('pdf_path', 'catalog-imports/'.$filename)->firstOrFail();
+
+        return $this->pdf($catalogImport);
+    }
+
     public function finalize(Request $request, CatalogImport $catalogImport): JsonResponse
     {
         $data = $request->validate([
