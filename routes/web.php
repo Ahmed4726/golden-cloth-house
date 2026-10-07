@@ -71,6 +71,7 @@ Route::middleware('admin.session')->prefix('admin')->group(function () {
     Route::get('/catalog-imports', [CatalogImportController::class, 'index'])->name('catalog-imports.index');
     Route::get('/catalog-imports/create', [CatalogImportController::class, 'create'])->name('catalog-imports.create');
     Route::post('/catalog-imports', [CatalogImportController::class, 'store'])->name('catalog-imports.store');
+    Route::get('/catalog-imports/{catalogImport}/pdf', [CatalogImportController::class, 'pdf'])->name('catalog-imports.pdf');
     Route::get('/catalog-imports/{catalogImport}/builder', [CatalogImportController::class, 'builder'])->name('catalog-imports.builder');
     Route::post('/catalog-imports/{catalogImport}/finalize', [CatalogImportController::class, 'finalize'])->name('catalog-imports.finalize');
     Route::delete('/catalog-imports/{catalogImport}', [CatalogImportController::class, 'destroy'])->name('catalog-imports.destroy');
