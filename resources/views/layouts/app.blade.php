@@ -55,6 +55,7 @@
                 <a href="{{ route('home') }}">View Shop</a>
                 <a class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Dashboard</a>
                 <a class="{{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}">Products</a>
+                <a class="{{ request()->routeIs('catalog-imports.*') ? 'active' : '' }}" href="{{ route('catalog-imports.index') }}">PDF Catalogs</a>
                 <a class="{{ request()->routeIs('categories.*') ? 'active' : '' }}" href="{{ route('categories.index') }}">Categories</a>
                 <a class="{{ request()->routeIs('brands.*') ? 'active' : '' }}" href="{{ route('brands.index') }}">Brands</a>
                 <a class="{{ request()->routeIs('slides.*') ? 'active' : '' }}" href="{{ route('slides.index') }}">Homepage Slider</a>
