@@ -76,6 +76,10 @@ Route::middleware('admin.session')->prefix('admin')->group(function () {
     Route::post('/catalog-imports/{catalogImport}/finalize', [CatalogImportController::class, 'finalize'])->name('catalog-imports.finalize');
     Route::delete('/catalog-imports/{catalogImport}', [CatalogImportController::class, 'destroy'])->name('catalog-imports.destroy');
 
+    Route::get('/storage/catalog-imports/{filename}', [CatalogImportController::class, 'storagePdf'])
+        ->where('filename', '[^/]+')
+        ->name('catalog-imports.storage-pdf');
+
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
