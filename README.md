@@ -7,13 +7,19 @@ The Laravel project is the website. There is no separate website project and the
 ## Commerce features
 
 - Responsive public clothing storefront
+- Premium Pakistani fashion-retail visual theme
+- Simple Urdu Golden Cloth House wordmark
 - Homepage hero slider with admin management
 - Product catalogue with search and category filtering
 - Product detail pages with multi-image gallery
 - Local image uploads plus optional external image URLs
+- Product image preview before saving
+- Existing product image previews in the dashboard
+- Individual image removal from product listings
 - Inventory / stock quantities
 - Featured products and product sorting
-- Compare-at pricing
+- Compare-at / retail pricing and sale pricing
+- Discount percentage support
 - Session shopping cart
 - Cash on Delivery checkout for Pakistan
 - Shipping fee and free-shipping threshold configuration
@@ -32,19 +38,40 @@ The Laravel project is the website. There is no separate website project and the
 - Responsive mobile/tablet/desktop layouts
 - Privacy and terms pages
 
-## Social publishing features
+## Clothing catalogue scope
 
-- Facebook Page publishing
-- Instagram Professional publishing
-- TikTok photo/video Direct Post flow with asynchronous status checks
-- YouTube video publishing with OAuth and token refresh
-- Encrypted social access/refresh tokens
-- One-click multi-channel normal social posts
-- Per-channel publication records, errors and retries
-- Scheduled publishing every minute
-- Provider readiness endpoint
+Golden Cloth House is intentionally limited to:
 
-Social posts are normal posts containing captions, media and platform-specific metadata. The system does not depend on Facebook/Instagram/TikTok/YouTube Shops, product catalogues or social checkout.
+- Women Unstitched
+- Men Unstitched
+
+The product model now supports catalogue attributes including gender, unstitched wear type, piece count, fabric, season and design code. The site does not add unrelated ready-to-wear, footwear, bags, fragrances or accessories.
+
+## PDF catalog → product listing system
+
+The admin now has **PDF Catalogs** at `/admin/catalog-imports`.
+
+Workflow:
+
+1. Upload a collection PDF.
+2. The browser renders the PDF pages into image previews using PDF.js, so no server-side PDF/image conversion package is required.
+3. The builder creates design cards and lets the administrator select one or more PDF pages for each product.
+4. Each design can have its own title, description, retail price, discount, gender, piece count, fabric, season, category, brand, design code, stock and featured status.
+5. The default discount is 3%.
+6. When the product is created, the customer price is calculated as `retail price × 97%` and the retail price is retained as the compare-at price.
+7. Selected PDF pages are converted to JPEG image data in the browser and stored as normal product images on Laravel's public disk.
+8. Products are created as active listings and can immediately appear on the shop.
+
+For the supplied current catalogues, the builder recognizes the filenames containing `LIME` and `LEORE` and preloads six design groups, retail pricing and source descriptions. You can still change every field and page selection before creating products.
+
+### Supplied catalogue data
+
+The two supplied PDFs contain six designs each:
+
+- **Lime Vol-552** — retail PKR 6,200; requested 3% discount; customer price PKR 6,014.
+- **Leore Vol-01 by AALAYA** — retail PKR 7,800; requested 3% discount; customer price PKR 7,566.
+
+The Lime catalogue explicitly describes the collection as Peach Slub Embroidered with Peach Slub Embroidered Dupatta. The Leore cover describes a premium embroidered fancy zari slub dhanak shirt with fancy zari slub embroidered lace dupatta and the same-fabric trouser.
 
 ## Local setup
 
@@ -58,7 +85,9 @@ Social posts are normal posts containing captions, media and platform-specific m
 8. Run `php artisan queue:work`.
 9. Run `php artisan schedule:work` locally.
 
-For uploaded images to display correctly, the `public/storage` link must exist. For social publishing, `APP_URL` must be a real HTTPS public URL so Meta, TikTok and other providers can fetch media.
+For uploaded images to display correctly, the `public/storage` link must exist. Laravel's public disk stores public files under `storage/app/public`, and `php artisan storage:link` exposes them through `public/storage`. urlLaravel filesystem documentationturn1search0
+
+For social publishing, `APP_URL` must be a real HTTPS public URL so Meta, TikTok and other providers can fetch media.
 
 ## Production / cPanel deployment
 
@@ -93,51 +122,13 @@ cd /home/USER/golden-cloth-house && /usr/local/bin/php artisan schedule:run >> /
 9. Ensure `storage/` and `bootstrap/cache/` are writable by the web/queue user.
 10. Configure SMTP if customer order confirmation emails are required.
 
-## Store configuration
-
-The `.env.example` contains:
-
-- `STORE_NAME`
-- `STORE_CURRENCY`
-- `STORE_SHIPPING_FEE`
-- `STORE_FREE_SHIPPING_THRESHOLD`
-- `STORE_COD_ENABLED`
-- `STORE_CONTACT_PHONE`
-- `STORE_CONTACT_EMAIL`
-- `STORE_WHATSAPP`
-- `STORE_ADDRESS`
-- social profile URLs
-
-The default commerce configuration is PKR with Cash on Delivery enabled.
-
-## Customer workflow
-
-1. Customer visits `/`.
-2. Customer browses `/shop` or searches by product/category/SKU.
-3. Customer opens a product detail page and browses the photo gallery.
-4. Customer selects quantity and adds the product to the cart.
-5. Customer reviews the cart.
-6. Customer enters Pakistani delivery information at checkout.
-7. Customer places a Cash on Delivery order.
-8. Stock is decremented inside a database transaction.
-9. The customer receives an order confirmation page and, when email is configured, a queued confirmation email.
-10. Admin manages the order from `/admin/orders`.
-11. Customers can track orders from `/track-order` using their order number and phone number.
-
-## Admin workflow
-
-- `/admin` — dashboard
-- `/admin/products` — products and inventory
-- `/admin/slides` — homepage slider
-- `/admin/orders` — Cash on Delivery orders
-- `/admin/connections` — social account connections
-- `/admin/posts` — normal social posts
-
 ## Product images
 
 The product form accepts up to 20 local images per save, with JPG, JPEG, PNG and WebP support and a maximum of 10 MB per image.
 
 Uploaded files are stored on Laravel's `public` disk under `products/` and the relative paths are stored in `products.media_paths`.
+
+The dashboard now previews both newly selected files and already-saved images. Every saved image has its own **Remove** action; removing a local image deletes the corresponding public-disk file as well.
 
 If an image is uploaded successfully but is not visible in the browser, run:
 
@@ -146,6 +137,20 @@ php artisan storage:link
 ```
 
 and verify that `public/storage` points to `storage/app/public`.
+
+## Social publishing features
+
+- Facebook Page publishing
+- Instagram Professional publishing
+- TikTok photo/video Direct Post flow with asynchronous status checks
+- YouTube video publishing with OAuth and token refresh
+- Encrypted social access/refresh tokens
+- One-click multi-channel normal social posts
+- Per-channel publication records, errors and retries
+- Scheduled publishing every minute
+- Provider readiness endpoint
+
+Social posts are normal posts containing captions, media and platform-specific metadata. The system does not depend on Facebook/Instagram/TikTok/YouTube Shops, product catalogues or social checkout.
 
 ## Meta: Facebook + Instagram
 
