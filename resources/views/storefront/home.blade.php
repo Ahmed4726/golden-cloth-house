@@ -42,30 +42,13 @@
         <div class="carousel-inner">
             @forelse ($slides as $index => $slide)
                 <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
-                    @if ($slide->imageUrl())
-                        <img
-                            class="d-block w-100 h-auto"
-                            src="{{ $slide->imageUrl() }}"
-                            alt="{{ $slide->title }}"
-                            loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
-                        >
-                    @else
-                        <div class="bg-dark text-white py-5">
-                            <div class="container py-5">
-                                <div class="row">
-                                    <div class="col-lg-7">
-                                        <div class="small text-uppercase fw-bold">
-                                            Golden Cloth House
-                                        </div>
-
-                                        <h1 class="display-4 fw-normal">
-                                            {{ $slide->title }}
-                                        </h1>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
+                    <img
+                        class="d-block w-100 h-auto"
+                        src="{{ $slide->imageUrl() ?: asset('images/product-placeholder.svg') }}"
+                        alt="{{ $slide->title ?: config('store.name') }}"
+                        loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                        onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
+                    >
 
                     <div class="bg-dark text-white text-center py-3 py-md-4">
                         <div class="container">
@@ -184,16 +167,15 @@
                             class="card h-100 w-100 text-decoration-none text-dark border-0 shadow-sm overflow-hidden"
                             href="{{ route('shop', ['category' => $category->slug]) }}"
                         >
-                            @if ($image)
-                                <div class="ratio ratio-3x4 bg-light">
-                                    <img
-                                        class="w-100 h-100 object-fit-contain"
-                                        src="{{ $categoryProduct->imageUrl($image) }}"
-                                        alt="{{ $category->name }}"
-                                        loading="lazy"
-                                    >
-                                </div>
-                            @endif
+                            <div class="ratio ratio-3x4 bg-light">
+                                <img
+                                    class="w-100 h-100 object-fit-contain"
+                                    src="{{ $image ? $categoryProduct->imageUrl($image) : asset('images/product-placeholder.svg') }}"
+                                    alt="{{ $category->name }}"
+                                    loading="lazy"
+                                    onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
+                                >
+                            </div>
 
                             <div class="card-body">
                                 <small class="text-uppercase text-secondary">
