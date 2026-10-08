@@ -1,1 +1,27 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login · Golden Cloth House</title><style>body{margin:0;background:#f6f7fb;font:15px system-ui;color:#111827}.box{max-width:420px;margin:10vh auto;background:#fff;padding:32px;border:1px solid #e5e7eb;border-radius:18px}.field{margin:16px 0}.field label{display:block;font-weight:700;margin-bottom:6px}.field input{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:10px;box-sizing:border-box}.btn{width:100%;padding:12px;border:0;border-radius:10px;background:#111827;color:white}.muted{color:#6b7280}</style></head><body><div class="box"><h1>Golden Cloth House</h1><p class="muted">Social commerce control center</p>@if($errors->any())<p style="color:#b91c1c">{{$errors->first()}}</p>@endif<form method="post" action="{{route('login.store')}}">@csrf<div class="field"><label>Email</label><input type="email" name="email" value="{{old('email')}}" required></div><div class="field"><label>Password</label><input type="password" name="password" required></div><button class="btn">Sign in</button></form><p class="muted">First time? <a href="{{route('register')}}">Create admin account</a></p></div></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login · Golden Cloth House</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <main class="container min-vh-100 d-flex align-items-center justify-content-center py-5">
+        <div class="card border-0 shadow-sm w-100" style="max-width:420px;">
+            <div class="card-body p-4 p-md-5">
+                <h1 class="h3 fw-bold">Golden Cloth House</h1>
+                <p class="text-secondary">Social commerce control center</p>
+                @if($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
+                <form method="post" action="{{ route('login.store') }}">
+                    @csrf
+                    <div class="mb-3"><label class="form-label fw-semibold">Email</label><input class="form-control" type="email" name="email" value="{{ old('email') }}" required></div>
+                    <div class="mb-4"><label class="form-label fw-semibold">Password</label><input class="form-control" type="password" name="password" required></div>
+                    <button class="btn btn-dark w-100" type="submit">Sign in</button>
+                </form>
+                <p class="text-secondary small mt-4 mb-0">First time? <a href="{{ route('register') }}">Create admin account</a></p>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
