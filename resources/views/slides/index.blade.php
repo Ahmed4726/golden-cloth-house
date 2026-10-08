@@ -25,13 +25,15 @@
                     @forelse ($slides as $slide)
                         <tr>
                             <td>
-                                @if ($slide->imageUrl() && $slide->imageExists())
-                                    <div class="ratio ratio-2x1 bg-light rounded overflow-hidden w-50">
-                                        <img class="w-100 h-100 object-fit-cover" src="{{ $slide->imageUrl() }}" alt="{{ $slide->title }}">
-                                    </div>
-                                @else
-                                    <span class="text-secondary">No image</span>
-                                @endif
+                                <div class="ratio ratio-2x1 bg-light rounded overflow-hidden w-50">
+                                    <img
+                                        class="w-100 h-100 object-fit-cover"
+                                        src="{{ $slide->imageUrl() ?: asset('images/product-placeholder.svg') }}"
+                                        alt="{{ $slide->title }}"
+                                        loading="lazy"
+                                        onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
+                                    >
+                                </div>
                             </td>
                             <td>
                                 <strong>{{ $slide->title }}</strong>
