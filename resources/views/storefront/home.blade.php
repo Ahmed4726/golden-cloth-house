@@ -59,7 +59,7 @@
                                 <div class="small text-uppercase fw-bold">{{ $slide->subtitle }}</div>
                             @endif
                             @if ($slide->title)
-                                <h1 class="h2 h-md-1 fw-normal mb-2">{{ $slide->title }}</h1>
+                                <h1 class="h2 fw-normal mb-2">{{ $slide->title }}</h1>
                             @endif
                             @if ($slide->description)
                                 <p class="lead mb-3 d-none d-md-block">{{ $slide->description }}</p>
