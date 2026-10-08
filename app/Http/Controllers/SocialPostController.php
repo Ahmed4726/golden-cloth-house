@@ -8,7 +8,6 @@ use App\Models\SocialConnection;
 use App\Models\SocialPost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class SocialPostController extends Controller
 {
@@ -24,7 +23,9 @@ class SocialPostController extends Controller
         return view('posts.create', [
             'connections' => SocialConnection::where('active', true)->get(),
             'products' => Product::with(['categoryRelation', 'brand'])
-                ->where('active', true)->latest()->get(),
+                ->where('active', true)
+                ->latest()
+                ->get(),
         ]);
     }
 
@@ -55,10 +56,16 @@ class SocialPostController extends Controller
         }
 
         if ($data['media_type'] === 'image' && ! $rawUrls) {
-            return back()->withErrors(['media_urls' => 'At least one product image or image URL is required.'])->withInput();
+            return back()
+                ->withErrors(['media_urls' => 'At least one product image or image URL is required.'])
+                ->withInput();
         }
 
-        $urls = collect(preg_split('/\r?\n/', $rawUrls))->map(fn ($value) => trim($value))->filter()->values()->all();
+        $urls = collect(preg_split('/\r?\n/', $rawUrls))
+            ->map(fn ($value) => trim($value))
+            ->filter()
+            ->values()
+            ->all();
 
         validator(
             ['media_urls' => $urls],
@@ -66,7 +73,9 @@ class SocialPostController extends Controller
         )->validate();
 
         if ($data['action'] === 'schedule' && empty($data['scheduled_at'])) {
-            return back()->withErrors(['scheduled_at' => 'A future date/time is required.'])->withInput();
+            return back()
+                ->withErrors(['scheduled_at' => 'A future date/time is required.'])
+                ->withInput();
         }
 
         $status = match ($data['action']) {
@@ -104,12 +113,16 @@ class SocialPostController extends Controller
             return $post;
         });
 
-        return redirect()->route('posts.show', $post)->with('success', $status === 'queued' ? 'Publishing has been queued.' : 'Post saved.');
+        return redirect()
+            ->route('posts.show', $post)
+            ->with('success', $status === 'queued' ? 'Publishing has been queued.' : 'Post saved.');
     }
 
     public function show(SocialPost $post)
     {
-        return view('posts.show', ['post' => $post->load(['publications.connection', 'product'])]);
+        return view('posts.show', [
+            'post' => $post->load(['publications.connection', 'product']),
+        ]);
     }
 
     public function publish(SocialPost $post)
@@ -120,6 +133,7 @@ class SocialPostController extends Controller
         }
 
         $post->update(['status' => 'queued']);
+
         return back()->with('success', 'Publishing queued.');
     }
 
@@ -128,7 +142,9 @@ class SocialPostController extends Controller
         $urls = $product->image_urls ?? [];
 
         foreach ($product->media_paths ?? [] as $path) {
-            $urls[] = url(Storage::disk('public')->url($path));
+            if ($product->imageExists($path)) {
+                $urls[] = url($product->imageUrl($path));
+            }
         }
 
         return array_values(array_unique($urls));
