@@ -62,7 +62,7 @@
             </div>
 
             <aside class="col-lg-4">
-                <div class="card border sticky-top" style="top:100px;">
+                <div class="card border">
                     <div class="card-body">
                         <h2 class="h4">Your order</h2>
                         @foreach ($items as $item)
@@ -71,9 +71,18 @@
                                 <strong>{{ number_format($item['lineTotal'], 0) }}</strong>
                             </div>
                         @endforeach
-                        <div class="d-flex justify-content-between py-2"><span>Subtotal</span><strong>{{ number_format($subtotal, 0) }} {{ config('store.currency') }}</strong></div>
-                        <div class="d-flex justify-content-between py-2"><span>Delivery</span><strong>{{ $shipping > 0 ? number_format($shipping, 0).' '.config('store.currency') : 'Free' }}</strong></div>
-                        <div class="d-flex justify-content-between border-top mt-2 pt-3 fs-5"><span>Total</span><strong>{{ number_format($total, 0) }} {{ config('store.currency') }}</strong></div>
+                        <div class="d-flex justify-content-between py-2">
+                            <span>Subtotal</span>
+                            <strong>{{ number_format($subtotal, 0) }} {{ config('store.currency') }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-2">
+                            <span>Delivery</span>
+                            <strong>{{ $shipping > 0 ? number_format($shipping, 0).' '.config('store.currency') : 'Free' }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between border-top mt-2 pt-3 fs-5">
+                            <span>Total</span>
+                            <strong>{{ number_format($total, 0) }} {{ config('store.currency') }}</strong>
+                        </div>
                         <a class="btn btn-outline-dark w-100 mt-3" href="{{ route('cart.index') }}">Back to Cart</a>
                     </div>
                 </div>
