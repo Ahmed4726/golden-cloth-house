@@ -62,7 +62,7 @@
 
                     <div class="col-4 text-center">
                         <a class="d-inline-block" href="{{ route('home') }}" aria-label="{{ $siteName }} home">
-                            <img class="img-fluid" src="/images/golden-cloth-house-logo-header.svg" width="186" height="45" alt="گولڈن کلاتھ ہاؤس">
+                            <img class="img-fluid" src="{{ asset('images/golden-cloth-house-logo-header.svg') }}" width="186" height="45" alt="گولڈن کلاتھ ہاؤس">
                         </a>
                     </div>
 
@@ -131,7 +131,7 @@
         <div class="offcanvas offcanvas-start text-bg-dark" tabindex="-1" id="gchMobileMenu" aria-labelledby="gchMobileMenuLabel">
             <div class="offcanvas-header border-bottom border-secondary">
                 <a href="{{ route('home') }}" class="d-inline-block">
-                    <img class="img-fluid" src="/images/golden-cloth-house-logo-header.svg" width="186" height="45" alt="گولڈن کلاتھ ہاؤس">
+                    <img class="img-fluid" src="{{ asset('images/golden-cloth-house-logo-header.svg') }}" width="186" height="45" alt="گولڈن کلاتھ ہاؤس">
                 </a>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
