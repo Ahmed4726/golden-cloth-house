@@ -27,99 +27,101 @@
 @endphp
 
 @section('content')
-    <div class="container">
-        <div class="breadcrumbs" style="padding-top:25px">
-            <a href="{{ route('home') }}">Home</a> / <a href="{{ route('shop') }}">Shop</a> / {{ $product->name }}
-        </div>
+    <div class="container py-4">
+        <nav class="small text-secondary mb-4" aria-label="Breadcrumb">
+            <a class="text-dark text-decoration-none" href="{{ route('home') }}">Home</a>
+            <span class="mx-1">/</span>
+            <a class="text-dark text-decoration-none" href="{{ route('shop') }}">Shop</a>
+            <span class="mx-1">/</span>
+            <span>{{ $product->name }}</span>
+        </nav>
 
-        <section class="product-detail">
-            <div class="product-gallery">
+        <section class="row g-4 g-lg-5">
+            <div class="col-lg-7">
                 @if ($firstImage)
-                    <div class="main-image">
-                        <img id="product-main-image" src="{{ $shareImage }}" alt="{{ $product->name }}">
+                    <div class="ratio ratio-4x5 bg-light rounded overflow-hidden">
+                        <img id="product-main-image" class="w-100 h-100 object-fit-contain bg-white" src="{{ $shareImage }}" alt="{{ $product->name }}">
                     </div>
 
                     @if (count($images) > 1)
-                        <div class="thumbs" aria-label="Product gallery">
+                        <div class="row row-cols-4 row-cols-sm-5 row-cols-md-6 g-2 mt-2" aria-label="Product gallery">
                             @foreach ($images as $index => $image)
                                 @php($imageUrl = str_starts_with($image, 'http') ? $image : asset('storage/'.$image))
-                                <button class="thumb {{ $index === 0 ? 'active' : '' }}" type="button" data-image="{{ $imageUrl }}" aria-label="View product image {{ $index + 1 }}">
-                                    <img src="{{ $imageUrl }}" alt="{{ $product->name }} image {{ $index + 1 }}" loading="lazy">
-                                </button>
+                                <div class="col">
+                                    <button class="btn p-0 border {{ $index === 0 ? 'border-dark' : '' }} w-100 ratio ratio-3x4 overflow-hidden" type="button" data-image="{{ $imageUrl }}" aria-label="View product image {{ $index + 1 }}">
+                                        <img class="w-100 h-100 object-fit-contain bg-light" src="{{ $imageUrl }}" alt="{{ $product->name }} image {{ $index + 1 }}" loading="lazy">
+                                    </button>
+                                </div>
                             @endforeach
                         </div>
                     @endif
                 @else
-                    <div class="main-image placeholder">{{ config('store.name') }}</div>
+                    <div class="ratio ratio-4x5 bg-light d-flex align-items-center justify-content-center text-secondary">{{ config('store.name') }}</div>
                 @endif
             </div>
 
-            <div class="details">
-                <span class="eyebrow">{{ $product->categoryRelation?->name ?: ($product->category ?: 'UNSTITCHED') }}</span>
-                <h1>{{ $product->name }}</h1>
+            <div class="col-lg-5">
+                <div class="position-sticky" style="top:100px;">
+                    <div class="small text-uppercase text-secondary fw-bold">{{ $product->categoryRelation?->name ?: ($product->category ?: 'UNSTITCHED') }}</div>
+                    <h1 class="display-6 fw-normal mt-2">{{ $product->name }}</h1>
 
-                @if ($product->price)
-                    <div class="price">
-                        {{ number_format((float) $product->price, 0) }} {{ $product->currency }}
-                        @if ($product->compare_at_price && $product->compare_at_price > $product->price)
-                            <span class="compare">{{ number_format((float) $product->compare_at_price, 0) }} {{ $product->currency }}</span>
-                        @endif
-                    </div>
-                @endif
-
-                @if ($product->stock_quantity > 0)
-                    <div class="stock">In stock · Ready to ship</div>
-                @else
-                    <div class="stock out">Currently out of stock</div>
-                @endif
-
-                <div class="description">{!! nl2br(e($product->description)) !!}</div>
-
-                @if ($product->stock_quantity > 0)
-                    <form method="POST" action="{{ route('cart.add', $product) }}">
-                        @csrf
-                        <div class="quantity-row">
-                            <div class="quantity">
-                                <label class="form-label" for="quantity">Quantity</label>
-                                <input class="input" id="quantity" type="number" name="quantity" value="1" min="1" max="{{ min($product->stock_quantity, 20) }}">
-                            </div>
-                            <button class="btn" type="submit">Add to bag</button>
-                        </div>
-                    </form>
-
-                    <div class="trust-grid">
-                        <div class="trust-item">Cash on Delivery</div>
-                        <div class="trust-item">Pakistan-wide delivery</div>
-                        <div class="trust-item">Secure checkout</div>
-                    </div>
-                @endif
-
-                <div class="product-meta">
-                    @if ($product->sku)
-                        <div class="accordion">
-                            <details>
-                                <summary>Product details</summary>
-                                <div class="accordion-content">SKU: {{ $product->sku }}</div>
-                            </details>
+                    @if ($product->price)
+                        <div class="fs-4 fw-bold mb-2">
+                            {{ number_format((float) $product->price, 0) }} {{ $product->currency }}
+                            @if ($product->compare_at_price && $product->compare_at_price > $product->price)
+                                <span class="fs-6 text-secondary text-decoration-line-through ms-2">{{ number_format((float) $product->compare_at_price, 0) }} {{ $product->currency }}</span>
+                            @endif
                         </div>
                     @endif
-                    <div class="accordion">
-                        <details>
-                            <summary>Care instructions</summary>
-                            <div class="accordion-content">Wash light and bright clothes separately. Do not use bleach. Dry in shade and iron on low heat when required.</div>
-                        </details>
-                    </div>
-                    <div class="accordion">
-                        <details>
-                            <summary>Delivery & Cash on Delivery</summary>
-                            <div class="accordion-content">Pay when your order arrives. Delivery charges and free-shipping eligibility are shown at checkout.</div>
-                        </details>
-                    </div>
-                    <div class="accordion">
-                        <details>
-                            <summary>Colour disclaimer</summary>
-                            <div class="accordion-content">Colours may vary slightly from the product image because of lighting and screen settings.</div>
-                        </details>
+
+                    @if ($product->stock_quantity > 0)
+                        <div class="small text-success text-uppercase fw-bold">In stock · Ready to ship</div>
+                    @else
+                        <div class="small text-danger text-uppercase fw-bold">Currently out of stock</div>
+                    @endif
+
+                    <div class="text-secondary my-4">{!! nl2br(e($product->description)) !!}</div>
+
+                    @if ($product->stock_quantity > 0)
+                        <form method="POST" action="{{ route('cart.add', $product) }}">
+                            @csrf
+                            <div class="row g-2 align-items-end">
+                                <div class="col-4 col-sm-3">
+                                    <label class="form-label small fw-bold text-uppercase" for="quantity">Quantity</label>
+                                    <input class="form-control" id="quantity" type="number" name="quantity" value="1" min="1" max="{{ min($product->stock_quantity, 20) }}">
+                                </div>
+                                <div class="col">
+                                    <button class="btn btn-dark w-100 py-2 text-uppercase fw-bold" type="submit">Add to bag</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="row row-cols-3 g-2 mt-3">
+                            <div class="col"><div class="bg-light p-3 text-center small">Cash on Delivery</div></div>
+                            <div class="col"><div class="bg-light p-3 text-center small">Pakistan-wide delivery</div></div>
+                            <div class="col"><div class="bg-light p-3 text-center small">Secure checkout</div></div>
+                        </div>
+                    @endif
+
+                    <div class="accordion accordion-flush border-top mt-4" id="productInfo">
+                        @if ($product->sku)
+                            <div class="accordion-item">
+                                <h2 class="accordion-header"><button class="accordion-button collapsed px-0" type="button" data-bs-toggle="collapse" data-bs-target="#productDetails">Product details</button></h2>
+                                <div id="productDetails" class="accordion-collapse collapse" data-bs-parent="#productInfo"><div class="accordion-body px-0 text-secondary">SKU: {{ $product->sku }}</div></div>
+                            </div>
+                        @endif
+                        <div class="accordion-item">
+                            <h2 class="accordion-header"><button class="accordion-button collapsed px-0" type="button" data-bs-toggle="collapse" data-bs-target="#careInfo">Care instructions</button></h2>
+                            <div id="careInfo" class="accordion-collapse collapse" data-bs-parent="#productInfo"><div class="accordion-body px-0 text-secondary">Wash light and bright clothes separately. Do not use bleach. Dry in shade and iron on low heat when required.</div></div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header"><button class="accordion-button collapsed px-0" type="button" data-bs-toggle="collapse" data-bs-target="#deliveryInfo">Delivery & Cash on Delivery</button></h2>
+                            <div id="deliveryInfo" class="accordion-collapse collapse" data-bs-parent="#productInfo"><div class="accordion-body px-0 text-secondary">Pay when your order arrives. Delivery charges and free-shipping eligibility are shown at checkout.</div></div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header"><button class="accordion-button collapsed px-0" type="button" data-bs-toggle="collapse" data-bs-target="#colourInfo">Colour disclaimer</button></h2>
+                            <div id="colourInfo" class="accordion-collapse collapse" data-bs-parent="#productInfo"><div class="accordion-body px-0 text-secondary">Colours may vary slightly from the product image because of lighting and screen settings.</div></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -127,15 +129,15 @@
     </div>
 
     @if ($related->isNotEmpty())
-        <section class="section alt">
+        <section class="py-5 bg-light">
             <div class="container">
-                <div class="section-head">
-                    <span class="section-kicker">Complete the look</span>
-                    <h2>You may also like</h2>
+                <div class="text-center mb-4">
+                    <div class="small text-uppercase text-secondary fw-bold">Complete the look</div>
+                    <h2 class="display-6 fw-normal">You may also like</h2>
                 </div>
-                <div class="product-grid">
+                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-lg-4">
                     @foreach ($related as $relatedProduct)
-                        @include('storefront.product-card', ['product' => $relatedProduct])
+                        <div class="col">@include('storefront.product-card', ['product' => $relatedProduct])</div>
                     @endforeach
                 </div>
             </div>
@@ -143,26 +145,14 @@
     @endif
 @endsection
 
-<style>
-    .product-detail .main-image {
-        background: #f7f5f1;
-    }
-
-    .product-detail .main-image img,
-    .product-detail .thumb img {
-        object-fit: contain;
-        background: #f7f5f1;
-    }
-</style>
-
 @push('scripts')
     <script>
         document.querySelectorAll('[data-image]').forEach((button) => {
             button.addEventListener('click', () => {
                 const mainImage = document.getElementById('product-main-image');
                 if (mainImage) mainImage.src = button.dataset.image;
-                document.querySelectorAll('.thumb').forEach((thumb) => thumb.classList.remove('active'));
-                button.classList.add('active');
+                document.querySelectorAll('[data-image]').forEach((thumb) => thumb.classList.remove('border-dark'));
+                button.classList.add('border-dark');
             });
         });
     </script>
