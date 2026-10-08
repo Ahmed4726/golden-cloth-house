@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 150" role="img" aria-labelledby="title desc">
+    <title id="title">گولڈن کلاتھ ہاؤس</title>
+    <desc id="desc">Golden Cloth House</desc>
+    <text x="310" y="82" text-anchor="middle" font-family="Noto Nastaliq Urdu, Noto Naskh Arabic, serif" font-size="56" font-weight="600" fill="#ffffff" direction="rtl">گولڈن کلاتھ ہاؤس</text>
+    <path d="M105 108 H515" stroke="#d7b25a" stroke-width="2"/>
+    <circle cx="92" cy="108" r="3" fill="#d7b25a"/>
+    <circle cx="528" cy="108" r="3" fill="#d7b25a"/>
+    <text x="310" y="132" text-anchor="middle" fill="#d7b25a" font-family="Noto Naskh Arabic, serif" font-size="15" direction="rtl">خواتین و مردوں کے ان سٹچڈ ملبوسات</text>
+</svg>
