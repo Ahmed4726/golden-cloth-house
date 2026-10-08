@@ -71,6 +71,15 @@ class Product extends Model
             return $image;
         }
 
-        return Storage::disk('public')->url(ltrim($image, '/'));
+        return route('media.show', ['path' => ltrim($image, '/')]);
+    }
+
+    public function imageExists(string $image): bool
+    {
+        if (filter_var($image, FILTER_VALIDATE_URL)) {
+            return true;
+        }
+
+        return Storage::disk('public')->exists(ltrim($image, '/'));
     }
 }
