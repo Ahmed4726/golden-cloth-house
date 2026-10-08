@@ -1,24 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="top">
-        <div>
-            <h1>Add Product</h1>
-            <div class="muted">Create a product for your website and social content.</div>
-        </div>
-        <a class="btn secondary" href="{{ route('products.index') }}">Back</a>
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div><h1 class="h2 fw-bold mb-1">Add Product</h1><div class="text-secondary">Create a product for your website and social content.</div></div>
+        <a class="btn btn-outline-dark" href="{{ route('products.index') }}">Back</a>
     </div>
 
-    <form
-        class="card form"
-        method="POST"
-        action="{{ route('products.store') }}"
-        enctype="multipart/form-data"
-    >
+    <form class="card border-0 shadow-sm" method="POST" action="{{ route('products.store') }}" enctype="multipart/form-data">
         @csrf
-
-        @include('products.form')
-
-        <button class="btn" type="submit">Save Product</button>
+        <div class="card-body p-4">@include('products.form')</div>
+        <div class="card-footer bg-white p-4"><button class="btn btn-dark" type="submit">Save Product</button></div>
     </form>
 @endsection
