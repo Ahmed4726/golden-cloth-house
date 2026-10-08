@@ -6,141 +6,67 @@
 @endphp
 
 @section('content')
-    <section class="page-head">
+    <section class="py-5 text-center">
         <div class="container">
-            <div class="breadcrumbs"><a href="{{ route('home') }}">Home</a> / Shop</div>
-            <span class="section-kicker">The collection</span>
-            <h1>Shop Unstitched Wear</h1>
-            <p>Women and men unstitched clothing, with printed, embroidered and seasonal collections available for delivery across Pakistan.</p>
+            <div class="small text-uppercase text-secondary mb-2"><a class="text-dark text-decoration-none" href="{{ route('home') }}">Home</a> / Shop</div>
+            <div class="small text-uppercase text-secondary fw-bold">The collection</div>
+            <h1 class="display-5 fw-normal">Shop Unstitched Wear</h1>
+            <p class="text-secondary mx-auto col-lg-7 mb-0">Women and men unstitched clothing, with printed, embroidered and seasonal collections available for delivery across Pakistan.</p>
         </div>
     </section>
 
-    <section class="section" style="padding-top:15px">
+    <section class="pb-5">
         <div class="container">
-            <button class="btn outline mobile-filter-button" type="button" data-filter-toggle>Filter & sort</button>
+            <div class="d-flex justify-content-between align-items-center gap-3 mb-4">
+                <button class="btn btn-outline-dark d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#shopFilters" aria-controls="shopFilters">Filter & sort</button>
+                <div class="text-secondary">{{ $products->total() }} products · Showing {{ $products->firstItem() ?? 0 }}–{{ $products->lastItem() ?? 0 }} @if ($filter['sale']) · Sale @endif</div>
+            </div>
 
-            <div class="shop-layout">
-                <aside class="filters" data-filters>
-                    <form class="filter-form" method="get" action="{{ route('shop') }}">
-                        <div class="filter-group">
-                            <div class="filter-title">Search</div>
-                            <input class="input" type="search" name="q" value="{{ $filter['q'] }}" placeholder="Search products...">
-                        </div>
-
-                        <div class="filter-group">
-                            <div class="filter-title">Collection</div>
-                            <div class="filter-links">
-                                <label><input type="radio" name="category" value="" @checked($filter['category'] === '')> All products</label>
-                                @foreach ($categories as $category)
-                                    <label>
-                                        <input type="radio" name="category" value="{{ $category->slug }}" @checked($filter['category'] === $category->slug || $filter['category'] == $category->id)>
-                                        {{ $category->name }}
-                                    </label>
-                                @endforeach
-                            </div>
-                        </div>
-
-                        <div class="filter-group">
-                            <div class="filter-title">Brand</div>
-                            <select class="select" name="brand">
-                                <option value="">All brands</option>
-                                @foreach ($brands as $brand)
-                                    <option value="{{ $brand->id }}" @selected($filter['brand'] == $brand->id)>{{ $brand->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="filter-group">
-                            <div class="filter-title">Price</div>
-                            <div class="price-fields">
-                                <input class="input" type="number" name="min_price" value="{{ $filter['min_price'] }}" min="0" placeholder="Min">
-                                <input class="input" type="number" name="max_price" value="{{ $filter['max_price'] }}" min="0" placeholder="Max">
-                            </div>
-                        </div>
-
-                        <div class="filter-group">
-                            <div class="filter-title">Availability</div>
-                            <label class="filter-links"><span><input type="checkbox" name="in_stock" value="1" @checked($filter['in_stock'])> In stock only</span></label>
-                            <label class="filter-links" style="margin-top:8px"><span><input type="checkbox" name="sale" value="1" @checked($filter['sale'])> Sale items</span></label>
-                        </div>
-
-                        <div class="filter-group">
-                            <div class="filter-title">Sort</div>
-                            <select class="select" name="sort">
-                                <option value="featured" @selected($filter['sort'] === 'featured')>Featured</option>
-                                <option value="newest" @selected($filter['sort'] === 'newest')>Newest</option>
-                                <option value="price_low" @selected($filter['sort'] === 'price_low')>Price: Low to High</option>
-                                <option value="price_high" @selected($filter['sort'] === 'price_high')>Price: High to Low</option>
-                                <option value="name_az" @selected($filter['sort'] === 'name_az')>Name: A to Z</option>
-                            </select>
-                        </div>
-
-                        <button class="btn full" type="submit">Apply filters</button>
-                        <a class="btn outline full" href="{{ route('shop') }}" style="margin-top:8px">Clear all</a>
-                    </form>
+            <div class="row g-4">
+                <aside class="col-lg-3 d-none d-lg-block">
+                    <div class="position-sticky" style="top:100px;">
+                        @include('storefront.shop-filters')
+                    </div>
                 </aside>
 
-                <div>
-                    <div class="shop-top">
-                        <div class="count">{{ $products->total() }} products</div>
-                        <div class="count">Showing {{ $products->firstItem() ?? 0 }}–{{ $products->lastItem() ?? 0 }} @if ($filter['sale']) · Sale @endif</div>
-                    </div>
-
+                <div class="col-lg-9">
                     @if ($products->isNotEmpty())
-                        <div class="product-grid">
+                        <div class="row row-cols-2 row-cols-md-3 g-3 g-lg-4">
                             @foreach ($products as $product)
-                                @include('storefront.product-card', ['product' => $product])
+                                <div class="col">@include('storefront.product-card', ['product' => $product])</div>
                             @endforeach
                         </div>
 
-                        <div class="pagination">
-                            @if ($products->onFirstPage())
-                                <span>Previous</span>
-                            @else
-                                <a href="{{ $products->previousPageUrl() }}">Previous</a>
-                            @endif
-                            <span>Page {{ $products->currentPage() }} of {{ $products->lastPage() }}</span>
-                            @if ($products->hasMorePages())
-                                <a href="{{ $products->nextPageUrl() }}">Next</a>
-                            @else
-                                <span>Next</span>
-                            @endif
-                        </div>
+                        <nav class="d-flex justify-content-center mt-5" aria-label="Shop pagination">
+                            <ul class="pagination mb-0">
+                                <li class="page-item {{ $products->onFirstPage() ? 'disabled' : '' }}">
+                                    <a class="page-link" href="{{ $products->previousPageUrl() ?: '#' }}">Previous</a>
+                                </li>
+                                <li class="page-item active"><span class="page-link">{{ $products->currentPage() }} / {{ $products->lastPage() }}</span></li>
+                                <li class="page-item {{ $products->hasMorePages() ? '' : 'disabled' }}">
+                                    <a class="page-link" href="{{ $products->nextPageUrl() ?: '#' }}">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
                     @else
-                        <div class="empty">
-                            <h3>No products found</h3>
-                            <p>Try another collection, fabric, price range or search term.</p>
-                            <a class="btn outline" href="{{ route('shop') }}">Clear filters</a>
+                        <div class="text-center border rounded p-5">
+                            <h2 class="h4">No products found</h2>
+                            <p class="text-secondary">Try another collection, fabric, price range or search term.</p>
+                            <a class="btn btn-outline-dark" href="{{ route('shop') }}">Clear filters</a>
                         </div>
                     @endif
                 </div>
             </div>
         </div>
     </section>
+
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="shopFilters" aria-labelledby="shopFiltersLabel">
+        <div class="offcanvas-header">
+            <h2 class="offcanvas-title h5" id="shopFiltersLabel">Filter & sort</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            @include('storefront.shop-filters')
+        </div>
+    </div>
 @endsection
-
-@push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const button = document.querySelector('[data-filter-toggle]');
-            const filters = document.querySelector('[data-filters]');
-
-            if (!button || !filters) return;
-
-            const syncMobileFilters = () => {
-                if (window.innerWidth <= 1050) {
-                    filters.style.display = 'none';
-                } else {
-                    filters.style.display = '';
-                }
-            };
-
-            syncMobileFilters();
-            window.addEventListener('resize', syncMobileFilters);
-
-            button.addEventListener('click', () => {
-                filters.style.display = filters.style.display === 'none' ? 'block' : 'none';
-            });
-        });
-    </script>
-@endpush
