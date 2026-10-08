@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class HomepageSlide extends Model
 {
@@ -22,5 +23,21 @@ class HomepageSlide extends Model
         return [
             'active' => 'boolean',
         ];
+    }
+
+    public function imageUrl(): ?string
+    {
+        if (! $this->image_path) {
+            return null;
+        }
+
+        return route('media.show', ['path' => ltrim($this->image_path, '/')]);
+    }
+
+    public function imageExists(): bool
+    {
+        return $this->image_path
+            ? Storage::disk('public')->exists(ltrim($this->image_path, '/'))
+            : false;
     }
 }
