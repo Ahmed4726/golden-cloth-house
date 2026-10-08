@@ -8,6 +8,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomepageSlideController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderTrackingController;
 use App\Http\Controllers\ProductController;
@@ -36,6 +37,10 @@ Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.s
 Route::get('/order/{order:order_number}/success', [CheckoutController::class, 'success'])->name('checkout.success');
 Route::get('/track-order', [OrderTrackingController::class, 'index'])->name('order.track');
 Route::post('/track-order', [OrderTrackingController::class, 'show'])->name('order.track.submit');
+
+Route::get('/media/{path}', [MediaController::class, 'show'])
+    ->where('path', '.*')
+    ->name('media.show');
 
 Route::get('/robots.txt', function () {
     return response(
