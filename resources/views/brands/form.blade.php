@@ -6,6 +6,6 @@
     <div class="col-md-6 d-flex align-items-end"><div class="form-check mb-2"><input class="form-check-input" id="brand-active" type="checkbox" name="active" value="1" {{ old('active', isset($brand) ? $brand->active : true) ? 'checked' : '' }}><label class="form-check-label" for="brand-active">Active</label></div></div>
     <div class="col-12"><label class="form-label fw-semibold" for="brand-logo">Logo</label><input class="form-control" id="brand-logo" type="file" name="logo" accept="image/jpeg,image/png,image/webp"></div>
     @if (!empty($brand?->logo_path))
-        <div class="col-12"><div class="ratio ratio-1x1 bg-light rounded overflow-hidden" style="width:90px;"><img class="w-100 h-100 object-fit-contain" src="{{ asset('storage/'.$brand->logo_path) }}" alt="{{ $brand->name }}"></div></div>
+        <div class="col-12"><div class="ratio ratio-1x1 bg-light rounded overflow-hidden w-25"><img class="w-100 h-100 object-fit-contain" src="{{ asset('storage/'.$brand->logo_path) }}" alt="{{ $brand->name }}"></div></div>
     @endif
 </div>
