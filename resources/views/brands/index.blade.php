@@ -10,14 +10,12 @@
                 <div class="list-group-item p-3">
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                         <div class="d-flex align-items-center gap-3">
-                            @if ($brand->logo_path)<div class="ratio ratio-1x1 bg-light rounded overflow-hidden" style="width:45px;"><img class="w-100 h-100 object-fit-contain" src="{{ asset('storage/'.$brand->logo_path) }}" alt="{{ $brand->name }}"></div>@endif
+                            @if ($brand->logo_path)<div class="ratio ratio-1x1 bg-light rounded overflow-hidden w-25"><img class="w-100 h-100 object-fit-contain" src="{{ asset('storage/'.$brand->logo_path) }}" alt="{{ $brand->name }}"></div>@endif
                             <div><strong>{{ $brand->name }}</strong><div class="text-secondary small">{{ $brand->slug }} · {{ $brand->products_count }} products</div></div>
                         </div>
                         <div class="d-flex gap-2">
                             <a class="btn btn-sm btn-outline-dark" href="{{ route('brands.edit', $brand) }}">Edit</a>
-                            <form method="post" action="{{ route('brands.destroy', $brand) }}" onsubmit="return confirm('Delete this brand?')">
-                                @csrf @method('DELETE') <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
-                            </form>
+                            <form method="post" action="{{ route('brands.destroy', $brand) }}" onsubmit="return confirm('Delete this brand?')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger" type="submit">Delete</button></form>
                         </div>
                     </div>
                 </div>
