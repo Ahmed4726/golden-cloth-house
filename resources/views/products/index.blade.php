@@ -13,7 +13,29 @@
                 <tbody>
                     @forelse ($products as $product)
                         <tr>
-                            <td><strong>{{ $product->name }}</strong><div class="text-secondary small">{{ $product->category ?: 'Uncategorised' }}</div></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    @php
+                                        $image = $product->images()[0] ?? null;
+                                        $imageUrl = $image
+                                            ? $product->imageUrl($image)
+                                            : asset('images/product-placeholder.svg');
+                                    @endphp
+                                    <img
+                                        class="rounded object-fit-contain bg-light flex-shrink-0"
+                                        src="{{ $imageUrl }}"
+                                        width="56"
+                                        height="72"
+                                        alt="{{ $product->name }}"
+                                        loading="lazy"
+                                        onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
+                                    >
+                                    <div>
+                                        <strong>{{ $product->name }}</strong>
+                                        <div class="text-secondary small">{{ $product->category ?: 'Uncategorised' }}</div>
+                                    </div>
+                                </div>
+                            </td>
                             <td>{{ $product->sku ?: '—' }}</td>
                             <td>{{ $product->price ? number_format((float) $product->price, 0).' '.$product->currency : '—' }}</td>
                             <td>{{ $product->stock_quantity }}</td>
