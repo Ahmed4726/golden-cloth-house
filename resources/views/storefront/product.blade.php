@@ -5,7 +5,7 @@
     $firstImage = $images[0] ?? null;
     $shareImage = $firstImage
         ? $product->imageUrl($firstImage)
-        : null;
+        : asset('images/product-placeholder.svg');
 
     $title = $product->name . ' | ' . config('store.name');
 
@@ -65,50 +65,43 @@
 
         <section class="row g-4 g-lg-5">
             <div class="col-lg-7">
-                @if ($firstImage)
-                    <div class="ratio ratio-4x5 bg-light rounded overflow-hidden">
-                        <img
-                            id="product-main-image"
-                            class="w-100 h-100 object-fit-contain bg-white"
-                            src="{{ $shareImage }}"
-                            alt="{{ $product->name }}"
-                        >
-                    </div>
+                <div class="ratio ratio-4x5 bg-light rounded overflow-hidden">
+                    <img
+                        id="product-main-image"
+                        class="w-100 h-100 object-fit-contain bg-white"
+                        src="{{ $shareImage }}"
+                        alt="{{ $product->name }}"
+                        onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
+                    >
+                </div>
 
-                    @if (count($images) > 1)
-                        <div
-                            class="row row-cols-4 row-cols-sm-5 row-cols-md-6 g-2 mt-2"
-                            aria-label="Product gallery"
-                        >
-                            @foreach ($images as $index => $image)
-                                @php
-                                    $imageUrl = $product->imageUrl($image);
-                                @endphp
+                @if (count($images) > 1)
+                    <div
+                        class="row row-cols-4 row-cols-sm-5 row-cols-md-6 g-2 mt-2"
+                        aria-label="Product gallery"
+                    >
+                        @foreach ($images as $index => $image)
+                            @php
+                                $imageUrl = $product->imageUrl($image);
+                            @endphp
 
-                                <div class="col">
-                                    <button
-                                        class="btn p-0 border {{ $index === 0 ? 'border-dark' : '' }} w-100 ratio ratio-3x4 overflow-hidden"
-                                        type="button"
-                                        data-image="{{ $imageUrl }}"
-                                        aria-label="View product image {{ $index + 1 }}"
+                            <div class="col">
+                                <button
+                                    class="btn p-0 border {{ $index === 0 ? 'border-dark' : '' }} w-100 ratio ratio-3x4 overflow-hidden"
+                                    type="button"
+                                    data-image="{{ $imageUrl }}"
+                                    aria-label="View product image {{ $index + 1 }}"
+                                >
+                                    <img
+                                        class="w-100 h-100 object-fit-contain bg-light"
+                                        src="{{ $imageUrl }}"
+                                        alt="{{ $product->name }} image {{ $index + 1 }}"
+                                        loading="lazy"
+                                        onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
                                     >
-                                        <img
-                                            class="w-100 h-100 object-fit-contain bg-light"
-                                            src="{{ $imageUrl }}"
-                                            alt="{{ $product->name }} image {{ $index + 1 }}"
-                                            loading="lazy"
-                                        >
-                                    </button>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-                @else
-                    <div class="ratio ratio-4x5 bg-light d-flex align-items-center justify-content-center text-secondary">
-                        <div class="text-center">
-                            <i class="bi bi-image fs-1 d-block mb-2"></i>
-                            Product image unavailable
-                        </div>
+                                </button>
+                            </div>
+                        @endforeach
                     </div>
                 @endif
             </div>
