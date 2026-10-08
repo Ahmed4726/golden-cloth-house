@@ -62,16 +62,20 @@
 
                     <div class="col-4 text-center">
                         <a class="d-inline-block" href="{{ route('home') }}" aria-label="{{ $siteName }} home">
-                            <img class="img-fluid object-fit-contain" style="max-height:42px;" src="{{ asset('images/golden-cloth-house-logo-header.svg') }}" alt="گولڈن کلاتھ ہاؤس">
+                            <img class="img-fluid" src="/images/golden-cloth-house-logo-header.svg" width="186" height="45" alt="گولڈن کلاتھ ہاؤس">
                         </a>
                     </div>
 
                     <div class="col-4 d-flex align-items-center justify-content-end gap-3">
                         <form class="d-none d-md-flex input-group input-group-sm w-auto" method="get" action="{{ route('shop') }}">
                             <input class="form-control bg-black text-white border-secondary" type="search" name="q" value="{{ request('q') }}" placeholder="Search" aria-label="Search products">
-                            <button class="btn btn-outline-light" type="submit" aria-label="Search"><i class="bi bi-search"></i></button>
+                            <button class="btn btn-outline-light" type="submit" aria-label="Search">
+                                <i class="bi bi-search"></i>
+                            </button>
                         </form>
-                        <a class="text-white fs-5 d-none d-sm-inline-block" href="{{ route('login') }}" aria-label="Account"><i class="bi bi-person"></i></a>
+                        <a class="text-white fs-5 d-none d-sm-inline-block" href="{{ route('login') }}" aria-label="Account">
+                            <i class="bi bi-person"></i>
+                        </a>
                         <a class="text-white fs-5 position-relative" href="{{ route('cart.index') }}" aria-label="Shopping bag">
                             <i class="bi bi-bag"></i>
                             @if ($cartCount > 0)
@@ -127,7 +131,7 @@
         <div class="offcanvas offcanvas-start text-bg-dark" tabindex="-1" id="gchMobileMenu" aria-labelledby="gchMobileMenuLabel">
             <div class="offcanvas-header border-bottom border-secondary">
                 <a href="{{ route('home') }}" class="d-inline-block">
-                    <img class="img-fluid object-fit-contain" style="max-height:38px;" src="{{ asset('images/golden-cloth-house-logo-header.svg') }}" alt="گولڈن کلاتھ ہاؤس">
+                    <img class="img-fluid" src="/images/golden-cloth-house-logo-header.svg" width="186" height="45" alt="گولڈن کلاتھ ہاؤس">
                 </a>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
@@ -139,7 +143,7 @@
                         </h2>
                     </div>
                     <div class="accordion-item bg-dark text-white">
-                        <h2 class="accordion-header" id="womenHeading">
+                        <h2 class="accordion-header">
                             <button class="accordion-button collapsed bg-dark text-white" type="button" data-bs-toggle="collapse" data-bs-target="#womenMenu">Women</button>
                         </h2>
                         <div id="womenMenu" class="accordion-collapse collapse" data-bs-parent="#gchMobileAccordion">
@@ -155,7 +159,7 @@
                         </div>
                     </div>
                     <div class="accordion-item bg-dark text-white">
-                        <h2 class="accordion-header" id="menHeading">
+                        <h2 class="accordion-header">
                             <button class="accordion-button collapsed bg-dark text-white" type="button" data-bs-toggle="collapse" data-bs-target="#menMenu">Men</button>
                         </h2>
                         <div id="menMenu" class="accordion-collapse collapse" data-bs-parent="#gchMobileAccordion">
