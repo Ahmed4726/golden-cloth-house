@@ -60,7 +60,7 @@
                                 @endif
 
                                 @if ($slide->title)
-                                    <h1 class="h2 h1-lg fw-normal mb-2">
+                                    <h1 class="h2 fw-normal mb-2">
                                         {{ $slide->title }}
                                     </h1>
                                 @endif
