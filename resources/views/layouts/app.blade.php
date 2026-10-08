@@ -16,7 +16,7 @@
     </nav>
 
     <div class="d-flex min-vh-100">
-        <aside class="offcanvas-lg offcanvas-start text-bg-dark flex-shrink-0" tabindex="-1" id="adminMenu" aria-labelledby="adminMenuLabel">
+        <aside class="offcanvas-lg offcanvas-start col-lg-3 col-xl-2 text-bg-dark flex-shrink-0" tabindex="-1" id="adminMenu" aria-labelledby="adminMenuLabel">
             <div class="offcanvas-header d-lg-none border-bottom border-secondary">
                 <h5 class="offcanvas-title fw-bold" id="adminMenuLabel">Golden Cloth House</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#adminMenu" aria-label="Close"></button>
