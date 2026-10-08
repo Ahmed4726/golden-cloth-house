@@ -18,6 +18,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <meta property="og:type" content="{{ $ogType ?? 'website' }}">
     <meta property="og:site_name" content="{{ $siteName }}">
     <meta property="og:title" content="{{ $pageTitle }}">
@@ -40,106 +42,121 @@
     @endif
 </head>
 <body>
-    <header class="site-header">
-        <div class="header-top">
-            <div class="container header-top-inner">
-                <div class="header-contact">
-                    @if (config('store.contact_phone'))
-                        <a class="header-contact-link" href="tel:{{ config('store.contact_phone') }}" aria-label="Call Golden Cloth House">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 2.8 9.1 2a1.4 1.4 0 0 1 1.7.8l1.4 3.4a1.4 1.4 0 0 1-.4 1.6L10 9.5a13.5 13.5 0 0 0 4.5 4.5l1.7-1.8a1.4 1.4 0 0 1 1.6-.3l3.4 1.4a1.4 1.4 0 0 1 .8 1.7l-.8 2.5a2.8 2.8 0 0 1-3 1.9C9.8 18.2 5.8 14.2 4.6 5.8a2.8 2.8 0 0 1 2-3Z"/></svg>
-                        </a>
-                    @endif
-                    @if (config('store.whatsapp'))
-                        <a class="header-whatsapp" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', config('store.whatsapp')) }}" target="_blank" rel="noopener" aria-label="WhatsApp Golden Cloth House">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A10.4 10.4 0 0 0 4.1 16.1L3 20.9l4.9-1.1a10.4 10.4 0 0 0 12.6-16.3ZM12 19.1c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-2.9.7.7-2.8-.2-.3a8.5 8.5 0 1 1 7.1 3.8Zm4.7-6.4c-.3-.2-1.8-.9-2-.9-.3-.1-.5-.2-.7.2-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-1.6-.8-2.6-1.4-3.7-3.2-.3-.5.3-.5.8-1.5.1-.2.1-.4 0-.6 0-.2-.7-1.7-.9-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.7s1.2 3.1 1.4 3.3c.2.2 2.4 3.7 5.8 5.1 2.2.9 2.2.6 2.6.6.4 0 1.8-.7 2.1-1.3.3-.7.3-1.2.2-1.3-.1-.2-.3-.2-.6-.4Z"/></svg>
-                        </a>
-                    @endif
-                </div>
+    <header class="site-header gch-bootstrap-header">
+        <div class="gch-header-main">
+            <div class="container-fluid px-3 px-lg-4">
+                <div class="d-flex align-items-center justify-content-between gch-header-row">
+                    <div class="gch-contact d-flex align-items-center gap-3">
+                        @if (config('store.contact_phone'))
+                            <a class="gch-header-icon" href="tel:{{ config('store.contact_phone') }}" aria-label="Call Golden Cloth House">
+                                <i class="bi bi-telephone"></i>
+                            </a>
+                        @endif
+                        @if (config('store.whatsapp'))
+                            <a class="gch-whatsapp" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', config('store.whatsapp')) }}" target="_blank" rel="noopener" aria-label="WhatsApp Golden Cloth House">
+                                <i class="bi bi-whatsapp"></i>
+                            </a>
+                        @endif
+                    </div>
 
-                <a class="header-brand" href="{{ route('home') }}" aria-label="{{ $siteName }} home">
-                    <img src="{{ asset('images/golden-cloth-house-logo-header.svg') }}" alt="گولڈن کلاتھ ہاؤس">
-                </a>
+                    <a class="gch-logo" href="{{ route('home') }}" aria-label="{{ $siteName }} home">
+                        <img src="{{ asset('images/golden-cloth-house-logo-header.svg') }}" alt="گولڈن کلاتھ ہاؤس">
+                    </a>
 
-                <div class="header-actions">
-                    <form class="header-search" method="get" action="{{ route('shop') }}">
-                        <input type="search" name="q" value="{{ request('q') }}" placeholder="Search" aria-label="Search products">
-                        <button type="submit" aria-label="Search">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
-                        </button>
-                    </form>
-                    <a class="header-icon" href="{{ route('login') }}" aria-label="Account">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="3.7"/><path d="M4.2 21c.6-4 3.2-6.1 7.8-6.1s7.2 2.1 7.8 6.1"/></svg>
-                    </a>
-                    <a class="header-icon bag-icon" href="{{ route('cart.index') }}" aria-label="Shopping bag">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8.5h14l-.7 12H5.7L5 8.5Z"/><path d="M8.5 8.5V6a3.5 3.5 0 0 1 7 0v2.5"/></svg>
-                        @if ($cartCount > 0)<span class="cart-count">{{ $cartCount }}</span>@endif
-                    </a>
+                    <div class="d-flex align-items-center gap-3">
+                        <form class="gch-search d-none d-md-flex" method="get" action="{{ route('shop') }}">
+                            <input type="search" name="q" value="{{ request('q') }}" placeholder="Search" aria-label="Search products">
+                            <button type="submit" aria-label="Search"><i class="bi bi-search"></i></button>
+                        </form>
+                        <a class="gch-header-icon d-none d-sm-inline-flex" href="{{ route('login') }}" aria-label="Account">
+                            <i class="bi bi-person"></i>
+                        </a>
+                        <a class="gch-header-icon gch-bag" href="{{ route('cart.index') }}" aria-label="Shopping bag">
+                            <i class="bi bi-bag"></i>
+                            @if ($cartCount > 0)<span class="cart-count">{{ $cartCount }}</span>@endif
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <nav class="main-nav" aria-label="Primary navigation">
-            <div class="container nav-inner">
-                <button class="mobile-menu" type="button" aria-label="Open menu" aria-expanded="false" data-mobile-menu>
-                    <span></span><span></span><span></span>
+        <nav class="navbar navbar-expand-lg navbar-dark gch-nav" aria-label="Primary navigation">
+            <div class="container-fluid px-3 px-lg-4 position-relative">
+                <button class="navbar-toggler border-0 shadow-none p-1 gch-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#gchMobileMenu" aria-controls="gchMobileMenu" aria-label="Open menu">
+                    <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <div class="nav-links">
-                    <a class="nav-link" href="{{ route('shop', ['sort' => 'newest']) }}">New In</a>
-                    <div class="nav-item">
-                        <a class="nav-link" href="{{ route('shop', ['category' => 'women-unstitched']) }}">Women</a>
-                        <div class="mega-panel">
-                            <div class="container mega-inner">
-                                <div><div class="mega-title">Women Unstitched</div><div class="mega-links">
-                                    <a href="{{ route('shop', ['category' => 'women-unstitched']) }}">All Women Unstitched</a>
-                                    <a href="{{ route('shop', ['q' => '2 Piece', 'category' => 'women-unstitched']) }}">2 Piece Suits</a>
-                                    <a href="{{ route('shop', ['q' => '3 Piece', 'category' => 'women-unstitched']) }}">3 Piece Suits</a>
-                                    <a href="{{ route('shop', ['q' => 'Embroidered', 'category' => 'women-unstitched']) }}">Embroidered</a>
-                                </div></div>
-                                <div><div class="mega-title">By Fabric</div><div class="mega-links">
-                                    <a href="{{ route('shop', ['q' => 'Lawn', 'category' => 'women-unstitched']) }}">Lawn</a>
-                                    <a href="{{ route('shop', ['q' => 'Khaddar', 'category' => 'women-unstitched']) }}">Khaddar</a>
-                                    <a href="{{ route('shop', ['q' => 'Slub', 'category' => 'women-unstitched']) }}">Slub</a>
-                                </div></div>
-                                <div><div class="mega-title">Shop</div><div class="mega-links">
-                                    <a href="{{ route('shop', ['sort' => 'newest']) }}">New Arrivals</a>
-                                    <a href="{{ route('shop', ['sort' => 'price_low']) }}">Budget Picks</a>
-                                    <a href="{{ route('shop', ['sale' => 1]) }}">Sale</a>
-                                </div></div>
-                                <div><div class="mega-title">Customer Care</div><div class="mega-links">
-                                    <a href="{{ route('order.track') }}">Track Order</a>
-                                    <a href="{{ route('faq') }}">FAQs</a>
-                                    <a href="{{ route('contact') }}">Contact Us</a>
-                                </div></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="nav-item">
-                        <a class="nav-link" href="{{ route('shop', ['category' => 'men-unstitched']) }}">Men</a>
-                        <div class="mega-panel">
-                            <div class="container mega-inner">
-                                <div><div class="mega-title">Men Unstitched</div><div class="mega-links">
-                                    <a href="{{ route('shop', ['category' => 'men-unstitched']) }}">All Men Unstitched</a>
-                                    <a href="{{ route('shop', ['q' => 'Suit', 'category' => 'men-unstitched']) }}">Unstitched Suits</a>
-                                    <a href="{{ route('shop', ['q' => 'Cotton', 'category' => 'men-unstitched']) }}">Cotton</a>
-                                    <a href="{{ route('shop', ['q' => 'Khaddar', 'category' => 'men-unstitched']) }}">Khaddar</a>
-                                </div></div>
-                                <div><div class="mega-title">Shop</div><div class="mega-links">
-                                    <a href="{{ route('shop', ['sort' => 'newest']) }}">New Arrivals</a>
-                                    <a href="{{ route('shop', ['sale' => 1]) }}">Sale</a>
-                                </div></div>
-                                <div><div class="mega-title">Customer Care</div><div class="mega-links">
-                                    <a href="{{ route('order.track') }}">Track Order</a>
-                                    <a href="{{ route('faq') }}">FAQs</a>
-                                    <a href="{{ route('contact') }}">Contact Us</a>
-                                </div></div>
-                            </div>
-                        </div>
-                    </div>
-                    <a class="nav-link sale-link" href="{{ route('shop', ['sale' => 1]) }}">Sale</a>
+                <div class="collapse navbar-collapse justify-content-center d-none d-lg-flex">
+                    <ul class="navbar-nav align-items-center gap-lg-4">
+                        <li class="nav-item"><a class="nav-link gch-nav-link" href="{{ route('shop', ['sort' => 'newest']) }}">New In</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link gch-nav-link dropdown-toggle" href="{{ route('shop', ['category' => 'women-unstitched']) }}" role="button" data-bs-toggle="dropdown" aria-expanded="false">Women</a>
+                            <ul class="dropdown-menu gch-dropdown">
+                                <li><a class="dropdown-item" href="{{ route('shop', ['category' => 'women-unstitched']) }}">All Women Unstitched</a></li>
+                                <li><a class="dropdown-item" href="{{ route('shop', ['q' => '2 Piece', 'category' => 'women-unstitched']) }}">2 Piece Suits</a></li>
+                                <li><a class="dropdown-item" href="{{ route('shop', ['q' => '3 Piece', 'category' => 'women-unstitched']) }}">3 Piece Suits</a></li>
+                                <li><a class="dropdown-item" href="{{ route('shop', ['q' => 'Embroidered', 'category' => 'women-unstitched']) }}">Embroidered</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ route('shop', ['q' => 'Lawn', 'category' => 'women-unstitched']) }}">Lawn</a></li>
+                                <li><a class="dropdown-item" href="{{ route('shop', ['q' => 'Khaddar', 'category' => 'women-unstitched']) }}">Khaddar</a></li>
+                                <li><a class="dropdown-item" href="{{ route('shop', ['q' => 'Slub', 'category' => 'women-unstitched']) }}">Slub</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link gch-nav-link dropdown-toggle" href="{{ route('shop', ['category' => 'men-unstitched']) }}" role="button" data-bs-toggle="dropdown" aria-expanded="false">Men</a>
+                            <ul class="dropdown-menu gch-dropdown">
+                                <li><a class="dropdown-item" href="{{ route('shop', ['category' => 'men-unstitched']) }}">All Men Unstitched</a></li>
+                                <li><a class="dropdown-item" href="{{ route('shop', ['q' => 'Suit', 'category' => 'men-unstitched']) }}">Unstitched Suits</a></li>
+                                <li><a class="dropdown-item" href="{{ route('shop', ['q' => 'Cotton', 'category' => 'men-unstitched']) }}">Cotton</a></li>
+                                <li><a class="dropdown-item" href="{{ route('shop', ['q' => 'Khaddar', 'category' => 'men-unstitched']) }}">Khaddar</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item"><a class="nav-link gch-nav-link gch-sale" href="{{ route('shop', ['sale' => 1]) }}">Sale</a></li>
+                    </ul>
                 </div>
             </div>
         </nav>
+
+        <div class="offcanvas offcanvas-start gch-offcanvas" tabindex="-1" id="gchMobileMenu" aria-labelledby="gchMobileMenuLabel">
+            <div class="offcanvas-header border-bottom">
+                <a class="gch-mobile-logo" href="{{ route('home') }}" aria-label="{{ $siteName }} home">
+                    <img src="{{ asset('images/golden-cloth-house-logo-header.svg') }}" alt="گولڈن کلاتھ ہاؤس">
+                </a>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body p-0">
+                <div class="accordion accordion-flush gch-mobile-accordion" id="gchMobileAccordion">
+                    <div class="accordion-item">
+                        <a class="accordion-button collapsed text-decoration-none" href="{{ route('shop', ['sort' => 'newest']) }}">New In</a>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gchWomen">Women</button></h2>
+                        <div id="gchWomen" class="accordion-collapse collapse" data-bs-parent="#gchMobileAccordion">
+                            <div class="accordion-body p-0">
+                                <a class="gch-mobile-link fw-semibold" href="{{ route('shop', ['category' => 'women-unstitched']) }}">All Women Unstitched</a>
+                                <a class="gch-mobile-link" href="{{ route('shop', ['q' => '2 Piece', 'category' => 'women-unstitched']) }}">2 Piece Suits</a>
+                                <a class="gch-mobile-link" href="{{ route('shop', ['q' => '3 Piece', 'category' => 'women-unstitched']) }}">3 Piece Suits</a>
+                                <a class="gch-mobile-link" href="{{ route('shop', ['q' => 'Embroidered', 'category' => 'women-unstitched']) }}">Embroidered</a>
+                                <a class="gch-mobile-link" href="{{ route('shop', ['q' => 'Lawn', 'category' => 'women-unstitched']) }}">Lawn</a>
+                                <a class="gch-mobile-link" href="{{ route('shop', ['q' => 'Khaddar', 'category' => 'women-unstitched']) }}">Khaddar</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gchMen">Men</button></h2>
+                        <div id="gchMen" class="accordion-collapse collapse" data-bs-parent="#gchMobileAccordion">
+                            <div class="accordion-body p-0">
+                                <a class="gch-mobile-link fw-semibold" href="{{ route('shop', ['category' => 'men-unstitched']) }}">All Men Unstitched</a>
+                                <a class="gch-mobile-link" href="{{ route('shop', ['q' => 'Suit', 'category' => 'men-unstitched']) }}">Unstitched Suits</a>
+                                <a class="gch-mobile-link" href="{{ route('shop', ['q' => 'Cotton', 'category' => 'men-unstitched']) }}">Cotton</a>
+                                <a class="gch-mobile-link" href="{{ route('shop', ['q' => 'Khaddar', 'category' => 'men-unstitched']) }}">Khaddar</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item"><a class="accordion-button text-decoration-none gch-mobile-sale" href="{{ route('shop', ['sale' => 1]) }}">Sale</a></div>
+                </div>
+            </div>
+        </div>
     </header>
 
     <main>
@@ -195,29 +212,13 @@
                 </div></div>
             </div>
             <div class="footer-bottom">
-                <span>© {{ now()->year }} {{ $siteName }}. All rights reserved.</span>
-                <span>Secure checkout · Cash on Delivery · Pakistan</span>
+                <span>&copy; {{ date('Y') }} {{ $siteName }}. All rights reserved.</span>
+                <span>Cash on Delivery across Pakistan</span>
             </div>
         </div>
     </footer>
 
-    @if (config('store.whatsapp'))
-        <a class="floating-whatsapp" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', config('store.whatsapp')) }}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">◉</a>
-    @endif
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const menuButton = document.querySelector('[data-mobile-menu]');
-            const navLinks = document.querySelector('.nav-links');
-
-            if (menuButton && navLinks) {
-                menuButton.addEventListener('click', () => {
-                    const open = navLinks.classList.toggle('is-open');
-                    menuButton.setAttribute('aria-expanded', open ? 'true' : 'false');
-                });
-            }
-        });
-    </script>
 </body>
 </html>
