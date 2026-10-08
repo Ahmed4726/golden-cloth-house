@@ -143,6 +143,18 @@
     @endif
 @endsection
 
+<style>
+    .product-detail .main-image {
+        background: #f7f5f1;
+    }
+
+    .product-detail .main-image img,
+    .product-detail .thumb img {
+        object-fit: contain;
+        background: #f7f5f1;
+    }
+</style>
+
 @push('scripts')
     <script>
         document.querySelectorAll('[data-image]').forEach((button) => {
