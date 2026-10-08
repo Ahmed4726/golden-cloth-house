@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title desc">
+    <title id="title">Golden Cloth House product placeholder</title>
+    <desc id="desc">Product image placeholder</desc>
+    <rect width="800" height="1000" fill="#f8f9fa"/>
+    <g fill="#6c757d" text-anchor="middle" font-family="Arial, sans-serif">
+        <text x="400" y="470" font-size="42">Golden Cloth House</text>
+        <text x="400" y="525" font-size="24">Product Image</text>
+    </g>
+</svg>
