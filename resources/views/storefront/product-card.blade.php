@@ -2,8 +2,11 @@
     $image = $product->images()[0] ?? null;
     $imageUrl = $image
         ? $product->imageUrl($image)
-        : null;
-    $isSale = $product->compare_at_price && $product->compare_at_price > $product->price;
+        : asset('images/product-placeholder.svg');
+
+    $isSale = $product->compare_at_price
+        && $product->compare_at_price > $product->price;
+
     $discount = $isSale
         ? round(
             (($product->compare_at_price - $product->price) / $product->compare_at_price) * 100
@@ -28,19 +31,13 @@
                 </span>
             @endif
 
-            @if ($imageUrl)
-                <img
-                    class="w-100 h-100 object-fit-contain bg-white"
-                    src="{{ $imageUrl }}"
-                    alt="{{ $product->name }}"
-                    loading="lazy"
-                >
-            @else
-                <div class="d-flex flex-column align-items-center justify-content-center gap-2 text-secondary p-3 text-center">
-                    <i class="bi bi-image fs-2"></i>
-                    <span class="small">No image</span>
-                </div>
-            @endif
+            <img
+                class="w-100 h-100 object-fit-contain bg-white"
+                src="{{ $imageUrl }}"
+                alt="{{ $product->name }}"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
+            >
         </div>
     </a>
 
