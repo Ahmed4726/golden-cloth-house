@@ -25,7 +25,7 @@
         aria-label="Featured collection"
     >
         @if ($slides->count() > 1)
-            <div class="carousel-indicators">
+            <div class="carousel-indicators top-0 bottom-auto mt-3">
                 @foreach ($slides as $index => $slide)
                     <button
                         type="button"
@@ -42,42 +42,79 @@
         <div class="carousel-inner">
             @forelse ($slides as $index => $slide)
                 <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
-                    <img
-                        class="d-block w-100 h-auto"
-                        src="{{ $slide->imageUrl() ?: asset('images/product-placeholder.svg') }}"
-                        alt="{{ $slide->title ?: config('store.name') }}"
-                        loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
-                        onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
-                    >
+                    <div class="d-none d-md-block ratio ratio-16x9 position-relative bg-dark overflow-hidden">
+                        <img
+                            class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover"
+                            src="{{ $slide->imageUrl() ?: asset('images/product-placeholder.svg') }}"
+                            alt="{{ $slide->title ?: config('store.name') }}"
+                            loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                            onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
+                        >
 
-                    <div class="bg-dark text-white text-center py-3 py-md-4">
-                        <div class="container">
-                            @if ($slide->subtitle)
-                                <div class="small text-uppercase fw-bold">
-                                    {{ $slide->subtitle }}
-                                </div>
-                            @endif
+                        <div class="position-absolute bottom-0 start-0 w-100 bg-dark bg-opacity-75 text-white p-3 p-lg-4">
+                            <div class="container">
+                                @if ($slide->subtitle)
+                                    <div class="small text-uppercase fw-bold mb-1">
+                                        {{ $slide->subtitle }}
+                                    </div>
+                                @endif
 
-                            @if ($slide->title)
-                                <h1 class="h2 fw-normal mb-2">
-                                    {{ $slide->title }}
-                                </h1>
-                            @endif
+                                @if ($slide->title)
+                                    <h1 class="h2 h1-lg fw-normal mb-2">
+                                        {{ $slide->title }}
+                                    </h1>
+                                @endif
 
-                            @if ($slide->description)
-                                <p class="lead mb-3 d-none d-md-block">
-                                    {{ $slide->description }}
-                                </p>
-                            @endif
+                                @if ($slide->description)
+                                    <p class="lead mb-3 d-none d-lg-block">
+                                        {{ $slide->description }}
+                                    </p>
+                                @endif
 
-                            @if ($slide->button_url)
-                                <a
-                                    class="btn btn-light text-uppercase fw-bold"
-                                    href="{{ $slide->button_url }}"
-                                >
-                                    {{ $slide->button_text ?: 'Shop now' }}
-                                </a>
-                            @endif
+                                @if ($slide->button_url)
+                                    <a
+                                        class="btn btn-light text-uppercase fw-bold"
+                                        href="{{ $slide->button_url }}"
+                                    >
+                                        {{ $slide->button_text ?: 'Shop now' }}
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-md-none ratio ratio-4x3 position-relative bg-dark overflow-hidden">
+                        <img
+                            class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover"
+                            src="{{ $slide->imageUrl() ?: asset('images/product-placeholder.svg') }}"
+                            alt="{{ $slide->title ?: config('store.name') }}"
+                            loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                            onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
+                        >
+
+                        <div class="position-absolute bottom-0 start-0 w-100 bg-dark bg-opacity-75 text-white p-3">
+                            <div class="container">
+                                @if ($slide->subtitle)
+                                    <div class="small text-uppercase fw-bold mb-1">
+                                        {{ $slide->subtitle }}
+                                    </div>
+                                @endif
+
+                                @if ($slide->title)
+                                    <h1 class="h4 fw-normal mb-2">
+                                        {{ $slide->title }}
+                                    </h1>
+                                @endif
+
+                                @if ($slide->button_url)
+                                    <a
+                                        class="btn btn-light btn-sm text-uppercase fw-bold"
+                                        href="{{ $slide->button_url }}"
+                                    >
+                                        {{ $slide->button_text ?: 'Shop now' }}
+                                    </a>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
