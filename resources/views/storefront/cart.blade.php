@@ -26,7 +26,7 @@
                             $image = $item['product']->images()[0] ?? null;
                             $imageUrl = $image
                                 ? $item['product']->imageUrl($image)
-                                : null;
+                                : asset('images/product-placeholder.svg');
                         @endphp
 
                         <form
@@ -40,19 +40,15 @@
                             <div class="card-body">
                                 <div class="row align-items-center g-3">
                                     <div class="col-4 col-sm-3 col-md-2">
-                                        @if ($imageUrl)
-                                            <div class="ratio ratio-3x4 bg-light rounded overflow-hidden">
-                                                <img
-                                                    class="w-100 h-100 object-fit-contain"
-                                                    src="{{ $imageUrl }}"
-                                                    alt="{{ $item['product']->name }}"
-                                                >
-                                            </div>
-                                        @else
-                                            <div class="ratio ratio-3x4 bg-light rounded d-flex align-items-center justify-content-center text-secondary">
-                                                <i class="bi bi-image fs-3"></i>
-                                            </div>
-                                        @endif
+                                        <div class="ratio ratio-3x4 bg-light rounded overflow-hidden">
+                                            <img
+                                                class="w-100 h-100 object-fit-contain"
+                                                src="{{ $imageUrl }}"
+                                                alt="{{ $item['product']->name }}"
+                                                loading="lazy"
+                                                onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
+                                            >
+                                        </div>
                                     </div>
 
                                     <div class="col-sm">
