@@ -1,27 +1,38 @@
 <!doctype html>
-<html lang="ur">
+<html lang="en-PK">
 <head>
     @php
         $siteName = config('store.name');
         $pageTitle = $title ?? $siteName;
         $pageDescription = $description ?? 'Golden Cloth House — خواتین اور مردوں کے معیاری ان سٹچڈ ملبوسات، پاکستان بھر میں Cash on Delivery کے ساتھ۔';
-        $canonical = $canonical ?? url()->current();
+        $filteredShopPage = request()->routeIs('shop') && request()->query->count() > 0;
+        $canonical = $canonical ?? ($filteredShopPage ? route('shop') : url()->current());
         $shareImage = $shareImage ?? null;
         $cartCount = collect(session('cart', []))->sum('quantity');
+        $indexable = ! $filteredShopPage && ! request()->routeIs('cart.*', 'checkout*', 'order.track*', 'login', 'register');
     @endphp
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="{{ $pageDescription }}">
-    <meta name="robots" content="index,follow,max-image-preview:large">
+    <meta name="robots" content="{{ $indexable ? 'index,follow,max-image-preview:large' : 'noindex,follow' }}">
     <link rel="canonical" href="{{ $canonical }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <style>
+        .ratio-2x1 { --bs-aspect-ratio: 50%; }
+        .ratio-3x4 { --bs-aspect-ratio: 133.333333%; }
+        .ratio-3x1 { --bs-aspect-ratio: 33.333333%; }
+        .ratio-4x5 { --bs-aspect-ratio: 125%; }
+        .quick-view-button { width: 2.75rem; height: 2.75rem; padding: 0; }
+    </style>
+    @stack('styles')
 
     <meta property="og:type" content="{{ $ogType ?? 'website' }}">
+    <meta property="og:locale" content="en_PK">
     <meta property="og:site_name" content="{{ $siteName }}">
     <meta property="og:title" content="{{ $pageTitle }}">
     <meta property="og:description" content="{{ $pageDescription }}">
@@ -43,26 +54,30 @@
     @endif
 </head>
 <body class="bg-white text-dark">
+    <a class="visually-hidden-focusable position-absolute top-0 start-0 p-2 bg-white text-dark z-3" href="#main-content">Skip to content</a>
     <header class="sticky-top">
         <div class="bg-black text-white border-bottom border-secondary">
             <div class="container-fluid px-3 px-lg-4 py-2">
                 <div class="row align-items-center g-2">
                     <div class="col-4 d-flex align-items-center gap-3">
+                        <button class="btn btn-link text-white p-2 d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#gchMobileMenu" aria-controls="gchMobileMenu" aria-label="Open menu">
+                            <i class="fa-solid fa-bars fs-5" aria-hidden="true"></i>
+                        </button>
                         @if (config('store.contact_phone'))
-                            <a class="text-white fs-5" href="tel:{{ config('store.contact_phone') }}" aria-label="Call Golden Cloth House">
-                                <i class="bi bi-telephone"></i>
+                            <a class="text-white fs-5 d-none d-lg-inline-block" href="tel:{{ config('store.contact_phone') }}" aria-label="Call Golden Cloth House">
+                                <i class="fa-solid fa-phone"></i>
                             </a>
                         @endif
                         @if (config('store.whatsapp'))
-                            <a class="text-success fs-4" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', config('store.whatsapp')) }}" target="_blank" rel="noopener" aria-label="WhatsApp Golden Cloth House">
-                                <i class="bi bi-whatsapp"></i>
+                            <a class="text-success fs-4 d-none d-lg-inline-block" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', config('store.whatsapp')) }}" target="_blank" rel="noopener" aria-label="WhatsApp Golden Cloth House">
+                                <i class="fa-brands fa-whatsapp"></i>
                             </a>
                         @endif
                     </div>
 
                     <div class="col-4 text-center">
                         <a class="d-inline-block" href="{{ route('home') }}" aria-label="{{ $siteName }} home">
-                            <img class="img-fluid" src="{{ asset('images/golden-cloth-house-logo-header.svg') }}" width="186" height="45" alt="گولڈن کلاتھ ہاؤس">
+                            <img class="img-fluid" src="{{ asset('images/golden-cloth-house-logo-header.svg') }}" width="170" height="42" alt="{{ $siteName }}">
                         </a>
                     </div>
 
@@ -70,14 +85,17 @@
                         <form class="d-none d-md-flex input-group input-group-sm w-auto" method="get" action="{{ route('shop') }}">
                             <input class="form-control bg-black text-white border-secondary" type="search" name="q" value="{{ request('q') }}" placeholder="Search" aria-label="Search products">
                             <button class="btn btn-outline-light" type="submit" aria-label="Search">
-                                <i class="bi bi-search"></i>
+                                <i class="fa-solid fa-magnifying-glass"></i>
                             </button>
                         </form>
+                        <button class="btn btn-link text-white p-2 d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#gchMobileSearch" aria-expanded="false" aria-controls="gchMobileSearch" aria-label="Open search">
+                            <i class="fa-solid fa-magnifying-glass fs-5" aria-hidden="true"></i>
+                        </button>
                         <a class="text-white fs-5 d-none d-sm-inline-block" href="{{ route('login') }}" aria-label="Account">
-                            <i class="bi bi-person"></i>
+                            <i class="fa-solid fa-user"></i>
                         </a>
                         <a class="text-white fs-5 position-relative" href="{{ route('cart.index') }}" aria-label="Shopping bag">
-                            <i class="bi bi-bag"></i>
+                            <i class="fa-solid fa-bag-shopping"></i>
                             @if ($cartCount > 0)
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-warning">{{ $cartCount }}</span>
                             @endif
@@ -87,12 +105,19 @@
             </div>
         </div>
 
+        <div class="collapse d-md-none bg-black border-bottom border-secondary" id="gchMobileSearch">
+            <form class="container-fluid px-3 pb-3" method="get" action="{{ route('shop') }}">
+                <div class="input-group">
+                    <input class="form-control" type="search" name="q" value="{{ request('q') }}" placeholder="Search products" aria-label="Search products">
+                    <button class="btn btn-light" type="submit" aria-label="Submit search">
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <nav class="navbar navbar-expand-lg navbar-dark bg-black border-bottom border-secondary" aria-label="Primary navigation">
             <div class="container-fluid px-3 px-lg-4">
-                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#gchMobileMenu" aria-controls="gchMobileMenu" aria-label="Open menu">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
                 <div class="collapse navbar-collapse justify-content-center d-none d-lg-flex">
                     <ul class="navbar-nav align-items-center gap-lg-4">
                         <li class="nav-item">
@@ -181,7 +206,7 @@
         </div>
     </header>
 
-    <main>
+    <main id="main-content">
         @if (session('success'))
             <div class="container py-3">
                 <div class="alert alert-success alert-dismissible fade show mb-0" role="alert">
@@ -210,10 +235,10 @@
             <p class="text-secondary mb-4">New arrivals, seasonal collections and offers.</p>
             <div class="d-flex justify-content-center gap-2">
                 @if (config('store.instagram'))
-                    <a class="btn btn-outline-dark" href="{{ config('store.instagram') }}" target="_blank" rel="noopener"><i class="bi bi-instagram me-1"></i>Instagram</a>
+                    <a class="btn btn-outline-dark" href="{{ config('store.instagram') }}" target="_blank" rel="noopener"><i class="fa-brands fa-instagram me-1"></i>Instagram</a>
                 @endif
                 @if (config('store.facebook'))
-                    <a class="btn btn-outline-dark" href="{{ config('store.facebook') }}" target="_blank" rel="noopener"><i class="bi bi-facebook me-1"></i>Facebook</a>
+                    <a class="btn btn-outline-dark" href="{{ config('store.facebook') }}" target="_blank" rel="noopener"><i class="fa-brands fa-facebook me-1"></i>Facebook</a>
                 @endif
             </div>
         </div>
@@ -226,7 +251,7 @@
                     <h2 class="h4 fw-normal">{{ $siteName }}</h2>
                     <p class="text-secondary">Women and men unstitched wear, selected for Pakistani wardrobes.</p>
                     @if (config('store.address'))
-                        <div class="small text-secondary"><i class="bi bi-geo-alt me-2"></i>{{ config('store.address') }}</div>
+                        <div class="small text-secondary"><i class="fa-solid fa-location-dot me-2"></i>{{ config('store.address') }}</div>
                     @endif
                 </div>
                 <div class="col-6 col-lg-2">
@@ -248,13 +273,13 @@
                 <div class="col-12 col-lg-4">
                     <h3 class="h6 text-uppercase">Customer Care</h3>
                     @if (config('store.contact_phone'))
-                        <div class="mb-2"><i class="bi bi-telephone me-2"></i>{{ config('store.contact_phone') }}</div>
+                        <div class="mb-2"><i class="fa-solid fa-phone me-2"></i>{{ config('store.contact_phone') }}</div>
                     @endif
                     @if (config('store.contact_email'))
-                        <div class="mb-2"><i class="bi bi-envelope me-2"></i>{{ config('store.contact_email') }}</div>
+                        <div class="mb-2"><i class="fa-solid fa-envelope me-2"></i>{{ config('store.contact_email') }}</div>
                     @endif
                     @if (config('store.whatsapp'))
-                        <a class="link-success text-decoration-none" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', config('store.whatsapp')) }}" target="_blank" rel="noopener"><i class="bi bi-whatsapp me-2"></i>WhatsApp</a>
+                        <a class="link-success text-decoration-none" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', config('store.whatsapp')) }}" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp me-2"></i>WhatsApp</a>
                     @endif
                 </div>
             </div>
@@ -273,11 +298,73 @@
 
     @if (config('store.whatsapp'))
         <a class="btn btn-success rounded-circle position-fixed bottom-0 end-0 m-3 shadow" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', config('store.whatsapp')) }}" target="_blank" rel="noopener" aria-label="WhatsApp Golden Cloth House">
-            <i class="bi bi-whatsapp fs-5"></i>
+            <i class="fa-brands fa-whatsapp fs-5"></i>
         </a>
     @endif
 
+    <div class="modal fade" id="productQuickView" tabindex="-1" aria-labelledby="productQuickViewTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-0 border-0">
+                <div class="modal-header border-0">
+                    <h2 class="modal-title h5" id="productQuickViewTitle">Product details</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-0">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-md-6">
+                            <div class="ratio ratio-3x4 bg-light">
+                                <img id="quickViewImage" class="w-100 h-100 object-fit-contain" src="{{ asset('images/product-placeholder.svg') }}" alt="" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="quickViewCategory" class="small text-uppercase text-secondary mb-2"></div>
+                            <div id="quickViewPrice" class="h5 fw-bold mb-1"></div>
+                            <div id="quickViewComparePrice" class="small text-secondary text-decoration-line-through mb-3 d-none"></div>
+                            <p id="quickViewDescription" class="text-secondary"></p>
+                            <div id="quickViewStock" class="small mb-4"></div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a id="quickViewLink" class="btn btn-outline-dark" href="#">View product</a>
+                                <form id="quickViewCartForm" method="POST" action="#">
+                                    @csrf
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button id="quickViewAddButton" class="btn btn-dark" type="submit"><i class="fa-solid fa-cart-shopping me-2" aria-hidden="true"></i>Add to cart</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('productQuickView')?.addEventListener('show.bs.modal', (event) => {
+            const trigger = event.relatedTarget;
+            if (!trigger) return;
+
+            const modal = event.currentTarget;
+            const inStock = trigger.dataset.productInStock === 'true';
+            const description = trigger.dataset.productDescription;
+            const comparePrice = trigger.dataset.productComparePrice;
+
+            modal.querySelector('#productQuickViewTitle').textContent = trigger.dataset.productName;
+            modal.querySelector('#quickViewImage').src = trigger.dataset.productImage;
+            modal.querySelector('#quickViewImage').alt = trigger.dataset.productName;
+            modal.querySelector('#quickViewCategory').textContent = trigger.dataset.productCategory;
+            modal.querySelector('#quickViewPrice').textContent = trigger.dataset.productPrice;
+            modal.querySelector('#quickViewPrice').classList.toggle('d-none', !trigger.dataset.productPrice);
+            modal.querySelector('#quickViewComparePrice').textContent = comparePrice;
+            modal.querySelector('#quickViewComparePrice').classList.toggle('d-none', !comparePrice);
+            modal.querySelector('#quickViewDescription').textContent = description;
+            modal.querySelector('#quickViewDescription').classList.toggle('d-none', !description);
+            modal.querySelector('#quickViewStock').textContent = inStock ? 'In stock' : 'Out of stock';
+            modal.querySelector('#quickViewStock').className = `small mb-4 ${inStock ? 'text-success' : 'text-secondary'}`;
+            modal.querySelector('#quickViewLink').href = trigger.dataset.productUrl;
+            modal.querySelector('#quickViewCartForm').action = trigger.dataset.cartUrl;
+            modal.querySelector('#quickViewAddButton').disabled = !inStock;
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

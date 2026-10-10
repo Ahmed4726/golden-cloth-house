@@ -93,10 +93,16 @@ class StorefrontController extends Controller
             default => $products->orderByDesc('featured')->orderBy('sort_order')->latest(),
         };
 
+        $collection = $request->routeIs('shop.collection')
+            ? $request->route('category')
+            : null;
+
         return view('storefront.shop', [
             'products' => $products->paginate(24)->withQueryString(),
             'categories' => Category::where('active', true)->orderBy('sort_order')->orderBy('name')->get(),
             'brands' => Brand::where('active', true)->orderBy('sort_order')->orderBy('name')->get(),
+            'collection' => $collection,
+            'canonical' => $collection ? route('shop.collection', $collection) : route('shop'),
             'filter' => [
                 'q' => (string) $request->input('q', ''),
                 'category' => (string) $request->input('category', ''),
@@ -108,6 +114,15 @@ class StorefrontController extends Controller
                 'sale' => $request->boolean('sale'),
             ],
         ]);
+    }
+
+    public function collection(Category $category, Request $request)
+    {
+        abort_unless($category->active, 404);
+
+        $request->query->set('category', $category->slug);
+
+        return $this->shop($request);
     }
 
     public function product(Product $product)

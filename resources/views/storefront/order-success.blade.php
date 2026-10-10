@@ -8,7 +8,7 @@
 @section('content')
     <div class="container py-5">
         <section class="text-center py-5">
-            <div class="display-4 text-success mb-3"><i class="bi bi-check-circle-fill"></i></div>
+            <div class="display-4 text-success mb-3"><i class="fa-solid fa-circle-check"></i></div>
             <div class="small text-uppercase text-secondary fw-bold">Order confirmed</div>
             <h1 class="display-5 fw-normal mt-2">Thank you, {{ $order->customer_name }}.</h1>
             <p class="lead text-secondary mx-auto col-lg-7">

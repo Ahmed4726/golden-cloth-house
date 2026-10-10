@@ -30,6 +30,6 @@ class HomepageSlide extends Model
             return null;
         }
 
-        return asset('storage/' . ltrim($this->image_path, '/'));
+        return '/storage/'.ltrim($this->image_path, '/');
     }
 }

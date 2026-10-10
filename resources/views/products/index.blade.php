@@ -3,7 +3,7 @@
 @section('content')
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
         <div><h1 class="h2 fw-bold mb-1">Product Catalogue</h1><div class="text-secondary">Products power your website and social posts.</div></div>
-        <a class="btn btn-dark" href="{{ route('products.create') }}"><i class="bi bi-plus-lg me-1"></i>Add Product</a>
+        <a class="btn btn-dark" href="{{ route('products.create') }}"><i class="fa-solid fa-plus me-1"></i>Add Product</a>
     </div>
 
     <div class="card border-0 shadow-sm">

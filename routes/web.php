@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [StorefrontController::class, 'home'])->name('home');
 Route::get('/shop', [StorefrontController::class, 'shop'])->name('shop');
+Route::get('/collections/{category:slug}', [StorefrontController::class, 'collection'])->name('shop.collection');
 Route::get('/shop/{product:slug}', [StorefrontController::class, 'product'])->name('shop.product');
 
 Route::get('/about', fn () => view('storefront.about'))->name('about');
@@ -44,7 +45,7 @@ Route::get('/media/{path}', [MediaController::class, 'show'])
 
 Route::get('/robots.txt', function () {
     return response(
-        "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /checkout\nDisallow: /cart\nSitemap: ".url('/sitemap.xml'),
+        "User-agent: *\nAllow: /\nDisallow: /admin\nSitemap: ".url('/sitemap.xml'),
         200,
         ['Content-Type' => 'text/plain']
     );
@@ -52,9 +53,13 @@ Route::get('/robots.txt', function () {
 
 Route::get('/sitemap.xml', function () {
     $products = \App\Models\Product::where('active', true)->get();
+    $categories = \App\Models\Category::where('active', true)
+        ->orderBy('sort_order')
+        ->orderBy('name')
+        ->get();
 
     return response()
-        ->view('storefront.sitemap', compact('products'))
+        ->view('storefront.sitemap', compact('products', 'categories'))
         ->header('Content-Type', 'application/xml');
 })->name('sitemap');
 

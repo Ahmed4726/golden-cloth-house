@@ -15,22 +15,12 @@
 @endphp
 
 <article class="card h-100 w-100 border shadow-sm bg-white rounded-0 d-flex flex-column">
-    <a
-        class="text-decoration-none text-dark"
-        href="{{ route('shop.product', $product) }}"
-        aria-label="View {{ $product->name }}"
-    >
-        <div class="ratio ratio-3x4 bg-light position-relative overflow-hidden">
-            @if ($isSale)
-                <span class="position-absolute top-0 start-0 m-2 badge text-bg-light text-danger z-1">
-                    -{{ $discount }}%
-                </span>
-            @elseif ($product->featured)
-                <span class="position-absolute top-0 start-0 m-2 badge text-bg-light z-1">
-                    Featured
-                </span>
-            @endif
-
+    <div class="ratio ratio-3x4 bg-light position-relative overflow-hidden">
+        <a
+            class="position-absolute top-0 start-0 w-100 h-100 z-1"
+            href="{{ route('shop.product', $product) }}"
+            aria-label="View {{ $product->name }}"
+        >
             <img
                 class="w-100 h-100 object-fit-contain bg-white"
                 src="{{ $imageUrl }}"
@@ -38,8 +28,40 @@
                 loading="lazy"
                 onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
             >
+        </a>
+
+        <div class="position-absolute top-0 start-0 w-100 h-100 z-2 pe-none">
+            @if ($isSale)
+                <span class="position-absolute top-0 start-0 m-2 badge text-bg-light text-danger">
+                    -{{ $discount }}%
+                </span>
+            @elseif ($product->featured)
+                <span class="position-absolute top-0 start-0 m-2 badge text-bg-light">
+                    Featured
+                </span>
+            @endif
+
+            <button
+                class="btn btn-light position-absolute top-0 end-0 m-2 rounded-circle shadow-sm quick-view-button pe-auto"
+                type="button"
+                data-bs-toggle="modal"
+                data-bs-target="#productQuickView"
+                data-product-name="{{ $product->name }}"
+                data-product-image="{{ $imageUrl }}"
+                data-product-category="{{ $product->categoryRelation?->name ?: ($product->category ?: 'Unstitched') }}"
+                data-product-price="{{ $product->price ? number_format((float) $product->price, 0) . ' ' . $product->currency : '' }}"
+                data-product-compare-price="{{ $isSale ? number_format((float) $product->compare_at_price, 0) . ' ' . $product->currency : '' }}"
+                data-product-description="{{ $product->description }}"
+                data-product-in-stock="{{ $product->stock_quantity > 0 ? 'true' : 'false' }}"
+                data-product-url="{{ route('shop.product', $product) }}"
+                data-cart-url="{{ route('cart.add', $product) }}"
+                aria-label="Quick view {{ $product->name }}"
+                title="Quick view"
+            >
+                <i class="fa-solid fa-eye" aria-hidden="true"></i>
+            </button>
         </div>
-    </a>
+    </div>
 
     <div class="card-body d-flex flex-column p-3">
         <div
@@ -88,7 +110,7 @@
                             class="btn btn-dark w-100 text-uppercase fw-bold"
                             type="submit"
                         >
-                            Add to bag
+                            <i class="fa-solid fa-cart-shopping me-2" aria-hidden="true"></i>Add to cart
                         </button>
                     </form>
                 @else

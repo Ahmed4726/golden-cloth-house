@@ -4,7 +4,7 @@
     $images = $product->images();
     $firstImage = $images[0] ?? null;
     $shareImage = $firstImage
-        ? $product->imageUrl($firstImage)
+        ? url($product->imageUrl($firstImage))
         : asset('images/product-placeholder.svg');
 
     $title = $product->name . ' | ' . config('store.name');
@@ -25,7 +25,7 @@
         'sku' => $product->sku,
         'category' => $product->category,
         'image' => array_map(
-            fn ($image) => $product->imageUrl($image),
+            fn ($image) => url($product->imageUrl($image)),
             $images
         ),
         'offers' => [
@@ -38,6 +38,8 @@
             'url' => route('shop.product', $product),
         ],
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+    $ogType = 'product';
 @endphp
 
 @section('content')
@@ -179,7 +181,7 @@
                                         class="btn btn-dark w-100 py-2 text-uppercase fw-bold"
                                         type="submit"
                                     >
-                                        Add to bag
+                                        <i class="fa-solid fa-cart-shopping me-2" aria-hidden="true"></i>Add to cart
                                     </button>
                                 </div>
                             </div>

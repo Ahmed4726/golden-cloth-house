@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'Golden Cloth House' }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <style>
+        .ratio-2x1 { --bs-aspect-ratio: 50%; }
+        .ratio-3x4 { --bs-aspect-ratio: 133.333333%; }
+        .ratio-4x5 { --bs-aspect-ratio: 125%; }
+    </style>
 </head>
 <body class="bg-light">
     <nav class="navbar navbar-dark bg-dark d-lg-none sticky-top">
@@ -26,23 +31,23 @@
             <div class="offcanvas-body d-flex flex-column p-3">
                 <div class="fs-5 fw-bold px-2 py-2 mb-3 d-none d-lg-block">Golden Cloth House</div>
                 <nav class="nav nav-pills flex-column gap-1">
-                    <a class="nav-link text-white {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}"><i class="bi bi-shop me-2"></i>View Shop</a>
-                    <a class="nav-link text-white {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-                    <a class="nav-link text-white {{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}"><i class="bi bi-box-seam me-2"></i>Products</a>
-                    <a class="nav-link text-white {{ request()->routeIs('catalog-imports.*') ? 'active' : '' }}" href="{{ route('catalog-imports.index') }}"><i class="bi bi-file-earmark-pdf me-2"></i>PDF Catalogs</a>
-                    <a class="nav-link text-white {{ request()->routeIs('categories.*') ? 'active' : '' }}" href="{{ route('categories.index') }}"><i class="bi bi-tags me-2"></i>Categories</a>
-                    <a class="nav-link text-white {{ request()->routeIs('brands.*') ? 'active' : '' }}" href="{{ route('brands.index') }}"><i class="bi bi-award me-2"></i>Brands</a>
-                    <a class="nav-link text-white {{ request()->routeIs('slides.*') ? 'active' : '' }}" href="{{ route('slides.index') }}"><i class="bi bi-images me-2"></i>Homepage Slider</a>
-                    <a class="nav-link text-white {{ request()->routeIs('orders.*') ? 'active' : '' }}" href="{{ route('orders.index') }}"><i class="bi bi-bag-check me-2"></i>Orders</a>
-                    <a class="nav-link text-white {{ request()->routeIs('connections.*') ? 'active' : '' }}" href="{{ route('connections.index') }}"><i class="bi bi-share me-2"></i>Social Connections</a>
-                    <a class="nav-link text-white {{ request()->routeIs('posts.*') ? 'active' : '' }}" href="{{ route('posts.index') }}"><i class="bi bi-send me-2"></i>Social Posts</a>
-                    <a class="nav-link text-white {{ request()->routeIs('posts.create') ? 'active' : '' }}" href="{{ route('posts.create') }}"><i class="bi bi-plus-circle me-2"></i>Create Post</a>
+                    <a class="nav-link text-white {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}"><i class="fa-solid fa-store me-2"></i>View Shop</a>
+                    <a class="nav-link text-white {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}"><i class="fa-solid fa-gauge-high me-2"></i>Dashboard</a>
+                    <a class="nav-link text-white {{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}"><i class="fa-solid fa-box me-2"></i>Products</a>
+                    <a class="nav-link text-white {{ request()->routeIs('catalog-imports.*') ? 'active' : '' }}" href="{{ route('catalog-imports.index') }}"><i class="fa-solid fa-file-pdf me-2"></i>PDF Catalogs</a>
+                    <a class="nav-link text-white {{ request()->routeIs('categories.*') ? 'active' : '' }}" href="{{ route('categories.index') }}"><i class="fa-solid fa-tags me-2"></i>Categories</a>
+                    <a class="nav-link text-white {{ request()->routeIs('brands.*') ? 'active' : '' }}" href="{{ route('brands.index') }}"><i class="fa-solid fa-award me-2"></i>Brands</a>
+                    <a class="nav-link text-white {{ request()->routeIs('slides.*') ? 'active' : '' }}" href="{{ route('slides.index') }}"><i class="fa-solid fa-images me-2"></i>Homepage Slider</a>
+                    <a class="nav-link text-white {{ request()->routeIs('orders.*') ? 'active' : '' }}" href="{{ route('orders.index') }}"><i class="fa-solid fa-bag-shopping me-2"></i>Orders</a>
+                    <a class="nav-link text-white {{ request()->routeIs('connections.*') ? 'active' : '' }}" href="{{ route('connections.index') }}"><i class="fa-solid fa-share-nodes me-2"></i>Social Connections</a>
+                    <a class="nav-link text-white {{ request()->routeIs('posts.*') ? 'active' : '' }}" href="{{ route('posts.index') }}"><i class="fa-solid fa-paper-plane me-2"></i>Social Posts</a>
+                    <a class="nav-link text-white {{ request()->routeIs('posts.create') ? 'active' : '' }}" href="{{ route('posts.create') }}"><i class="fa-solid fa-circle-plus me-2"></i>Create Post</a>
                 </nav>
                 <div class="mt-auto pt-4">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="btn btn-outline-light w-100">
-                            <i class="bi bi-box-arrow-right me-2"></i>Sign out
+                            <i class="fa-solid fa-right-from-bracket me-2"></i>Sign out
                         </button>
                     </form>
                 </div>

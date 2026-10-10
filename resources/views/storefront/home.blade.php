@@ -2,6 +2,9 @@
 
 @php
     $title = config('store.name') . ' | Women & Men Unstitched Wear';
+    $shareImage = $slides->first()?->imageUrl()
+        ? url($slides->first()->imageUrl())
+        : asset('images/golden-cloth-house-logo-header.svg');
 
     $description = 'Shop women and men unstitched wear at ' .
         config('store.name') .
@@ -9,11 +12,34 @@
 
     $schema = json_encode([
         '@context' => 'https://schema.org',
-        '@type' => 'ClothingStore',
-        'name' => config('store.name'),
-        'url' => url('/'),
-        'description' => $description,
-        'areaServed' => 'Pakistan',
+        '@graph' => [
+            [
+                '@type' => 'WebSite',
+                '@id' => url('/') . '#website',
+                'name' => config('store.name'),
+                'url' => url('/'),
+                'potentialAction' => [
+                    '@type' => 'SearchAction',
+                    'target' => route('shop') . '?q={search_term_string}',
+                    'query-input' => 'required name=search_term_string',
+                ],
+            ],
+            [
+                '@type' => 'ClothingStore',
+                '@id' => url('/') . '#store',
+                'name' => config('store.name'),
+                'url' => url('/'),
+                'description' => $description,
+                'areaServed' => 'Pakistan',
+                'telephone' => config('store.contact_phone') ?: null,
+                'sameAs' => array_values(array_filter([
+                    config('store.facebook'),
+                    config('store.instagram'),
+                    config('store.tiktok'),
+                    config('store.youtube'),
+                ])),
+            ],
+        ],
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
 
@@ -24,91 +50,43 @@
         data-bs-ride="carousel"
         aria-label="Featured collection"
     >
-        @if ($slides->count() > 1)
-            <div class="carousel-indicators top-0 bottom-auto mt-3">
-                @foreach ($slides as $index => $slide)
-                    <button
-                        type="button"
-                        data-bs-target="#homeHero"
-                        data-bs-slide-to="{{ $index }}"
-                        class="{{ $index === 0 ? 'active' : '' }}"
-                        aria-current="{{ $index === 0 ? 'true' : 'false' }}"
-                        aria-label="Slide {{ $index + 1 }}"
-                    ></button>
-                @endforeach
-            </div>
-        @endif
-
         <div class="carousel-inner">
             @forelse ($slides as $index => $slide)
                 <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
-                    <div class="d-none d-md-block ratio ratio-16x9 position-relative bg-dark overflow-hidden">
-                        <img
-                            class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover"
-                            src="{{ $slide->imageUrl() ?: asset('images/product-placeholder.svg') }}"
-                            alt="{{ $slide->title ?: config('store.name') }}"
-                            loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
-                            onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
-                        >
+                    <div class="ratio ratio-21x9">
+                        <div class="position-absolute top-0 start-0 w-100 h-100">
+                            <img
+                                class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover"
+                                src="{{ $slide->imageUrl() ?: asset('images/product-placeholder.svg') }}"
+                                alt="{{ $slide->title ?: config('store.name') }}"
+                                loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                                onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
+                            >
 
-                        <div class="position-absolute bottom-0 start-0 w-100 bg-dark bg-opacity-75 text-white p-3 p-lg-4">
-                            <div class="container">
-                                @if ($slide->subtitle)
-                                    <div class="small text-uppercase fw-bold mb-1">
-                                        {{ $slide->subtitle }}
-                                    </div>
-                                @endif
+                            <div class="position-absolute bottom-0 start-0 d-flex align-items-center justify-content-between gap-2 w-100 p-2 p-sm-4 text-white">
+                                <div class="min-w-0">
+                                    @if ($slide->subtitle)
+                                        <div class="small text-uppercase fw-semibold text-truncate">
+                                            {{ $slide->subtitle }}
+                                        </div>
+                                    @endif
 
-                                @if ($slide->title)
-                                    <h1 class="h2 fw-normal mb-2">
-                                        {{ $slide->title }}
-                                    </h1>
-                                @endif
+                                    @if ($slide->title)
+                                        <h1 class="h5 fw-bold mb-0 text-break">
+                                            {{ $slide->title }}
+                                        </h1>
+                                    @endif
 
-                                @if ($slide->description)
-                                    <p class="lead mb-3 d-none d-lg-block">
-                                        {{ $slide->description }}
-                                    </p>
-                                @endif
-
-                                @if ($slide->button_url)
-                                    <a
-                                        class="btn btn-light text-uppercase fw-bold"
-                                        href="{{ $slide->button_url }}"
-                                    >
-                                        {{ $slide->button_text ?: 'Shop now' }}
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-md-none ratio ratio-4x3 position-relative bg-dark overflow-hidden">
-                        <img
-                            class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover"
-                            src="{{ $slide->imageUrl() ?: asset('images/product-placeholder.svg') }}"
-                            alt="{{ $slide->title ?: config('store.name') }}"
-                            loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
-                            onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
-                        >
-
-                        <div class="position-absolute bottom-0 start-0 w-100 bg-dark bg-opacity-75 text-white p-3">
-                            <div class="container">
-                                @if ($slide->subtitle)
-                                    <div class="small text-uppercase fw-bold mb-1">
-                                        {{ $slide->subtitle }}
-                                    </div>
-                                @endif
-
-                                @if ($slide->title)
-                                    <h1 class="h4 fw-normal mb-2">
-                                        {{ $slide->title }}
-                                    </h1>
-                                @endif
+                                    @if ($slide->description)
+                                        <p class="small mb-0 mt-1 d-none d-lg-block">
+                                            {{ $slide->description }}
+                                        </p>
+                                    @endif
+                                </div>
 
                                 @if ($slide->button_url)
                                     <a
-                                        class="btn btn-light btn-sm text-uppercase fw-bold"
+                                        class="btn btn-light btn-sm text-uppercase fw-bold flex-shrink-0"
                                         href="{{ $slide->button_url }}"
                                     >
                                         {{ $slide->button_text ?: 'Shop now' }}
@@ -151,6 +129,21 @@
         </div>
 
         @if ($slides->count() > 1)
+            <div class="carousel-indicators position-static w-100 m-0 py-2 bg-white">
+                @foreach ($slides as $index => $slide)
+                    <button
+                        type="button"
+                        data-bs-target="#homeHero"
+                        data-bs-slide-to="{{ $index }}"
+                        class="bg-dark {{ $index === 0 ? 'active' : '' }}"
+                        aria-current="{{ $index === 0 ? 'true' : 'false' }}"
+                        aria-label="Slide {{ $index + 1 }}"
+                    ></button>
+                @endforeach
+            </div>
+        @endif
+
+        @if ($slides->count() > 1)
             <button
                 class="carousel-control-prev"
                 type="button"
@@ -158,7 +151,7 @@
                 data-bs-slide="prev"
                 aria-label="Previous slide"
             >
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
                 <span class="visually-hidden">Previous</span>
             </button>
 
@@ -169,7 +162,7 @@
                 data-bs-slide="next"
                 aria-label="Next slide"
             >
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                 <span class="visually-hidden">Next</span>
             </button>
         @endif
@@ -202,7 +195,7 @@
                     <div class="col-6 col-lg-3 d-flex">
                         <a
                             class="card h-100 w-100 text-decoration-none text-dark border-0 shadow-sm overflow-hidden"
-                            href="{{ route('shop', ['category' => $category->slug]) }}"
+                            href="{{ route('shop.collection', $category) }}"
                         >
                             <div class="ratio ratio-3x4 bg-light">
                                 <img

@@ -96,6 +96,6 @@ class Product extends Model
             return $image;
         }
 
-        return asset('storage/' . ltrim($image, '/'));
+        return '/storage/'.ltrim($image, '/');
     }
 }

@@ -11,7 +11,7 @@
                 <p class="text-secondary mb-0">Choose a main image, build the gallery, preview every PDF page, and create products.</p>
             </div>
             <a class="btn btn-outline-dark" href="{{ route('catalog-imports.index') }}">
-                <i class="bi bi-arrow-left me-1"></i> Back to Imports
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Imports
             </a>
         </div>
 
@@ -28,7 +28,7 @@
                     <div class="col-lg-5">
                         <div class="d-flex align-items-center gap-3">
                             <div class="bg-dark text-white rounded-3 p-3 flex-shrink-0">
-                                <i class="bi bi-file-earmark-pdf fs-3"></i>
+                                <i class="fa-solid fa-file-pdf fs-3"></i>
                             </div>
                             <div>
                                 <h2 class="h5 fw-bold mb-1">Choose catalogue PDF</h2>
@@ -41,7 +41,7 @@
                     </div>
                     <div class="col-lg-3 d-grid">
                         <button id="startButton" class="btn btn-dark btn-lg" type="button">
-                            <i class="bi bi-folder2-open me-1"></i> Open Catalogue
+                            <i class="fa-solid fa-folder-open me-1"></i> Open Catalogue
                         </button>
                     </div>
                     <div class="col-12">
@@ -67,7 +67,7 @@
                         </div>
                         <div class="card-body p-4 pt-0">
                             <div class="alert alert-light border small">
-                                <i class="bi bi-info-circle me-1"></i>
+                                <i class="fa-solid fa-circle-info me-1"></i>
                                 <strong>WordPress-style workflow:</strong> select images in the media modal, set exactly one Main image, then arrange the remaining Gallery images in the order you want.
                             </div>
                             <div id="pageContainer" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3"></div>
@@ -85,14 +85,14 @@
                                     <p class="text-secondary small mb-0">Typing in fields will not refresh the form.</p>
                                 </div>
                                 <button id="addDesign" class="btn btn-outline-dark btn-sm" type="button">
-                                    <i class="bi bi-plus-lg me-1"></i> Design
+                                    <i class="fa-solid fa-plus me-1"></i> Design
                                 </button>
                             </div>
                         </div>
                         <div id="productList" class="card-body p-3"></div>
                         <div class="card-footer bg-white border-0 p-3">
                             <button id="createProducts" class="btn btn-dark btn-lg w-100" type="button">
-                                <i class="bi bi-check2-circle me-1"></i> Create Products
+                                <i class="fa-solid fa-circle-check me-1"></i> Create Products
                             </button>
                             <div id="builderStatus" class="small text-secondary mt-2"></div>
                         </div>
@@ -114,7 +114,7 @@
                 </div>
                 <div class="modal-body bg-light">
                     <div class="alert alert-info small">
-                        <i class="bi bi-lightbulb me-1"></i>
+                        <i class="fa-solid fa-lightbulb me-1"></i>
                         Tick pages to add them to the gallery. Use <strong>Preview</strong> to inspect a page and <strong>Set main</strong> to choose the primary image.
                     </div>
                     <div id="pickerGrid" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3"></div>
@@ -142,13 +142,13 @@
                     <canvas id="previewCanvas" class="img-fluid"></canvas>
                 </div>
                 <div class="modal-footer border-secondary justify-content-between">
-                    <button type="button" class="btn btn-outline-light" id="previewPrevious"><i class="bi bi-chevron-left"></i> Previous</button>
+                    <button type="button" class="btn btn-outline-light" id="previewPrevious"><i class="fa-solid fa-chevron-left"></i> Previous</button>
                     <div class="btn-group">
                         <button type="button" class="btn btn-outline-light" id="zoomOut">−</button>
                         <button type="button" class="btn btn-outline-light disabled" id="zoomLabel">Fit</button>
                         <button type="button" class="btn btn-outline-light" id="zoomIn">+</button>
                     </div>
-                    <button type="button" class="btn btn-outline-light" id="previewNext">Next <i class="bi bi-chevron-right"></i></button>
+                    <button type="button" class="btn btn-outline-light" id="previewNext">Next <i class="fa-solid fa-chevron-right"></i></button>
                 </div>
             </div>
         </div>
@@ -336,7 +336,7 @@
                                 <hr>
                                 <div class="d-grid mb-3">
                                     <button type="button" class="btn btn-outline-dark" data-open-picker="${index}">
-                                        <i class="bi bi-images me-1"></i> Choose Images (${product.selectedPages.length})
+                                        <i class="fa-solid fa-images me-1"></i> Choose Images (${product.selectedPages.length})
                                     </button>
                                 </div>
 
@@ -468,7 +468,7 @@
                             <div class="card-body p-2">
                                 <div class="d-grid">
                                     <button type="button" class="btn btn-sm btn-outline-dark" data-preview="${pageNumber}">
-                                        <i class="bi bi-eye me-1"></i> Preview
+                                        <i class="fa-solid fa-eye me-1"></i> Preview
                                     </button>
                                 </div>
                             </div>
@@ -508,10 +508,10 @@
                                     <label class="form-check-label small" for="pick-${productIndex}-${pageNumber}">Add to gallery</label>
                                 </div>
                                 <button type="button" class="btn btn-sm btn-outline-secondary" data-preview-page="${pageNumber}">
-                                    <i class="bi bi-eye me-1"></i> Preview
+                                    <i class="fa-solid fa-eye me-1"></i> Preview
                                 </button>
                                 <button type="button" class="btn btn-sm ${isMain ? 'btn-warning' : 'btn-outline-dark'}" data-main-page="${pageNumber}" ${selected ? '' : 'disabled'}>
-                                    <i class="bi bi-star me-1"></i> ${isMain ? 'Main image' : 'Set main'}
+                                    <i class="fa-solid fa-star me-1"></i> ${isMain ? 'Main image' : 'Set main'}
                                 </button>
                             </div>
                         </div>

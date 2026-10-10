@@ -1,20 +1,32 @@
 @extends('storefront.layout')
 
 @php
-    $title = 'Shop | '.config('store.name');
-    $description = 'Shop women and men unstitched wear from '.config('store.name').'. Filter by category, fabric, price, availability and newness.';
+    $title = $collection
+        ? $collection->name.' | '.config('store.name')
+        : 'Shop | '.config('store.name');
+    $description = \Illuminate\Support\Str::limit(
+        strip_tags($collection?->description ?: 'Shop women and men unstitched wear from '.config('store.name').'. Filter by category, fabric, price, availability and newness.'),
+        155
+    );
+    $schema = $collection ? json_encode([
+        '@context' => 'https://schema.org',
+        '@type' => 'CollectionPage',
+        'name' => $collection->name,
+        'description' => $description,
+        'url' => $canonical,
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null;
 @endphp
 
 @section('content')
     <section class="py-5 text-center">
         <div class="container">
             <div class="small text-uppercase text-secondary mb-2">
-                <a class="text-dark text-decoration-none" href="{{ route('home') }}">Home</a> / Shop
+                <a class="text-dark text-decoration-none" href="{{ route('home') }}">Home</a> / {{ $collection?->name ?: 'Shop' }}
             </div>
-            <div class="small text-uppercase text-secondary fw-bold">The collection</div>
-            <h1 class="display-5 fw-normal">Shop Unstitched Wear</h1>
+            <div class="small text-uppercase text-secondary fw-bold">{{ $collection ? 'The collection' : 'Shop the collection' }}</div>
+            <h1 class="display-5 fw-normal">{{ $collection?->name ?: 'Shop Unstitched Wear' }}</h1>
             <p class="text-secondary mx-auto col-lg-7 mb-0">
-                Women and men unstitched clothing, with printed, embroidered and seasonal collections available for delivery across Pakistan.
+                {{ $collection?->description ?: 'Women and men unstitched clothing, with printed, embroidered and seasonal collections available for delivery across Pakistan.' }}
             </p>
         </div>
     </section>
