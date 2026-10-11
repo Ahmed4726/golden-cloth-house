@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Brand;
 use App\Models\CatalogImport;
 use App\Models\Category;
+use App\Models\HomepageSlide;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -106,6 +107,44 @@ class CatalogImportController extends Controller
             ->with('info', 'For a reliable import, please re-select the original PDF. The new builder reads the PDF directly from your computer and does not stream it through Laravel.');
     }
 
+    public function review(CatalogImport $catalogImport)
+    {
+        return view('catalog-imports.review', [
+            'catalogImport' => $catalogImport->load([
+                'products.categoryRelation',
+                'products.brand',
+                'generatedBrand',
+                'generatedSlide',
+            ]),
+        ]);
+    }
+
+    public function publish(CatalogImport $catalogImport)
+    {
+        if (! in_array($catalogImport->status, ['completed', 'published'], true)) {
+            return redirect()
+                ->route('catalog-imports.review', $catalogImport)
+                ->with('error', 'This catalog must be processed before it can be published.');
+        }
+
+        DB::transaction(function () use ($catalogImport) {
+            $catalogImport = CatalogImport::whereKey($catalogImport->id)->lockForUpdate()->firstOrFail();
+
+            if ($catalogImport->status === 'published') {
+                return;
+            }
+
+            $catalogImport->products()->update(['active' => true]);
+            $catalogImport->generatedBrand?->update(['active' => true]);
+            $catalogImport->generatedSlide?->update(['active' => true]);
+            $catalogImport->update(['status' => 'published']);
+        });
+
+        return redirect()
+            ->route('catalog-imports.review', $catalogImport)
+            ->with('success', 'Catalog products and generated homepage assets are now published.');
+    }
+
     public function pdf(CatalogImport $catalogImport)
     {
         abort(410, 'The catalog PDF endpoint is no longer used. Re-select the original PDF in the catalog builder.');
@@ -118,6 +157,11 @@ class CatalogImportController extends Controller
 
     public function finalize(Request $request, CatalogImport $catalogImport): JsonResponse
     {
+        if ($catalogImport->status !== 'uploaded') {
+            return response()->json(['message' => 'This catalog has already been processed.'], 409);
+        }
+
+        $preset = $catalogImport->presetData();
         $data = $request->validate([
             'products' => ['required', 'array', 'min:1', 'max:100'],
             'products.*.name' => ['required', 'string', 'max:255'],
@@ -135,25 +179,89 @@ class CatalogImportController extends Controller
             'products.*.featured' => ['boolean'],
             'products.*.images' => ['required', 'array', 'min:1', 'max:20'],
             'products.*.images.*' => ['string', 'regex:/^data:image\/(jpeg|jpg|png|webp);base64,/'],
+            'collection_image' => [$preset ? 'required' : 'nullable', 'string', 'regex:/^data:image\/(jpeg|jpg|png|webp);base64,/'],
         ]);
 
         $created = [];
+        $alreadyCompleted = false;
+        $generatedBrandId = null;
+        $generatedSlideId = null;
 
-        DB::transaction(function () use ($data, $catalogImport, &$created) {
+        DB::transaction(function () use ($data, $catalogImport, $preset, &$created, &$alreadyCompleted, &$generatedBrandId, &$generatedSlideId) {
+            $catalogImport = CatalogImport::whereKey($catalogImport->id)->lockForUpdate()->firstOrFail();
+
+            if ($catalogImport->status !== 'uploaded') {
+                $alreadyCompleted = true;
+
+                return;
+            }
+
+            $collectionBrand = null;
+
+            if ($preset) {
+                $collectionImage = $data['collection_image'];
+                $collectionBrand = Brand::where('name', $preset['brand_name'])->first();
+
+                if (! $collectionBrand) {
+                    $logoPath = $this->storeDataUrl(
+                        $collectionImage,
+                        'brands',
+                        Str::slug($preset['brand_name']).'-catalog'
+                    );
+                    $brandSlug = Str::slug($preset['brand_name']);
+                    $slugSuffix = 2;
+
+                    while (Brand::where('slug', $brandSlug)->exists()) {
+                        $brandSlug = Str::slug($preset['brand_name']).'-'.$slugSuffix++;
+                    }
+
+                    $collectionBrand = Brand::create([
+                        'name' => $preset['brand_name'],
+                        'slug' => $brandSlug,
+                        'description' => $preset['description'],
+                        'logo_path' => $logoPath,
+                        'active' => false,
+                    ]);
+                    $generatedBrandId = $collectionBrand->id;
+                }
+
+                $slideImagePath = $this->storeDataUrl(
+                    $collectionImage,
+                    'slides',
+                    Str::slug($preset['collection']).'-catalog'
+                );
+
+                $slide = HomepageSlide::create([
+                    'title' => $preset['collection'],
+                    'subtitle' => $preset['brand_name'].' collection',
+                    'description' => $preset['description'],
+                    'button_text' => 'Shop now',
+                    'button_url' => '/shop',
+                    'image_path' => $slideImagePath,
+                    'sort_order' => (HomepageSlide::max('sort_order') ?? -1) + 1,
+                    'active' => false,
+                ]);
+                $generatedSlideId = $slide->id;
+            }
+
+            $presetCategory = $preset
+                ? Category::where('slug', $preset['category_slug'])->first()
+                : null;
+
             foreach ($data['products'] as $index => $item) {
                 $mediaPaths = [];
 
                 foreach ($item['images'] as $imageIndex => $dataUrl) {
                     $mediaPaths[] = $this->storeDataUrl(
                         $dataUrl,
-                        'products/catalog/' . $catalogImport->uuid,
-                        'design-' . ($index + 1) . '-' . ($imageIndex + 1)
+                        'products/catalog/'.$catalogImport->uuid,
+                        'design-'.($index + 1).'-'.($imageIndex + 1)
                     );
                 }
 
                 $category = ! empty($item['category_id'])
                     ? Category::find($item['category_id'])
-                    : null;
+                    : $presetCategory;
 
                 $retailPrice = (float) $item['retail_price'];
                 $discount = (float) ($item['discount_percent'] ?? 3);
@@ -170,8 +278,8 @@ class CatalogImportController extends Controller
                     'compare_at_price' => $retailPrice,
                     'discount_percent' => $discount,
                     'category' => $category?->name,
-                    'category_id' => $item['category_id'] ?? null,
-                    'brand_id' => $item['brand_id'] ?? null,
+                    'category_id' => $category?->id,
+                    'brand_id' => $collectionBrand?->id ?? ($item['brand_id'] ?? null),
                     'gender' => $item['gender'],
                     'wear_type' => 'unstitched',
                     'piece_count' => $item['piece_count'] ?? null,
@@ -182,7 +290,7 @@ class CatalogImportController extends Controller
                     'description' => $item['description'] ?? null,
                     'image_urls' => [],
                     'media_paths' => $mediaPaths,
-                    'active' => true,
+                    'active' => false,
                     'featured' => (bool) ($item['featured'] ?? false),
                     'sort_order' => $index,
                 ]);
@@ -192,13 +300,19 @@ class CatalogImportController extends Controller
 
             $catalogImport->update([
                 'product_count' => count($created),
+                'generated_brand_id' => $generatedBrandId,
+                'generated_slide_id' => $generatedSlideId,
                 'status' => 'completed',
             ]);
         });
 
+        if ($alreadyCompleted) {
+            return response()->json(['message' => 'This catalog has already been processed.'], 409);
+        }
+
         return response()->json([
-            'message' => count($created) . ' products created successfully.',
-            'redirect' => route('products.index'),
+            'message' => count($created).' draft products created. Review the catalog before publishing.',
+            'redirect' => route('catalog-imports.review', $catalogImport),
         ]);
     }
 
@@ -210,6 +324,18 @@ class CatalogImportController extends Controller
             }
 
             $product->delete();
+        }
+
+        $slide = $catalogImport->generatedSlide;
+        if ($slide) {
+            Storage::disk('public')->delete($slide->image_path);
+            $slide->delete();
+        }
+
+        $brand = $catalogImport->generatedBrand;
+        if ($brand && ! $brand->products()->exists()) {
+            Storage::disk('public')->delete($brand->logo_path);
+            $brand->delete();
         }
 
         Storage::disk('public')->delete($catalogImport->pdf_path);
@@ -230,7 +356,7 @@ class CatalogImportController extends Controller
             throw new RuntimeException('One of the selected PDF images is invalid.');
         }
 
-        $path = $directory . '/' . $filename . '-' . Str::lower(Str::random(8)) . '.' . $mime;
+        $path = $directory.'/'.$filename.'-'.Str::lower(Str::random(8)).'.'.$mime;
         Storage::disk('public')->put($path, $binary);
 
         return $path;
@@ -243,7 +369,7 @@ class CatalogImportController extends Controller
         $counter = 2;
 
         while (Product::where('slug', $slug)->exists()) {
-            $slug = $base . '-' . $counter++;
+            $slug = $base.'-'.$counter++;
         }
 
         return $slug;

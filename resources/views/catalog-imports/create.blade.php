@@ -8,7 +8,7 @@
             <div>
                 <div class="text-uppercase small fw-bold text-warning-emphasis mb-1">Catalog import</div>
                 <h1 class="h2 fw-bold mb-1">PDF Product Builder</h1>
-                <p class="text-secondary mb-0">Choose a main image, build the gallery, preview every PDF page, and create products.</p>
+                <p class="text-secondary mb-0">Lime Vol-552 and Leore Vol-01 catalogs are recognized automatically; other PDFs stay local and use the manual builder.</p>
             </div>
             <a class="btn btn-outline-dark" href="{{ route('catalog-imports.index') }}">
                 <i class="fa-solid fa-arrow-left me-1"></i> Back to Imports
@@ -52,6 +52,7 @@
         </section>
 
         <div id="builder" class="d-none">
+            <div id="automationNotice" class="alert d-none mb-4" role="status"></div>
             <div class="row g-4 align-items-start">
                 <section class="col-xl-8">
                     <div class="card shadow-sm border-0">
@@ -60,7 +61,7 @@
                                 <div>
                                     <div class="text-uppercase small fw-bold text-warning-emphasis mb-1">PDF Gallery</div>
                                     <h2 id="catalogName" class="h4 fw-bold mb-1">Catalogue pages</h2>
-                                    <p class="text-secondary small mb-0">Choose a product on the right, then use Choose Images to open the PDF gallery.</p>
+                                    <p class="text-secondary small mb-0">Inspect matched pages or choose product images manually for unsupported catalogs.</p>
                                 </div>
                                 <span id="pageStatus" class="badge text-bg-light border text-dark align-self-start px-3 py-2"></span>
                             </div>
@@ -92,7 +93,7 @@
                         <div id="productList" class="card-body p-3"></div>
                         <div class="card-footer bg-white border-0 p-3">
                             <button id="createProducts" class="btn btn-dark btn-lg w-100" type="button">
-                                <i class="fa-solid fa-circle-check me-1"></i> Create Products
+                                <i class="fa-solid fa-circle-check me-1"></i> Create Drafts
                             </button>
                             <div id="builderStatus" class="small text-secondary mt-2"></div>
                         </div>
@@ -176,6 +177,7 @@
             const addDesign = document.getElementById('addDesign');
             const createProducts = document.getElementById('createProducts');
             const builderStatus = document.getElementById('builderStatus');
+            const automationNotice = document.getElementById('automationNotice');
             const pickerGrid = document.getElementById('pickerGrid');
             const pickerSubtitle = document.getElementById('pickerSubtitle');
             const pickerCount = document.getElementById('pickerCount');
@@ -186,6 +188,7 @@
 
             let pdfDocument = null;
             let finalizeUrl = null;
+            let catalogPreset = null;
             let products = [];
             let activeProduct = 0;
             let previewPage = 1;
@@ -305,8 +308,8 @@
                                         <select class="form-select" data-field="category_id" data-index="${index}">${optionMarkup(categories, product.category_id, 'No category')}</select>
                                     </div>
                                     <div class="col-6">
-                                        <label class="form-label small fw-bold">Brand</label>
-                                        <select class="form-select" data-field="brand_id" data-index="${index}">${optionMarkup(brands, product.brand_id, 'No brand')}</select>
+                                        <label class="form-label small fw-bold">Brand ${catalogPreset ? '(matched automatically)' : ''}</label>
+                                        <select class="form-select" data-field="brand_id" data-index="${index}" ${catalogPreset ? 'disabled' : ''}>${optionMarkup(brands, product.brand_id, 'No brand')}</select>
                                     </div>
                                 </div>
 
@@ -667,6 +670,46 @@
 
                     renderProducts();
                     await renderPages();
+
+                    catalogPreset = payload.preset || null;
+                    if (catalogPreset) {
+                        const pagesFit = catalogPreset.products?.every((product) =>
+                            product.pages?.length && product.pages.every((page) => page >= 1 && page <= pdfDocument.numPages)
+                        );
+
+                        if (!pagesFit) {
+                            catalogPreset = null;
+                            products = [];
+                            addProduct({ name: 'Design 01', discount_percent: 3, stock_quantity: 3 });
+                        }
+                    }
+
+                    if (catalogPreset) {
+                        const defaultCategory = categories.find((category) => category.slug === catalogPreset.category_slug);
+                        const defaultBrand = brands.find((brand) => brand.name.toLowerCase() === catalogPreset.brand_name.toLowerCase());
+                        products = catalogPreset.products.map((product) => ({
+                            ...product,
+                            category_id: defaultCategory?.id || '',
+                            brand_id: defaultBrand?.id || '',
+                            selectedPages: [...(product.pages || [])],
+                            mainPage: product.pages?.[0] || null,
+                        }));
+                        activeProduct = 0;
+                        automationNotice.className = 'alert alert-success mb-4';
+                        automationNotice.textContent = `${catalogPreset.collection} recognized. Automatically creating inactive product drafts, a draft brand when needed, and a draft homepage slide.`;
+                        createProducts.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Create Draft Collection';
+                    } else {
+                        automationNotice.className = 'alert alert-warning mb-4';
+                        automationNotice.textContent = 'This catalog is not a recognized format. Nothing will be guessed; select pages and enter product details manually. Imported products will remain drafts.';
+                        createProducts.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Create Draft Products';
+                    }
+
+                    renderProducts();
+                    updatePageCards();
+
+                    if (catalogPreset) {
+                        createProducts.click();
+                    }
                 } catch (error) {
                     console.error(error);
                     uploadStatus.innerHTML = `<span class="text-danger">${escapeHtml(error.message || 'Unable to open the PDF.')}</span>`;
@@ -694,6 +737,7 @@
 
                 try {
                     const payloadProducts = [];
+                    let collectionImage = null;
 
                     for (let index = 0; index < products.length; index++) {
                         const product = products[index];
@@ -723,7 +767,11 @@
                         });
                     }
 
-                    builderStatus.textContent = 'Creating products…';
+                    if (catalogPreset) {
+                        collectionImage = await selectedPageImage(1);
+                    }
+
+                    builderStatus.textContent = 'Creating draft listings…';
                     const response = await fetch(finalizeUrl, {
                         method: 'POST',
                         headers: {
@@ -731,7 +779,10 @@
                             Accept: 'application/json',
                             'X-CSRF-TOKEN': csrf,
                         },
-                        body: JSON.stringify({ products: payloadProducts }),
+                        body: JSON.stringify({
+                            products: payloadProducts,
+                            ...(collectionImage ? { collection_image: collectionImage } : {}),
+                        }),
                     });
                     const payload = await response.json().catch(() => ({}));
                     if (!response.ok) throw new Error(payload.message || 'Product creation failed.');

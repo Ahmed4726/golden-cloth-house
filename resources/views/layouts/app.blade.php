@@ -54,7 +54,7 @@
             </div>
         </aside>
 
-        <main class="flex-grow-1">
+        <main class="flex-grow-1 overflow-hidden">
             <div class="container-fluid px-3 px-md-4 py-4">
                 @if (session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">

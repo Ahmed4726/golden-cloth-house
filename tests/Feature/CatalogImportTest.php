@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Brand;
 use App\Models\CatalogImport;
+use App\Models\Category;
+use App\Models\HomepageSlide;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -20,7 +23,10 @@ class CatalogImportTest extends TestCase
 
         $this->withSession(['admin_user_id' => $user->id])
             ->post('/admin/catalog-imports', [
-                'pdf' => UploadedFile::fake()->create('LIME-VOL-552.pdf', 500, 'application/pdf'),
+                'pdf' => UploadedFile::fake()->createWithContent(
+                    'LIME-VOL-552.pdf',
+                    "%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\n%%EOF"
+                ),
             ])
             ->assertRedirect();
 
@@ -32,32 +38,42 @@ class CatalogImportTest extends TestCase
     {
         Storage::fake('public');
         $user = User::factory()->create();
+        $category = Category::create([
+            'name' => 'Women Unstitched',
+            'slug' => 'women-unstitched',
+            'active' => true,
+        ]);
         $import = CatalogImport::create([
             'name' => 'LIME VOL-552',
             'pdf_path' => 'catalog-imports/test.pdf',
             'status' => 'uploaded',
         ]);
 
-        $png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+        $png = 'data:image/png;base64,'.base64_encode(str_repeat('a', 128));
+        $payload = [
+            'products' => [[
+                'name' => 'Lime Vol-552 — Design 01',
+                'description' => 'Peach Slub Embroidered with Peach Slub Embroidered Dupatta.',
+                'retail_price' => 6200,
+                'discount_percent' => 3,
+                'stock_quantity' => 3,
+                'gender' => 'women',
+                'piece_count' => 3,
+                'fabric' => 'Peach Slub',
+                'season' => 'Winter',
+                'design_code' => 'DES-01',
+                'images' => [$png],
+            ]],
+            'collection_image' => $png,
+        ];
 
         $this->withSession(['admin_user_id' => $user->id])
             ->postJson('/admin/catalog-imports/'.$import->id.'/finalize', [
-                'products' => [[
-                    'name' => 'Lime Vol-552 — Design 01',
-                    'description' => 'Peach Slub Embroidered with Peach Slub Embroidered Dupatta.',
-                    'retail_price' => 6200,
-                    'discount_percent' => 3,
-                    'stock_quantity' => 3,
-                    'gender' => 'women',
-                    'piece_count' => 3,
-                    'fabric' => 'Peach Slub',
-                    'season' => 'Winter',
-                    'design_code' => 'DES-01',
-                    'images' => [$png],
-                ]],
+                ...$payload,
             ])
             ->assertOk()
-            ->assertJsonPath('message', '1 products created successfully.');
+            ->assertJsonPath('message', '1 draft products created. Review the catalog before publishing.')
+            ->assertJsonPath('redirect', route('catalog-imports.review', $import));
 
         $this->assertDatabaseHas('products', [
             'name' => 'Lime Vol-552 — Design 01',
@@ -66,11 +82,152 @@ class CatalogImportTest extends TestCase
             'discount_percent' => 3,
             'gender' => 'women',
             'wear_type' => 'unstitched',
+            'piece_count' => 3,
+            'category_id' => $category->id,
             'catalog_import_id' => $import->id,
+            'active' => false,
         ]);
 
         $product = $import->products()->firstOrFail();
         $this->assertCount(1, $product->media_paths);
         Storage::disk('public')->assertExists($product->media_paths[0]);
+
+        $brand = Brand::where('name', 'Lime')->firstOrFail();
+        $this->assertFalse($brand->active);
+        Storage::disk('public')->assertExists($brand->logo_path);
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'brand_id' => $brand->id,
+        ]);
+
+        $slide = HomepageSlide::where('title', 'Lime Vol-552')->firstOrFail();
+        $this->assertFalse($slide->active);
+        Storage::disk('public')->assertExists($slide->image_path);
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->postJson('/admin/catalog-imports/'.$import->id.'/finalize', $payload)
+            ->assertConflict();
+
+        $this->assertDatabaseCount('products', 1);
+        $this->assertDatabaseCount('homepage_slides', 1);
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->get(route('catalog-imports.review', $import))
+            ->assertOk()
+            ->assertSee('Lime Vol-552 — Design 01')
+            ->assertSee('Publish catalog');
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->post(route('catalog-imports.publish', $import))
+            ->assertRedirect(route('catalog-imports.review', $import))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('brands', [
+            'id' => $brand->id,
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('homepage_slides', [
+            'id' => $slide->id,
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('catalog_imports', [
+            'id' => $import->id,
+            'status' => 'published',
+        ]);
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->delete('/admin/catalog-imports/'.$import->id)
+            ->assertRedirect();
+
+        $this->assertDatabaseCount('products', 0);
+        $this->assertDatabaseCount('brands', 0);
+        $this->assertDatabaseCount('homepage_slides', 0);
+        Storage::disk('public')->assertMissing($product->media_paths[0]);
+        Storage::disk('public')->assertMissing($brand->logo_path);
+        Storage::disk('public')->assertMissing($slide->image_path);
+    }
+
+    public function test_manual_catalog_imports_create_only_inactive_products(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $import = CatalogImport::create([
+            'name' => 'Unknown Collection',
+            'pdf_path' => 'catalog-imports/test.pdf',
+            'status' => 'uploaded',
+        ]);
+        $image = 'data:image/png;base64,'.base64_encode(str_repeat('a', 128));
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->postJson('/admin/catalog-imports/'.$import->id.'/finalize', [
+                'products' => [[
+                    'name' => 'Manual Design',
+                    'retail_price' => 1000,
+                    'stock_quantity' => 1,
+                    'gender' => 'women',
+                    'images' => [$image],
+                ]],
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('products', [
+            'name' => 'Manual Design',
+            'catalog_import_id' => $import->id,
+            'active' => false,
+        ]);
+        $this->assertDatabaseCount('brands', 0);
+        $this->assertDatabaseCount('homepage_slides', 0);
+    }
+
+    public function test_recognized_catalog_requires_a_collection_image_before_creating_drafts(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $import = CatalogImport::create([
+            'name' => 'LIME VOL-552',
+            'pdf_path' => 'catalog-imports/test.pdf',
+            'status' => 'uploaded',
+        ]);
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->postJson('/admin/catalog-imports/'.$import->id.'/finalize', [
+                'products' => [[
+                    'name' => 'Lime Vol-552 — Design 01',
+                    'retail_price' => 6200,
+                    'stock_quantity' => 3,
+                    'gender' => 'women',
+                    'images' => ['data:image/png;base64,'.base64_encode(str_repeat('a', 128))],
+                ]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('collection_image');
+
+        $this->assertDatabaseCount('products', 0);
+        $this->assertDatabaseCount('brands', 0);
+        $this->assertDatabaseCount('homepage_slides', 0);
+    }
+
+    public function test_unprocessed_catalog_cannot_be_published(): void
+    {
+        $user = User::factory()->create();
+        $import = CatalogImport::create([
+            'name' => 'Unknown Collection',
+            'pdf_path' => 'catalog-imports/test.pdf',
+            'status' => 'uploaded',
+        ]);
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->post(route('catalog-imports.publish', $import))
+            ->assertRedirect(route('catalog-imports.review', $import))
+            ->assertSessionHas('error', 'This catalog must be processed before it can be published.');
+
+        $this->assertDatabaseHas('catalog_imports', [
+            'id' => $import->id,
+            'status' => 'uploaded',
+        ]);
     }
 }

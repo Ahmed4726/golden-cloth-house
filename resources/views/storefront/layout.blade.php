@@ -28,6 +28,16 @@
         .ratio-3x1 { --bs-aspect-ratio: 33.333333%; }
         .ratio-4x5 { --bs-aspect-ratio: 125%; }
         .quick-view-button { width: 2.75rem; height: 2.75rem; padding: 0; }
+
+        #homeHero .carousel-item .ratio {
+            --bs-aspect-ratio: 42.857143%;
+        }
+
+        @media (min-width: 992px) {
+            #homeHero .carousel-item .ratio {
+                --bs-aspect-ratio: 34.375%;
+            }
+        }
     </style>
     @stack('styles')
 

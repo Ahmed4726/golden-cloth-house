@@ -16,6 +16,8 @@ use App\Http\Controllers\SocialConnectionController;
 use App\Http\Controllers\SocialPostController;
 use App\Http\Controllers\SocialProviderController;
 use App\Http\Controllers\StorefrontController;
+use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [StorefrontController::class, 'home'])->name('home');
@@ -52,8 +54,8 @@ Route::get('/robots.txt', function () {
 })->name('robots');
 
 Route::get('/sitemap.xml', function () {
-    $products = \App\Models\Product::where('active', true)->get();
-    $categories = \App\Models\Category::where('active', true)
+    $products = Product::where('active', true)->get();
+    $categories = Category::where('active', true)
         ->orderBy('sort_order')
         ->orderBy('name')
         ->get();
@@ -85,6 +87,8 @@ Route::middleware('admin.session')->prefix('admin')->group(function () {
     Route::get('/catalog-imports', [CatalogImportController::class, 'index'])->name('catalog-imports.index');
     Route::get('/catalog-imports/create', [CatalogImportController::class, 'create'])->name('catalog-imports.create');
     Route::post('/catalog-imports', [CatalogImportController::class, 'store'])->name('catalog-imports.store');
+    Route::get('/catalog-imports/{catalogImport}/review', [CatalogImportController::class, 'review'])->name('catalog-imports.review');
+    Route::post('/catalog-imports/{catalogImport}/publish', [CatalogImportController::class, 'publish'])->name('catalog-imports.publish');
     Route::get('/catalog-imports/{catalogImport}/pdf', [CatalogImportController::class, 'pdf'])->name('catalog-imports.pdf');
     Route::get('/catalog-imports/{catalogImport}/builder', [CatalogImportController::class, 'builder'])->name('catalog-imports.builder');
     Route::post('/catalog-imports/{catalogImport}/finalize', [CatalogImportController::class, 'finalize'])->name('catalog-imports.finalize');

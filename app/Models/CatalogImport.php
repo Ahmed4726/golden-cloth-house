@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -13,6 +14,8 @@ class CatalogImport extends Model
         'name',
         'pdf_path',
         'product_count',
+        'generated_brand_id',
+        'generated_slide_id',
         'status',
     ];
 
@@ -26,6 +29,16 @@ class CatalogImport extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function generatedBrand(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class, 'generated_brand_id');
+    }
+
+    public function generatedSlide(): BelongsTo
+    {
+        return $this->belongsTo(HomepageSlide::class, 'generated_slide_id');
     }
 
     public function presetData(): ?array
@@ -44,24 +57,27 @@ class CatalogImport extends Model
 
             return [
                 'collection' => 'Lime Vol-552',
+                'brand_name' => 'Lime',
+                'category_slug' => 'women-unstitched',
                 'gender' => 'women',
                 'retail_price' => 6200,
                 'discount_percent' => 3,
                 'fabric' => 'Peach Slub',
                 'season' => 'Winter',
+                'piece_count' => 3,
                 'description' => 'Peach Slub Embroidered with Peach Slub Embroidered Dupatta.',
                 'groups' => $groups,
                 'products' => collect($groups)->values()->map(function (array $pages, int $index) {
                     return [
-                        'name' => 'Lime Vol-552 — Design ' . str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
+                        'name' => 'Lime Vol-552 — Design '.str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
                         'description' => 'Peach Slub Embroidered with Peach Slub Embroidered Dupatta.',
                         'retail_price' => 6200,
                         'discount_percent' => 3,
                         'gender' => 'women',
-                        'piece_count' => '',
+                        'piece_count' => 3,
                         'fabric' => 'Peach Slub',
                         'season' => 'Winter',
-                        'design_code' => 'LIME-552-' . str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
+                        'design_code' => 'LIME-552-'.str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
                         'stock_quantity' => 3,
                         'featured' => false,
                         'pages' => $pages,
@@ -82,6 +98,8 @@ class CatalogImport extends Model
 
             return [
                 'collection' => 'Leore Vol-01',
+                'brand_name' => 'Leore',
+                'category_slug' => 'women-unstitched',
                 'gender' => 'women',
                 'retail_price' => 7800,
                 'discount_percent' => 3,
@@ -92,7 +110,7 @@ class CatalogImport extends Model
                 'groups' => $groups,
                 'products' => collect($groups)->values()->map(function (array $pages, int $index) {
                     return [
-                        'name' => 'Leore Vol-01 — Design ' . str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
+                        'name' => 'Leore Vol-01 — Design '.str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
                         'description' => 'Premium embroidered fancy zari slub dhanak shirt with fancy zari slub embroidered lace dupatta and comfort of same trouser.',
                         'retail_price' => 7800,
                         'discount_percent' => 3,
@@ -100,7 +118,7 @@ class CatalogImport extends Model
                         'piece_count' => 3,
                         'fabric' => 'Fancy Zari Slub Dhanak',
                         'season' => 'Winter',
-                        'design_code' => 'LEORE-01-' . str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
+                        'design_code' => 'LEORE-01-'.str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
                         'stock_quantity' => 3,
                         'featured' => false,
                         'pages' => $pages,
