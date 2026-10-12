@@ -51,8 +51,96 @@
             </div>
         </section>
 
+        <section class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-0 px-4 pt-4">
+                <h2 class="h5 fw-bold mb-1">Catalog-wide product details</h2>
+                <p class="text-secondary small mb-0">Set these once. Every design will use the same price, stock, description, fabric, and piece count.</p>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <label class="form-label fw-semibold" for="catalogTitle">Catalog / product title</label>
+                        <input id="catalogTitle" class="form-control" maxlength="255" placeholder="Filled from the PDF filename">
+                        <div class="form-text">Product names become this title plus “Design 01”, “Design 02”, and so on.</div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="form-label fw-semibold" for="catalogPrice">Retail price (PKR)</label>
+                        <input id="catalogPrice" class="form-control" type="number" min="0" step="0.01" required>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="form-label fw-semibold" for="catalogStock">Opening stock per design</label>
+                        <input id="catalogStock" class="form-control" type="number" min="0" max="100000" value="3" required>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="form-label fw-semibold" for="catalogDiscount">Discount (%)</label>
+                        <input id="catalogDiscount" class="form-control" type="number" min="0" max="100" step="0.01" value="0">
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="form-label fw-semibold" for="catalogPieces">Total pieces</label>
+                        <input id="catalogPieces" class="form-control" type="number" min="1" max="10">
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="form-label fw-semibold" for="catalogFabric">Fabric</label>
+                        <input id="catalogFabric" class="form-control" maxlength="100">
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="form-label fw-semibold" for="catalogSeason">Season</label>
+                        <input id="catalogSeason" class="form-control" maxlength="50">
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="form-label fw-semibold" for="catalogGender">Gender</label>
+                        <select id="catalogGender" class="form-select">
+                            <option value="women">Women</option>
+                            <option value="men">Men</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="form-label fw-semibold" for="catalogCategory">Category</label>
+                        <select id="catalogCategory" class="form-select">
+                            <option value="">No category</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="form-label fw-semibold" for="catalogBrand">Brand</label>
+                        <select id="catalogBrand" class="form-select">
+                            <option value="">No brand</option>
+                            @foreach ($brands as $brand)
+                                <option value="{{ $brand->id }}">{{ $brand->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" for="catalogDescription">Product description</label>
+                        <textarea id="catalogDescription" class="form-control" rows="3" maxlength="10000"></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <div id="builder" class="d-none">
             <div id="automationNotice" class="alert d-none mb-4" role="status"></div>
+            <section class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-4">
+                            <h2 class="h5 fw-bold mb-1">Homepage slider (optional)</h2>
+                            <p class="small text-secondary mb-0">Choose “Use for slider” on any PDF page below. Leave it unselected to skip the slide.</p>
+                            <div id="sliderImagePreview" class="small text-secondary mt-2">No slider image selected.</div>
+                        </div>
+                        <div class="col-sm-6 col-lg-3">
+                            <label class="form-label fw-semibold" for="sliderTitle">Slider title <span class="text-secondary fw-normal">optional</span></label>
+                            <input id="sliderTitle" class="form-control" maxlength="160">
+                        </div>
+                        <div class="col-sm-6 col-lg-5">
+                            <label class="form-label fw-semibold" for="sliderLink">Slider link <span class="text-secondary fw-normal">optional</span></label>
+                            <input id="sliderLink" class="form-control" maxlength="500" placeholder="/shop">
+                        </div>
+                    </div>
+                </div>
+            </section>
             <div class="row g-4 align-items-start">
                 <section class="col-xl-8">
                     <div class="card shadow-sm border-0">
@@ -61,7 +149,7 @@
                                 <div>
                                     <div class="text-uppercase small fw-bold text-warning-emphasis mb-1">PDF Gallery</div>
                                     <h2 id="catalogName" class="h4 fw-bold mb-1">Catalogue pages</h2>
-                                    <p class="text-secondary small mb-0">Inspect matched pages or choose product images manually for unsupported catalogs.</p>
+                                    <p class="text-secondary small mb-0">Catalog details are shared automatically. Choose images for each design below.</p>
                                 </div>
                                 <span id="pageStatus" class="badge text-bg-light border text-dark align-self-start px-3 py-2"></span>
                             </div>
@@ -167,10 +255,23 @@
 
             const input = document.getElementById('pdfInput');
             const startButton = document.getElementById('startButton');
-            const uploadPanel = document.getElementById('uploadPanel');
             const uploadStatus = document.getElementById('uploadStatus');
             const builder = document.getElementById('builder');
             const catalogName = document.getElementById('catalogName');
+            const catalogTitle = document.getElementById('catalogTitle');
+            const catalogPrice = document.getElementById('catalogPrice');
+            const catalogStock = document.getElementById('catalogStock');
+            const catalogDiscount = document.getElementById('catalogDiscount');
+            const catalogPieces = document.getElementById('catalogPieces');
+            const catalogFabric = document.getElementById('catalogFabric');
+            const catalogSeason = document.getElementById('catalogSeason');
+            const catalogGender = document.getElementById('catalogGender');
+            const catalogCategory = document.getElementById('catalogCategory');
+            const catalogBrand = document.getElementById('catalogBrand');
+            const catalogDescription = document.getElementById('catalogDescription');
+            const sliderTitle = document.getElementById('sliderTitle');
+            const sliderLink = document.getElementById('sliderLink');
+            const sliderImagePreview = document.getElementById('sliderImagePreview');
             const pageStatus = document.getElementById('pageStatus');
             const pageContainer = document.getElementById('pageContainer');
             const productList = document.getElementById('productList');
@@ -193,9 +294,61 @@
             let activeProduct = 0;
             let previewPage = 1;
             let previewZoom = 1;
+            let sliderPage = null;
             const pageImages = new Map();
             const pickerModal = new bootstrap.Modal(document.getElementById('pagePickerModal'));
             const previewModal = new bootstrap.Modal(document.getElementById('pagePreviewModal'));
+
+            [
+                catalogTitle,
+                catalogPrice,
+                catalogStock,
+                catalogDiscount,
+                catalogPieces,
+                catalogFabric,
+                catalogSeason,
+                catalogGender,
+                catalogCategory,
+                catalogBrand,
+                catalogDescription,
+            ].forEach((element) => {
+                element.addEventListener('input', () => {
+                    element.dataset.edited = 'true';
+                    if (element === catalogTitle) {
+                        renderProducts();
+                    }
+                });
+                element.addEventListener('change', () => {
+                    element.dataset.edited = 'true';
+                });
+            });
+
+            function applyCatalogPreset(preset) {
+                const defaults = [
+                    [catalogPrice, preset.retail_price],
+                    [catalogDiscount, preset.discount_percent],
+                    [catalogPieces, preset.piece_count],
+                    [catalogFabric, preset.fabric],
+                    [catalogSeason, preset.season],
+                    [catalogGender, preset.gender],
+                    [catalogDescription, preset.description],
+                ];
+
+                defaults.forEach(([element, value]) => {
+                    if (element.dataset.edited !== 'true' && value !== null && value !== undefined) {
+                        element.value = value;
+                    }
+                });
+
+                const presetCategory = categories.find((category) => category.slug === preset.category_slug);
+                const presetBrand = brands.find((brand) => brand.name.toLowerCase() === preset.brand_name.toLowerCase());
+                if (catalogCategory.dataset.edited !== 'true' && presetCategory) {
+                    catalogCategory.value = String(presetCategory.id);
+                }
+                if (catalogBrand.dataset.edited !== 'true' && presetBrand) {
+                    catalogBrand.value = String(presetBrand.id);
+                }
+            }
 
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -206,30 +359,19 @@
                 .replaceAll('"', '&quot;')
                 .replaceAll("'", '&#039;');
 
-            const money = (value) => new Intl.NumberFormat('en-PK', { maximumFractionDigits: 0 }).format(Number(value) || 0);
+            function setPresetValue(element, value) {
+                if (element.dataset.edited !== 'true' && !element.value.trim()) {
+                    element.value = value;
+                }
+            }
 
-            function optionMarkup(items, selected, emptyLabel) {
-                return [
-                    `<option value="">${escapeHtml(emptyLabel)}</option>`,
-                    ...items.map((item) => `<option value="${item.id}" ${String(item.id) === String(selected) ? 'selected' : ''}>${escapeHtml(item.name)}</option>`),
-                ].join('');
+            function designTitle(index) {
+                return `${catalogTitle.value.trim()} — Design ${String(index + 1).padStart(2, '0')}`;
             }
 
             function addProduct(data = {}) {
                 products.push({
-                    name: data.name || `Design ${String(products.length + 1).padStart(2, '0')}`,
-                    description: data.description || '',
-                    retail_price: Number(data.retail_price || 0),
-                    discount_percent: Number(data.discount_percent ?? 3),
-                    gender: data.gender || 'women',
-                    piece_count: data.piece_count ?? '',
-                    fabric: data.fabric || '',
-                    season: data.season || '',
-                    category_id: data.category_id || '',
-                    brand_id: data.brand_id || '',
                     design_code: data.design_code || '',
-                    stock_quantity: Number(data.stock_quantity ?? 3),
-                    featured: Boolean(data.featured),
                     selectedPages: [...(data.pages || [])],
                     mainPage: data.mainPage || (data.pages?.[0] ?? null),
                 });
@@ -246,7 +388,6 @@
 
             function renderProducts() {
                 productList.innerHTML = products.map((product, index) => {
-                    const salePrice = Number(product.retail_price) * (1 - Number(product.discount_percent) / 100);
                     const orderedPages = getOrderedPages(product);
                     const mainPage = orderedPages[0] || null;
 
@@ -260,83 +401,7 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold">Product title</label>
-                                    <input class="form-control" data-field="name" data-index="${index}" value="${escapeHtml(product.name)}">
-                                </div>
-
-                                <div class="row g-2">
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold">Retail price (PKR)</label>
-                                        <input class="form-control" type="number" min="0" step="1" data-field="retail_price" data-index="${index}" value="${product.retail_price}">
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold">Discount (%)</label>
-                                        <input class="form-control" type="number" min="0" max="100" step="0.01" data-field="discount_percent" data-index="${index}" value="${product.discount_percent}">
-                                    </div>
-                                </div>
-                                <div class="form-text mb-3">Website price: PKR ${money(salePrice)}</div>
-
-                                <div class="row g-2">
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold">Gender</label>
-                                        <select class="form-select" data-field="gender" data-index="${index}">
-                                            <option value="women" ${product.gender === 'women' ? 'selected' : ''}>Women</option>
-                                            <option value="men" ${product.gender === 'men' ? 'selected' : ''}>Men</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold">Pieces</label>
-                                        <input class="form-control" type="number" min="1" max="10" data-field="piece_count" data-index="${index}" value="${escapeHtml(product.piece_count)}">
-                                    </div>
-                                </div>
-
-                                <div class="row g-2 mt-1">
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold">Fabric</label>
-                                        <input class="form-control" data-field="fabric" data-index="${index}" value="${escapeHtml(product.fabric)}">
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold">Season</label>
-                                        <input class="form-control" data-field="season" data-index="${index}" value="${escapeHtml(product.season)}">
-                                    </div>
-                                </div>
-
-                                <div class="row g-2 mt-1">
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold">Category</label>
-                                        <select class="form-select" data-field="category_id" data-index="${index}">${optionMarkup(categories, product.category_id, 'No category')}</select>
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold">Brand ${catalogPreset ? '(matched automatically)' : ''}</label>
-                                        <select class="form-select" data-field="brand_id" data-index="${index}" ${catalogPreset ? 'disabled' : ''}>${optionMarkup(brands, product.brand_id, 'No brand')}</select>
-                                    </div>
-                                </div>
-
-                                <div class="mt-3">
-                                    <label class="form-label small fw-bold">Design code</label>
-                                    <input class="form-control" data-field="design_code" data-index="${index}" value="${escapeHtml(product.design_code)}">
-                                </div>
-
-                                <div class="mt-3">
-                                    <label class="form-label small fw-bold">Description</label>
-                                    <textarea class="form-control" rows="3" data-field="description" data-index="${index}">${escapeHtml(product.description)}</textarea>
-                                </div>
-
-                                <div class="row g-2 mt-1 align-items-end">
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold">Opening stock</label>
-                                        <input class="form-control" type="number" min="0" data-field="stock_quantity" data-index="${index}" value="${product.stock_quantity}">
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" data-field="featured" data-index="${index}" ${product.featured ? 'checked' : ''} id="featured-${index}">
-                                            <label class="form-check-label small" for="featured-${index}">Feature on homepage</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <hr>
+                                <div class="fw-semibold mb-3">${escapeHtml(designTitle(index))}</div>
                                 <div class="d-grid mb-3">
                                     <button type="button" class="btn btn-outline-dark" data-open-picker="${index}">
                                         <i class="fa-solid fa-images me-1"></i> Choose Images (${product.selectedPages.length})
@@ -349,29 +414,9 @@
                                         <img class="w-100 h-100 object-fit-contain" src="${pageImages.get(mainPage)?.dataUrl || ''}" alt="Page ${mainPage}">
                                     </div>
                                 ` : `
-                                    <div class="alert alert-light border small">No images selected yet.</div>
+                                    <div class="alert alert-light border small">Choose at least one image for this design.</div>
                                 `}
-
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="small fw-bold">Gallery order</span>
-                                    <span class="small text-secondary">Drag is replaced by move buttons for reliable mobile use.</span>
-                                </div>
-                                <div class="row row-cols-4 g-2">
-                                    ${orderedPages.map((page, pageIndex) => `
-                                        <div class="col">
-                                            <div class="border rounded p-1 bg-white">
-                                                <div class="ratio ratio-3x4 bg-light rounded overflow-hidden">
-                                                    <img class="w-100 h-100 object-fit-contain" src="${pageImages.get(page)?.dataUrl || ''}" alt="Page ${page}">
-                                                </div>
-                                                <div class="small text-center mt-1">${pageIndex === 0 ? 'Main' : pageIndex + 1}</div>
-                                                <div class="btn-group btn-group-sm w-100 mt-1">
-                                                    <button type="button" class="btn btn-outline-secondary" data-move-left="${index}" data-page="${page}" ${pageIndex === 0 ? 'disabled' : ''}>‹</button>
-                                                    <button type="button" class="btn btn-outline-secondary" data-move-right="${index}" data-page="${page}" ${pageIndex === orderedPages.length - 1 ? 'disabled' : ''}>›</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
+                                <div class="small text-secondary">${orderedPages.length} image(s) selected</div>
                             </div>
                         </article>
                     `;
@@ -398,28 +443,6 @@
                     button.addEventListener('click', () => openPicker(Number(button.dataset.openPicker)));
                 });
 
-                productList.querySelectorAll('[data-move-left], [data-move-right]').forEach((button) => {
-                    button.addEventListener('click', () => moveGallery(Number(button.dataset.moveLeft ?? button.dataset.moveRight), Number(button.dataset.page), button.hasAttribute('data-move-left') ? -1 : 1));
-                });
-
-                productList.querySelectorAll('[data-field]').forEach((element) => {
-                    element.addEventListener('input', updateField);
-                    element.addEventListener('change', updateField);
-                });
-            }
-
-            function updateField(event) {
-                const element = event.currentTarget;
-                const product = products[Number(element.dataset.index)];
-                if (!product) return;
-                product[element.dataset.field] = element.type === 'checkbox' ? element.checked : element.value;
-
-                if (['retail_price', 'discount_percent'].includes(element.dataset.field)) {
-                    const price = element.closest('.card-body')?.querySelector('.form-text');
-                    if (price) {
-                        price.textContent = `Website price: PKR ${money(Number(product.retail_price) * (1 - Number(product.discount_percent) / 100))}`;
-                    }
-                }
             }
 
             function updatePageCards() {
@@ -469,9 +492,12 @@
                                 <img class="card-img-top object-fit-contain bg-light" src="${dataUrl}" alt="PDF page ${pageNumber}">
                             </div>
                             <div class="card-body p-2">
-                                <div class="d-grid">
+                                <div class="d-grid gap-2">
                                     <button type="button" class="btn btn-sm btn-outline-dark" data-preview="${pageNumber}">
                                         <i class="fa-solid fa-eye me-1"></i> Preview
+                                    </button>
+                                    <button type="button" class="btn btn-sm ${sliderPage === pageNumber ? 'btn-warning' : 'btn-outline-secondary'}" data-slider-page="${pageNumber}">
+                                        <i class="fa-solid fa-panorama me-1"></i> ${sliderPage === pageNumber ? 'Slider image' : 'Use for slider'}
                                     </button>
                                 </div>
                             </div>
@@ -479,11 +505,39 @@
                     `;
 
                     column.querySelector('[data-preview]').addEventListener('click', () => openPreview(pageNumber));
+                    column.querySelector('[data-slider-page]').addEventListener('click', () => {
+                        sliderPage = sliderPage === pageNumber ? null : pageNumber;
+                        updateSliderPreview();
+                        updateSliderPageButtons();
+                    });
                     pageContainer.appendChild(column);
                 }
 
                 pageStatus.textContent = `${total} pages ready`;
                 updatePageCards();
+                updateSliderPageButtons();
+            }
+
+            function updateSliderPreview() {
+                const image = sliderPage ? pageImages.get(sliderPage)?.dataUrl : null;
+                sliderImagePreview.innerHTML = image
+                    ? `<div class="d-flex align-items-center gap-2"><img src="${image}" alt="Slider page ${sliderPage}" class="rounded object-fit-contain bg-light" width="64" height="80"><span>PDF page ${sliderPage} selected</span><button type="button" class="btn btn-sm btn-outline-secondary ms-auto" id="clearSliderImage">Remove</button></div>`
+                    : 'No slider image selected.';
+
+                document.getElementById('clearSliderImage')?.addEventListener('click', () => {
+                    sliderPage = null;
+                    updateSliderPreview();
+                    updateSliderPageButtons();
+                });
+            }
+
+            function updateSliderPageButtons() {
+                pageContainer.querySelectorAll('[data-slider-page]').forEach((button) => {
+                    const selected = Number(button.dataset.sliderPage) === sliderPage;
+                    button.classList.toggle('btn-warning', selected);
+                    button.classList.toggle('btn-outline-secondary', !selected);
+                    button.innerHTML = `<i class="fa-solid fa-panorama me-1"></i> ${selected ? 'Slider image' : 'Use for slider'}`;
+                });
             }
 
             function openPicker(productIndex) {
@@ -642,34 +696,12 @@
                     const payload = await uploadPdf(file);
                     finalizeUrl = payload.finalize_url;
                     catalogName.textContent = payload.name || file.name;
+                    setPresetValue(catalogTitle, payload.name || file.name.replace(/\.pdf$/i, ''));
 
                     const buffer = await file.arrayBuffer();
                     pdfDocument = await pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise;
 
-                    uploadPanel.classList.add('d-none');
                     builder.classList.remove('d-none');
-
-                    products = [];
-                    if (payload.preset?.products?.length) {
-                        payload.preset.products.forEach((product) => addProduct(product));
-                    } else if (payload.preset?.groups?.length) {
-                        payload.preset.groups.forEach((pages, index) => addProduct({
-                            name: `${payload.preset.collection} — Design ${String(index + 1).padStart(2, '0')}`,
-                            description: payload.preset.description,
-                            retail_price: payload.preset.retail_price,
-                            discount_percent: payload.preset.discount_percent ?? 3,
-                            gender: payload.preset.gender,
-                            piece_count: payload.preset.piece_count,
-                            fabric: payload.preset.fabric,
-                            season: payload.preset.season,
-                            pages,
-                        }));
-                    } else {
-                        addProduct({ name: 'Design 01', discount_percent: 3, stock_quantity: 3 });
-                    }
-
-                    renderProducts();
-                    await renderPages();
 
                     catalogPreset = payload.preset || null;
                     if (catalogPreset) {
@@ -679,37 +711,33 @@
 
                         if (!pagesFit) {
                             catalogPreset = null;
-                            products = [];
-                            addProduct({ name: 'Design 01', discount_percent: 3, stock_quantity: 3 });
                         }
                     }
 
                     if (catalogPreset) {
-                        const defaultCategory = categories.find((category) => category.slug === catalogPreset.category_slug);
-                        const defaultBrand = brands.find((brand) => brand.name.toLowerCase() === catalogPreset.brand_name.toLowerCase());
-                        products = catalogPreset.products.map((product) => ({
-                            ...product,
-                            category_id: defaultCategory?.id || '',
-                            brand_id: defaultBrand?.id || '',
-                            selectedPages: [...(product.pages || [])],
-                            mainPage: product.pages?.[0] || null,
-                        }));
-                        activeProduct = 0;
+                        applyCatalogPreset(catalogPreset);
                         automationNotice.className = 'alert alert-success mb-4';
-                        automationNotice.textContent = `${catalogPreset.collection} recognized. Automatically creating inactive product drafts, a draft brand when needed, and a draft homepage slide.`;
+                        automationNotice.textContent = `${catalogPreset.collection} recognized. Shared catalog details and suggested design images are ready; review or adjust them before creating drafts.`;
                         createProducts.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Create Draft Collection';
                     } else {
                         automationNotice.className = 'alert alert-warning mb-4';
-                        automationNotice.textContent = 'This catalog is not a recognized format. Nothing will be guessed; select pages and enter product details manually. Imported products will remain drafts.';
+                        automationNotice.textContent = 'This catalog is not a recognized format. Enter shared details above and choose images for each design. Imported products will remain drafts.';
                         createProducts.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Create Draft Products';
                     }
 
+                    products = [];
+                    if (catalogPreset?.products?.length) {
+                        catalogPreset.products.forEach((product) => addProduct(product));
+                    } else {
+                        addProduct();
+                    }
+
+                    await renderPages();
                     renderProducts();
                     updatePageCards();
-
-                    if (catalogPreset) {
-                        createProducts.click();
-                    }
+                    updateSliderPreview();
+                    startButton.classList.add('d-none');
+                    input.disabled = true;
                 } catch (error) {
                     console.error(error);
                     uploadStatus.innerHTML = `<span class="text-danger">${escapeHtml(error.message || 'Unable to open the PDF.')}</span>`;
@@ -718,7 +746,7 @@
             });
 
             addDesign.addEventListener('click', () => {
-                addProduct({ discount_percent: 3, stock_quantity: 3 });
+                addProduct();
                 renderProducts();
                 updatePageCards();
             });
@@ -726,9 +754,29 @@
             createProducts.addEventListener('click', async () => {
                 if (!finalizeUrl || !pdfDocument) return;
 
+                if (!catalogTitle.value.trim()) {
+                    catalogTitle.focus();
+                    builderStatus.innerHTML = '<span class="text-danger">Enter a catalog title before creating designs.</span>';
+                    return;
+                }
+                if (catalogPrice.value === '' || Number(catalogPrice.value) < 0) {
+                    catalogPrice.focus();
+                    builderStatus.innerHTML = '<span class="text-danger">Enter a valid retail price before creating designs.</span>';
+                    return;
+                }
+                if (catalogStock.value === '' || Number(catalogStock.value) < 0) {
+                    catalogStock.focus();
+                    builderStatus.innerHTML = '<span class="text-danger">Enter a valid opening stock quantity.</span>';
+                    return;
+                }
+
                 const invalid = products.find((product) => product.selectedPages.length === 0);
                 if (invalid) {
                     builderStatus.innerHTML = '<span class="text-danger">Every design needs at least one selected image.</span>';
+                    return;
+                }
+                if ((sliderTitle.value.trim() || sliderLink.value.trim()) && !sliderPage) {
+                    builderStatus.innerHTML = '<span class="text-danger">Choose a slider image before entering slider title or link.</span>';
                     return;
                 }
 
@@ -737,7 +785,18 @@
 
                 try {
                     const payloadProducts = [];
-                    let collectionImage = null;
+                    const sharedDetails = {
+                        description: catalogDescription.value.trim(),
+                        retail_price: Number(catalogPrice.value),
+                        discount_percent: catalogDiscount.value === '' ? 0 : Number(catalogDiscount.value),
+                        gender: catalogGender.value,
+                        piece_count: catalogPieces.value === '' ? null : Number(catalogPieces.value),
+                        fabric: catalogFabric.value.trim(),
+                        season: catalogSeason.value.trim(),
+                        category_id: catalogCategory.value === '' ? null : Number(catalogCategory.value),
+                        brand_id: catalogBrand.value === '' ? null : Number(catalogBrand.value),
+                        stock_quantity: Number(catalogStock.value),
+                    };
 
                     for (let index = 0; index < products.length; index++) {
                         const product = products[index];
@@ -750,26 +809,14 @@
                         }
 
                         payloadProducts.push({
-                            name: product.name,
-                            description: product.description,
-                            retail_price: Number(product.retail_price),
-                            discount_percent: Number(product.discount_percent),
-                            gender: product.gender,
-                            piece_count: product.piece_count === '' ? null : Number(product.piece_count),
-                            fabric: product.fabric,
-                            season: product.season,
-                            design_code: product.design_code,
-                            category_id: product.category_id === '' ? null : Number(product.category_id),
-                            brand_id: product.brand_id === '' ? null : Number(product.brand_id),
-                            stock_quantity: Number(product.stock_quantity),
-                            featured: Boolean(product.featured),
+                            ...sharedDetails,
+                            name: designTitle(index),
+                            design_code: product.design_code || `DESIGN-${String(index + 1).padStart(2, '0')}`,
                             images,
                         });
                     }
 
-                    if (catalogPreset) {
-                        collectionImage = await selectedPageImage(1);
-                    }
+                    const sliderImage = sliderPage ? await selectedPageImage(sliderPage) : null;
 
                     builderStatus.textContent = 'Creating draft listings…';
                     const response = await fetch(finalizeUrl, {
@@ -781,7 +828,11 @@
                         },
                         body: JSON.stringify({
                             products: payloadProducts,
-                            ...(collectionImage ? { collection_image: collectionImage } : {}),
+                            ...(sliderImage ? {
+                                slider_image: sliderImage,
+                                slider_title: sliderTitle.value.trim(),
+                                slider_link: sliderLink.value.trim(),
+                            } : {}),
                         }),
                     });
                     const payload = await response.json().catch(() => ({}));

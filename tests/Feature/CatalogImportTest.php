@@ -64,7 +64,9 @@ class CatalogImportTest extends TestCase
                 'design_code' => 'DES-01',
                 'images' => [$png],
             ]],
-            'collection_image' => $png,
+            'slider_image' => $png,
+            'slider_title' => 'Lime collection',
+            'slider_link' => '/shop',
         ];
 
         $this->withSession(['admin_user_id' => $user->id])
@@ -100,8 +102,10 @@ class CatalogImportTest extends TestCase
             'brand_id' => $brand->id,
         ]);
 
-        $slide = HomepageSlide::where('title', 'Lime Vol-552')->firstOrFail();
+        $slide = HomepageSlide::where('title', 'Lime collection')->firstOrFail();
         $this->assertFalse($slide->active);
+        $this->assertSame('/shop', $slide->button_url);
+        $this->assertSame('Shop now', $slide->button_text);
         Storage::disk('public')->assertExists($slide->image_path);
 
         $this->withSession(['admin_user_id' => $user->id])
@@ -183,7 +187,7 @@ class CatalogImportTest extends TestCase
         $this->assertDatabaseCount('homepage_slides', 0);
     }
 
-    public function test_recognized_catalog_requires_a_collection_image_before_creating_drafts(): void
+    public function test_slider_details_require_a_slider_image(): void
     {
         Storage::fake('public');
         $user = User::factory()->create();
@@ -202,12 +206,71 @@ class CatalogImportTest extends TestCase
                     'gender' => 'women',
                     'images' => ['data:image/png;base64,'.base64_encode(str_repeat('a', 128))],
                 ]],
+                'slider_title' => 'Missing image',
             ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors('collection_image');
+            ->assertJsonValidationErrors('slider_image');
 
         $this->assertDatabaseCount('products', 0);
         $this->assertDatabaseCount('brands', 0);
+        $this->assertDatabaseCount('homepage_slides', 0);
+    }
+
+    public function test_catalog_level_product_details_apply_to_every_design_without_creating_a_slider(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $import = CatalogImport::create([
+            'name' => 'Autumn Collection',
+            'pdf_path' => 'catalog-imports/test.pdf',
+            'status' => 'uploaded',
+        ]);
+        $image = 'data:image/png;base64,'.base64_encode(str_repeat('a', 128));
+        $sharedDetails = [
+            'description' => 'Matching embroidered outfits.',
+            'retail_price' => 5000,
+            'discount_percent' => 10,
+            'stock_quantity' => 7,
+            'gender' => 'women',
+            'piece_count' => 3,
+            'fabric' => 'Cotton lawn',
+            'season' => 'Summer',
+            'images' => [$image],
+        ];
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->postJson('/admin/catalog-imports/'.$import->id.'/finalize', [
+                'products' => [
+                    ['name' => 'Autumn Collection — Design 01', ...$sharedDetails],
+                    ['name' => 'Autumn Collection — Design 02', ...$sharedDetails],
+                ],
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('products', [
+            'name' => 'Autumn Collection — Design 01',
+            'description' => 'Matching embroidered outfits.',
+            'price' => 4500,
+            'compare_at_price' => 5000,
+            'discount_percent' => 10,
+            'stock_quantity' => 7,
+            'piece_count' => 3,
+            'fabric' => 'Cotton lawn',
+            'season' => 'Summer',
+            'active' => false,
+        ]);
+        $this->assertDatabaseHas('products', [
+            'name' => 'Autumn Collection — Design 02',
+            'description' => 'Matching embroidered outfits.',
+            'price' => 4500,
+            'compare_at_price' => 5000,
+            'discount_percent' => 10,
+            'stock_quantity' => 7,
+            'piece_count' => 3,
+            'fabric' => 'Cotton lawn',
+            'season' => 'Summer',
+            'active' => false,
+        ]);
         $this->assertDatabaseCount('homepage_slides', 0);
     }
 

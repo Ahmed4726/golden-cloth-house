@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use RuntimeException;
 
 class CatalogImportController extends Controller
@@ -179,7 +180,14 @@ class CatalogImportController extends Controller
             'products.*.featured' => ['boolean'],
             'products.*.images' => ['required', 'array', 'min:1', 'max:20'],
             'products.*.images.*' => ['string', 'regex:/^data:image\/(jpeg|jpg|png|webp);base64,/'],
-            'collection_image' => [$preset ? 'required' : 'nullable', 'string', 'regex:/^data:image\/(jpeg|jpg|png|webp);base64,/'],
+            'slider_image' => [
+                Rule::requiredIf(fn (): bool => $request->filled('slider_title') || $request->filled('slider_link')),
+                'nullable',
+                'string',
+                'regex:/^data:image\/(jpeg|jpg|png|webp);base64,/',
+            ],
+            'slider_title' => ['nullable', 'string', 'max:160'],
+            'slider_link' => ['nullable', 'string', 'max:500', 'regex:~^(https?://[^\s]+|/(?!/)[^\s]*)$~i'],
         ]);
 
         $created = [];
@@ -199,12 +207,11 @@ class CatalogImportController extends Controller
             $collectionBrand = null;
 
             if ($preset) {
-                $collectionImage = $data['collection_image'];
                 $collectionBrand = Brand::where('name', $preset['brand_name'])->first();
 
                 if (! $collectionBrand) {
                     $logoPath = $this->storeDataUrl(
-                        $collectionImage,
+                        $data['products'][0]['images'][0],
                         'brands',
                         Str::slug($preset['brand_name']).'-catalog'
                     );
@@ -224,19 +231,19 @@ class CatalogImportController extends Controller
                     ]);
                     $generatedBrandId = $collectionBrand->id;
                 }
+            }
 
+            if (! empty($data['slider_image'])) {
                 $slideImagePath = $this->storeDataUrl(
-                    $collectionImage,
+                    $data['slider_image'],
                     'slides',
-                    Str::slug($preset['collection']).'-catalog'
+                    Str::slug($data['slider_title'] ?? $catalogImport->name).'-catalog'
                 );
 
                 $slide = HomepageSlide::create([
-                    'title' => $preset['collection'],
-                    'subtitle' => $preset['brand_name'].' collection',
-                    'description' => $preset['description'],
-                    'button_text' => 'Shop now',
-                    'button_url' => '/shop',
+                    'title' => filled($data['slider_title'] ?? null) ? trim($data['slider_title']) : $catalogImport->name,
+                    'button_text' => filled($data['slider_link'] ?? null) ? 'Shop now' : null,
+                    'button_url' => filled($data['slider_link'] ?? null) ? trim($data['slider_link']) : null,
                     'image_path' => $slideImagePath,
                     'sort_order' => (HomepageSlide::max('sort_order') ?? -1) + 1,
                     'active' => false,
