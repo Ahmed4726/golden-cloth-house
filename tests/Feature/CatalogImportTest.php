@@ -59,6 +59,12 @@ class CatalogImportTest extends TestCase
                 'stock_quantity' => 3,
                 'gender' => 'women',
                 'piece_count' => 3,
+                'included_pieces' => ['kameez', 'dupatta', 'trouser'],
+                'piece_lengths' => [
+                    'kameez' => 40,
+                    'dupatta' => 2.5,
+                    'trouser' => 39,
+                ],
                 'fabric' => 'Peach Slub',
                 'season' => 'Winter',
                 'design_code' => 'DES-01',
@@ -91,6 +97,12 @@ class CatalogImportTest extends TestCase
         ]);
 
         $product = $import->products()->firstOrFail();
+        $this->assertSame(['kameez', 'dupatta', 'trouser'], $product->included_pieces);
+        $this->assertSame([
+            'kameez' => 40,
+            'dupatta' => 2.5,
+            'trouser' => 39,
+        ], $product->piece_lengths);
         $this->assertCount(1, $product->media_paths);
         Storage::disk('public')->assertExists($product->media_paths[0]);
 

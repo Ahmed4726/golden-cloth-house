@@ -172,6 +172,12 @@ class CatalogImportController extends Controller
             'products.*.stock_quantity' => ['required', 'integer', 'min:0', 'max:100000'],
             'products.*.gender' => ['required', 'in:women,men'],
             'products.*.piece_count' => ['nullable', 'integer', 'min:1', 'max:10'],
+            'products.*.included_pieces' => ['nullable', 'array', 'max:3'],
+            'products.*.included_pieces.*' => ['string', 'in:kameez,dupatta,trouser', 'distinct'],
+            'products.*.piece_lengths' => ['nullable', 'array:kameez,dupatta,trouser'],
+            'products.*.piece_lengths.kameez' => ['nullable', 'numeric', 'min:1', 'max:100'],
+            'products.*.piece_lengths.dupatta' => ['nullable', 'numeric', 'min:1', 'max:100'],
+            'products.*.piece_lengths.trouser' => ['nullable', 'numeric', 'min:1', 'max:100'],
             'products.*.fabric' => ['nullable', 'string', 'max:100'],
             'products.*.season' => ['nullable', 'string', 'max:50'],
             'products.*.design_code' => ['nullable', 'string', 'max:100'],
@@ -274,6 +280,11 @@ class CatalogImportController extends Controller
                 $discount = (float) ($item['discount_percent'] ?? 3);
                 $salePrice = round($retailPrice * (1 - ($discount / 100)), 2);
                 $name = trim($item['name']);
+                $includedPieces = array_values(array_unique($item['included_pieces'] ?? []));
+                $pieceLengths = array_intersect_key(
+                    $item['piece_lengths'] ?? [],
+                    array_flip($includedPieces)
+                );
 
                 $product = Product::create([
                     'name' => $name,
@@ -289,7 +300,11 @@ class CatalogImportController extends Controller
                     'brand_id' => $collectionBrand?->id ?? ($item['brand_id'] ?? null),
                     'gender' => $item['gender'],
                     'wear_type' => 'unstitched',
-                    'piece_count' => $item['piece_count'] ?? null,
+                    'piece_count' => $includedPieces
+                        ? count($includedPieces)
+                        : ($item['piece_count'] ?? null),
+                    'included_pieces' => $includedPieces,
+                    'piece_lengths' => $pieceLengths,
                     'fabric' => $item['fabric'] ?? null,
                     'season' => $item['season'] ?? null,
                     'design_code' => $item['design_code'] ?? null,

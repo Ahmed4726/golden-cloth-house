@@ -66,9 +66,51 @@
         <label class="form-label fw-semibold" for="wear-type">Wear type</label>
         <input class="form-control" id="wear-type" name="wear_type" value="{{ old('wear_type', $product->wear_type ?? 'unstitched') }}">
     </div>
-    <div class="col-md-4">
-        <label class="form-label fw-semibold" for="piece-count">Pieces</label>
-        <input class="form-control" id="piece-count" type="number" min="1" max="10" name="piece_count" value="{{ old('piece_count', $product->piece_count ?? '') }}">
+    <div class="col-12">
+        @php
+            $suitPieces = [
+                'kameez' => 'Kameez (shirt)',
+                'dupatta' => 'Dupatta',
+                'trouser' => 'Trouser / Shalwar',
+            ];
+            $selectedSuitPieces = old('included_pieces', $product->included_pieces ?? []);
+        @endphp
+        <fieldset class="border rounded p-3">
+            <legend class="float-none w-auto px-2 fs-6 fw-semibold mb-0">Suit pieces and lengths</legend>
+            <p class="form-text mt-0">Select the pieces included in this suit and enter their lengths in inches. Total pieces is calculated from your selection.</p>
+            <div class="row g-3">
+                @foreach ($suitPieces as $piece => $label)
+                    <div class="col-md-4">
+                        <div class="form-check mb-2">
+                            <input
+                                class="form-check-input suit-piece-checkbox"
+                                id="included-piece-{{ $piece }}"
+                                type="checkbox"
+                                name="included_pieces[]"
+                                value="{{ $piece }}"
+                                @checked(in_array($piece, $selectedSuitPieces, true))
+                            >
+                            <label class="form-check-label fw-semibold" for="included-piece-{{ $piece }}">{{ $label }}</label>
+                        </div>
+                        <label class="form-label small" for="piece-length-{{ $piece }}">Length (inches)</label>
+                        <input
+                            class="form-control suit-piece-length"
+                            id="piece-length-{{ $piece }}"
+                            type="number"
+                            name="piece_lengths[{{ $piece }}]"
+                            min="1"
+                            max="100"
+                            step="0.5"
+                            value="{{ old('piece_lengths.'.$piece, $product->piece_lengths[$piece] ?? '') }}"
+                            data-piece="{{ $piece }}"
+                        >
+                    </div>
+                @endforeach
+            </div>
+            <div class="small fw-semibold mt-3" aria-live="polite">
+                Total pieces selected: <span id="selected-piece-count">{{ count($selectedSuitPieces) }}</span>
+            </div>
+        </fieldset>
     </div>
 
     <div class="col-md-4">
@@ -170,6 +212,25 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const pieceCheckboxes = [...document.querySelectorAll('.suit-piece-checkbox')];
+        const selectedPieceCount = document.getElementById('selected-piece-count');
+
+        const updateSuitPieces = () => {
+            const selectedPieces = new Set(
+                pieceCheckboxes.filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.value)
+            );
+
+            pieceCheckboxes.forEach((checkbox) => {
+                const lengthInput = document.querySelector(`[data-piece="${checkbox.value}"]`);
+                if (lengthInput) lengthInput.disabled = !checkbox.checked;
+            });
+
+            if (selectedPieceCount) selectedPieceCount.textContent = String(selectedPieces.size);
+        };
+
+        pieceCheckboxes.forEach((checkbox) => checkbox.addEventListener('change', updateSuitPieces));
+        updateSuitPieces();
+
         const input = document.getElementById('product-images');
         const preview = document.getElementById('new-image-preview');
         if (!input || !preview) return;

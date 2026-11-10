@@ -54,7 +54,7 @@
         <section class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white border-0 px-4 pt-4">
                 <h2 class="h5 fw-bold mb-1">Catalog-wide product details</h2>
-                <p class="text-secondary small mb-0">Set these once. Every design will use the same price, stock, description, fabric, and piece count.</p>
+                <p class="text-secondary small mb-0">Set these once. Every design will use the same price, stock, description, fabric, and suit details.</p>
             </div>
             <div class="card-body p-4">
                 <div class="row g-3">
@@ -74,10 +74,6 @@
                     <div class="col-6 col-lg-3">
                         <label class="form-label fw-semibold" for="catalogDiscount">Discount (%)</label>
                         <input id="catalogDiscount" class="form-control" type="number" min="0" max="100" step="0.01" value="0">
-                    </div>
-                    <div class="col-6 col-lg-3">
-                        <label class="form-label fw-semibold" for="catalogPieces">Total pieces</label>
-                        <input id="catalogPieces" class="form-control" type="number" min="1" max="10">
                     </div>
                     <div class="col-6 col-lg-3">
                         <label class="form-label fw-semibold" for="catalogFabric">Fabric</label>
@@ -115,6 +111,27 @@
                     <div class="col-12">
                         <label class="form-label fw-semibold" for="catalogDescription">Product description</label>
                         <textarea id="catalogDescription" class="form-control" rows="3" maxlength="10000"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <fieldset class="border rounded p-3">
+                            <legend class="float-none w-auto px-2 fs-6 fw-semibold mb-0">Suit pieces and lengths</legend>
+                            <p class="form-text mt-0">Select the pieces included in the suit and enter their lengths in inches. Total pieces is calculated from your selection.</p>
+                            <div class="row g-3">
+                                @foreach (['kameez' => 'Kameez (shirt)', 'dupatta' => 'Dupatta', 'trouser' => 'Trouser / Shalwar'] as $piece => $label)
+                                    <div class="col-md-4">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input catalog-piece-checkbox" id="catalogPiece-{{ $piece }}" type="checkbox" value="{{ $piece }}">
+                                            <label class="form-check-label fw-semibold" for="catalogPiece-{{ $piece }}">{{ $label }}</label>
+                                        </div>
+                                        <label class="form-label small" for="catalogPieceLength-{{ $piece }}">Length (inches)</label>
+                                        <input class="form-control catalog-piece-length" id="catalogPieceLength-{{ $piece }}" type="number" min="1" max="100" step="0.5" data-piece="{{ $piece }}">
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="small fw-semibold mt-3" aria-live="polite">
+                                Total pieces selected: <span id="catalogPieceCount">0</span>
+                            </div>
+                        </fieldset>
                     </div>
                 </div>
             </div>
@@ -262,7 +279,6 @@
             const catalogPrice = document.getElementById('catalogPrice');
             const catalogStock = document.getElementById('catalogStock');
             const catalogDiscount = document.getElementById('catalogDiscount');
-            const catalogPieces = document.getElementById('catalogPieces');
             const catalogFabric = document.getElementById('catalogFabric');
             const catalogSeason = document.getElementById('catalogSeason');
             const catalogGender = document.getElementById('catalogGender');
@@ -286,6 +302,8 @@
             const previewLoading = document.getElementById('previewLoading');
             const previewTitle = document.getElementById('previewTitle');
             const zoomLabel = document.getElementById('zoomLabel');
+            const catalogPieceCheckboxes = [...document.querySelectorAll('.catalog-piece-checkbox')];
+            const catalogPieceCount = document.getElementById('catalogPieceCount');
 
             let pdfDocument = null;
             let finalizeUrl = null;
@@ -304,7 +322,6 @@
                 catalogPrice,
                 catalogStock,
                 catalogDiscount,
-                catalogPieces,
                 catalogFabric,
                 catalogSeason,
                 catalogGender,
@@ -323,11 +340,28 @@
                 });
             });
 
+            const selectedCatalogPieces = () => catalogPieceCheckboxes
+                .filter((checkbox) => checkbox.checked)
+                .map((checkbox) => checkbox.value);
+
+            function updateCatalogPieceFields() {
+                const selected = new Set(selectedCatalogPieces());
+
+                catalogPieceCheckboxes.forEach((checkbox) => {
+                    const lengthInput = document.querySelector(`.catalog-piece-length[data-piece="${checkbox.value}"]`);
+                    if (lengthInput) lengthInput.disabled = !checkbox.checked;
+                });
+
+                if (catalogPieceCount) catalogPieceCount.textContent = String(selected.size);
+            }
+
+            catalogPieceCheckboxes.forEach((checkbox) => checkbox.addEventListener('change', updateCatalogPieceFields));
+            updateCatalogPieceFields();
+
             function applyCatalogPreset(preset) {
                 const defaults = [
                     [catalogPrice, preset.retail_price],
                     [catalogDiscount, preset.discount_percent],
-                    [catalogPieces, preset.piece_count],
                     [catalogFabric, preset.fabric],
                     [catalogSeason, preset.season],
                     [catalogGender, preset.gender],
@@ -358,6 +392,16 @@
                 .replaceAll('>', '&gt;')
                 .replaceAll('"', '&quot;')
                 .replaceAll("'", '&#039;');
+
+            function selectedCatalogPieceLengths() {
+                return Object.fromEntries(selectedCatalogPieces()
+                    .map((piece) => [
+                        piece,
+                        document.querySelector(`.catalog-piece-length[data-piece="${piece}"]`).value,
+                    ])
+                    .filter(([, length]) => length !== '')
+                    .map(([piece, length]) => [piece, Number(length)]));
+            }
 
             function setPresetValue(element, value) {
                 if (element.dataset.edited !== 'true' && !element.value.trim()) {
@@ -790,7 +834,8 @@
                         retail_price: Number(catalogPrice.value),
                         discount_percent: catalogDiscount.value === '' ? 0 : Number(catalogDiscount.value),
                         gender: catalogGender.value,
-                        piece_count: catalogPieces.value === '' ? null : Number(catalogPieces.value),
+                        included_pieces: selectedCatalogPieces(),
+                        piece_lengths: selectedCatalogPieceLengths(),
                         fabric: catalogFabric.value.trim(),
                         season: catalogSeason.value.trim(),
                         category_id: catalogCategory.value === '' ? null : Number(catalogCategory.value),

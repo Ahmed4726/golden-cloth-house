@@ -120,6 +120,12 @@ class ProductController extends Controller
             'gender' => ['nullable', 'in:women,men'],
             'wear_type' => ['nullable', 'string', 'max:30'],
             'piece_count' => ['nullable', 'integer', 'min:1', 'max:10'],
+            'included_pieces' => ['nullable', 'array', 'max:3'],
+            'included_pieces.*' => ['string', 'in:kameez,dupatta,trouser', 'distinct'],
+            'piece_lengths' => ['nullable', 'array:kameez,dupatta,trouser'],
+            'piece_lengths.kameez' => ['nullable', 'numeric', 'min:1', 'max:100'],
+            'piece_lengths.dupatta' => ['nullable', 'numeric', 'min:1', 'max:100'],
+            'piece_lengths.trouser' => ['nullable', 'numeric', 'min:1', 'max:100'],
             'fabric' => ['nullable', 'string', 'max:100'],
             'season' => ['nullable', 'string', 'max:50'],
             'design_code' => ['nullable', 'string', 'max:100'],
@@ -139,6 +145,12 @@ class ProductController extends Controller
         ?Category $category,
         ?Product $product = null
     ): array {
+        $includedPieces = array_values(array_unique($data['included_pieces'] ?? []));
+        $pieceLengths = array_intersect_key(
+            $data['piece_lengths'] ?? [],
+            array_flip($includedPieces)
+        );
+
         return [
             'name' => $data['name'],
             'slug' => ($data['slug'] ?? null) ?: Str::slug($data['name']),
@@ -153,7 +165,11 @@ class ProductController extends Controller
             'brand_id' => $data['brand_id'] ?? null,
             'gender' => $data['gender'] ?? null,
             'wear_type' => $data['wear_type'] ?? 'unstitched',
-            'piece_count' => $data['piece_count'] ?? null,
+            'piece_count' => $includedPieces
+                ? count($includedPieces)
+                : ($data['piece_count'] ?? null),
+            'included_pieces' => $includedPieces,
+            'piece_lengths' => $pieceLengths,
             'fabric' => $data['fabric'] ?? null,
             'season' => $data['season'] ?? null,
             'design_code' => $data['design_code'] ?? null,

@@ -1,38 +1,138 @@
 @extends('storefront.layout')
 
 @php
-    $title = 'Contact Us | '.config('store.name');
-    $description = 'Contact '.config('store.name').' for help with products, orders, delivery and Cash on Delivery.';
+    $storeName = config('store.name');
+    $storeAddress = config('store.address');
+    $title = 'Contact Golden Cloth House | Gujrat Fabric Shop';
+    $description = 'Contact Golden Cloth House in Gujrat about unstitched suits or orders. Visit Amin Market, Madina Bazar, Sargodha Road.';
+    $mapUrl = 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($storeAddress);
+    $schema = json_encode([
+        '@context' => 'https://schema.org',
+        '@type' => 'ContactPage',
+        'name' => $title,
+        'description' => $description,
+        'url' => route('contact'),
+        'mainEntity' => [
+            '@type' => 'ClothingStore',
+            'name' => $storeName,
+            'url' => url('/'),
+            'address' => [
+                '@type' => 'PostalAddress',
+                'streetAddress' => 'Amin Market, Madina Bazar, Sargodha Road',
+                'addressLocality' => 'Gujrat',
+                'addressRegion' => 'Punjab',
+                'addressCountry' => 'PK',
+            ],
+        ],
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
 
 @section('content')
-    <section class="py-5 text-center">
+    <section class="bg-light py-5 py-lg-6">
         <div class="container">
-            <div class="small text-uppercase text-secondary fw-bold">We are here to help</div>
-            <h1 class="display-5 fw-normal">Contact Us</h1>
-            <p class="text-secondary mb-0">Questions about an order or an unstitched collection? Reach out to our team.</p>
+            <div class="row align-items-end g-3">
+                <div class="col-lg-8">
+                    <p class="small text-uppercase text-secondary fw-bold mb-2">Visit us in Gujrat · We are here to help</p>
+                    <h1 class="display-4 fw-normal">Contact {{ $storeName }}</h1>
+                    <p class="lead text-secondary mb-0">Ask us about unstitched suits, fabric availability, an online order or a visit to our shop in Amin Market, Madina Bazar.</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <a class="btn btn-dark btn-lg" href="{{ $mapUrl }}" target="_blank" rel="noopener noreferrer">
+                        <i class="fa-solid fa-location-arrow me-2" aria-hidden="true"></i>Get directions
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 
-    <div class="container pb-5">
-        <div class="mx-auto col-lg-8">
-            <h2 class="h3">Customer support</h2>
-            <p class="text-secondary">For order updates, product questions, delivery assistance or general enquiries, use the contact details below.</p>
-
-            <ul class="list-group mb-5">
-                @if (config('store.contact_phone'))<li class="list-group-item">Phone: <a href="tel:{{ config('store.contact_phone') }}">{{ config('store.contact_phone') }}</a></li>@endif
-                @if (config('store.contact_email'))<li class="list-group-item">Email: <a href="mailto:{{ config('store.contact_email') }}">{{ config('store.contact_email') }}</a></li>@endif
-                @if (config('store.whatsapp'))<li class="list-group-item">WhatsApp: <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', config('store.whatsapp')) }}" target="_blank" rel="noopener">Chat with us</a></li>@endif
-                @if (config('store.address'))<li class="list-group-item">Address: {{ config('store.address') }}</li>@endif
-            </ul>
-
-            <h2 class="h3">Before contacting us</h2>
-            <p class="text-secondary">If you are asking about an existing order, please keep your order number and the phone number used at checkout available. This helps us find your order quickly.</p>
-
-            <div class="d-flex flex-wrap gap-2 mt-4">
-                <a class="btn btn-dark" href="{{ route('order.track') }}">Track an order</a>
-                <a class="btn btn-outline-dark" href="{{ route('faq') }}">Read FAQs</a>
+    <section class="py-5 py-lg-6">
+        <div class="container">
+            <div class="row g-4 g-lg-5">
+                <div class="col-lg-7">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <article class="card h-100 border-0 shadow-sm rounded-0">
+                                <div class="card-body p-4">
+                                    <div class="text-secondary fs-4 mb-3"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></div>
+                                    <h2 class="h5">Visit our shop</h2>
+                                    <address class="text-secondary mb-3">{{ $storeAddress }}</address>
+                                    <a class="link-dark fw-semibold" href="{{ $mapUrl }}" target="_blank" rel="noopener noreferrer">Open directions <i class="fa-solid fa-arrow-up-right-from-square ms-1 small" aria-hidden="true"></i></a>
+                                </div>
+                            </article>
+                        </div>
+                        <div class="col-md-6">
+                            <article class="card h-100 border-0 shadow-sm rounded-0">
+                                <div class="card-body p-4">
+                                    <div class="text-secondary fs-4 mb-3"><i class="fa-solid fa-comments" aria-hidden="true"></i></div>
+                                    <h2 class="h5">Chat about a product</h2>
+                                    <p class="text-secondary">Ask about an unstitched suit, fabric details or help with choosing from the current collection.</p>
+                                    @if ($whatsappNumber)
+                                        <a class="link-success fw-semibold" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $whatsappNumber) }}" target="_blank" rel="noopener noreferrer">Message us on WhatsApp <i class="fa-solid fa-arrow-up-right-from-square ms-1 small" aria-hidden="true"></i></a>
+                                    @else
+                                        <span class="small text-secondary">WhatsApp ordering is currently unavailable.</span>
+                                    @endif
+                                </div>
+                            </article>
+                        </div>
+                        @if (config('store.contact_phone'))
+                            <div class="col-md-6">
+                                <article class="card h-100 border-0 shadow-sm rounded-0">
+                                    <div class="card-body p-4">
+                                        <div class="text-secondary fs-4 mb-3"><i class="fa-solid fa-phone" aria-hidden="true"></i></div>
+                                        <h2 class="h5">Call the store</h2>
+                                        <p class="text-secondary">For product or order enquiries, call us at:</p>
+                                        <a class="link-dark fw-semibold" href="tel:{{ config('store.contact_phone') }}">{{ config('store.contact_phone') }}</a>
+                                    </div>
+                                </article>
+                            </div>
+                        @endif
+                        @if (config('store.contact_email'))
+                            <div class="col-md-6">
+                                <article class="card h-100 border-0 shadow-sm rounded-0">
+                                    <div class="card-body p-4">
+                                        <div class="text-secondary fs-4 mb-3"><i class="fa-solid fa-envelope" aria-hidden="true"></i></div>
+                                        <h2 class="h5">Email us</h2>
+                                        <p class="text-secondary">Send us your general or order-related questions at:</p>
+                                        <a class="link-dark fw-semibold text-break" href="mailto:{{ config('store.contact_email') }}">{{ config('store.contact_email') }}</a>
+                                    </div>
+                                </article>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                <aside class="col-lg-5">
+                    <div class="bg-dark text-white p-4 p-lg-5 h-100">
+                        <p class="small text-uppercase text-warning fw-bold">Customer care</p>
+                        <h2 class="h3">How can we help?</h2>
+                        <p class="text-white-50">We can help with questions about the products shown online, order tracking and delivery. For the quickest assistance with an existing order, please share the details below.</p>
+                        <hr class="border-secondary">
+                        <h3 class="h6 text-uppercase">For an order enquiry, have ready</h3>
+                        <ul class="text-white-50 ps-3">
+                            <li class="mb-2">Your order number, if available</li>
+                            <li class="mb-2">The phone number used when placing the order</li>
+                            <li>The product name or link you are asking about</li>
+                        </ul>
+                        <div class="d-grid gap-2 mt-4">
+                            <a class="btn btn-light" href="{{ route('order.track') }}">Track your order</a>
+                            <a class="btn btn-outline-light" href="{{ route('faq') }}">Read frequently asked questions</a>
+                        </div>
+                    </div>
+                </aside>
             </div>
         </div>
-    </div>
+    </section>
+
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row align-items-center g-3">
+                <div class="col-lg-8">
+                    <h2 class="h3">Looking for a fabric shop in Gujrat?</h2>
+                    <p class="text-secondary mb-0">{{ $storeName }} is located at Amin Market, Madina Bazar, Sargodha Road, Gujrat. Visit us to explore the current selection of women’s and men’s unstitched clothing, or browse available products online before you contact us.</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <a class="btn btn-dark" href="{{ route('shop') }}">Browse unstitched suits</a>
+                </div>
+            </div>
+        </div>
+    </section>
 @endsection

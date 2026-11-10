@@ -23,6 +23,8 @@ class Product extends Model
         'gender',
         'wear_type',
         'piece_count',
+        'included_pieces',
+        'piece_lengths',
         'fabric',
         'season',
         'design_code',
@@ -40,6 +42,8 @@ class Product extends Model
         return [
             'image_urls' => 'array',
             'media_paths' => 'array',
+            'included_pieces' => 'array',
+            'piece_lengths' => 'array',
             'active' => 'boolean',
             'featured' => 'boolean',
             'price' => 'decimal:2',

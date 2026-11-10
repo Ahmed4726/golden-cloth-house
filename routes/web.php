@@ -16,6 +16,7 @@ use App\Http\Controllers\SocialConnectionController;
 use App\Http\Controllers\SocialPostController;
 use App\Http\Controllers\SocialProviderController;
 use App\Http\Controllers\StorefrontController;
+use App\Http\Controllers\StoreSettingController;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
@@ -77,6 +78,8 @@ Route::get('/storage/catalog-imports/{filename}', [CatalogImportController::clas
 Route::middleware('admin.session')->prefix('admin')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/', DashboardController::class)->name('dashboard');
+    Route::get('/settings', [StoreSettingController::class, 'edit'])->name('settings.edit');
+    Route::patch('/settings', [StoreSettingController::class, 'update'])->name('settings.update');
 
     Route::resource('/products', ProductController::class)->except(['show']);
     Route::delete('/products/{product}/images', [ProductController::class, 'removeImage'])->name('products.images.remove');

@@ -2,6 +2,19 @@
 
 @php
     $title = 'Shopping Cart | ' . config('store.name');
+    $whatsappOrderItems = array_map(
+        fn ($item) => '- '.$item['product']->name.' (Qty: '.$item['quantity'].') — '
+            .number_format((float) $item['lineTotal'], 0).' '.$item['product']->currency
+            ."\n".route('shop.product', $item['product']),
+        $items
+    );
+    $whatsappOrderMessage = "Hello, I would like to place this order:\n"
+        .implode("\n", $whatsappOrderItems)
+        ."\n\nSubtotal: ".number_format((float) $subtotal, 0).' '.config('store.currency')
+        ."\nDelivery: ".($shipping > 0
+            ? number_format((float) $shipping, 0).' '.config('store.currency')
+            : 'Free')
+        ."\nTotal: ".number_format((float) $total, 0).' '.config('store.currency');
 @endphp
 
 @section('content')
@@ -150,6 +163,17 @@
                             >
                                 Proceed to Checkout
                             </a>
+
+                            @if ($whatsappNumber)
+                                <a
+                                    class="btn btn-success w-100 mt-2"
+                                    href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $whatsappNumber) }}?text={{ rawurlencode($whatsappOrderMessage) }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <i class="fa-brands fa-whatsapp me-2" aria-hidden="true"></i>Order via WhatsApp
+                                </a>
+                            @endif
 
                             <a
                                 class="btn btn-outline-dark w-100 mt-2"

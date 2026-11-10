@@ -33,6 +33,7 @@
                 <nav class="nav nav-pills flex-column gap-1">
                     <a class="nav-link text-white {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}"><i class="fa-solid fa-store me-2"></i>View Shop</a>
                     <a class="nav-link text-white {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}"><i class="fa-solid fa-gauge-high me-2"></i>Dashboard</a>
+                    <a class="nav-link text-white {{ request()->routeIs('settings.*') ? 'active' : '' }}" href="{{ route('settings.edit') }}"><i class="fa-solid fa-gear me-2"></i>Settings</a>
                     <a class="nav-link text-white {{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}"><i class="fa-solid fa-box me-2"></i>Products</a>
                     <a class="nav-link text-white {{ request()->routeIs('catalog-imports.*') ? 'active' : '' }}" href="{{ route('catalog-imports.index') }}"><i class="fa-solid fa-file-pdf me-2"></i>PDF Catalogs</a>
                     <a class="nav-link text-white {{ request()->routeIs('categories.*') ? 'active' : '' }}" href="{{ route('categories.index') }}"><i class="fa-solid fa-tags me-2"></i>Categories</a>

@@ -32,6 +32,13 @@
                 'description' => $description,
                 'areaServed' => 'Pakistan',
                 'telephone' => config('store.contact_phone') ?: null,
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'streetAddress' => 'Amin Market, Madina Bazar, Sargodha Road',
+                    'addressLocality' => 'Gujrat',
+                    'addressRegion' => 'Punjab',
+                    'addressCountry' => 'PK',
+                ],
                 'sameAs' => array_values(array_filter([
                     config('store.facebook'),
                     config('store.instagram'),

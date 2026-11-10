@@ -3,6 +3,13 @@
 @php
     $images = $product->images();
     $firstImage = $images[0] ?? null;
+    $suitPieceLabels = [
+        'kameez' => 'Kameez (shirt)',
+        'dupatta' => 'Dupatta',
+        'trouser' => 'Trouser / Shalwar',
+    ];
+    $includedPieces = $product->included_pieces ?? [];
+    $pieceLengths = $product->piece_lengths ?? [];
     $shareImage = $firstImage
         ? url($product->imageUrl($firstImage))
         : asset('images/product-placeholder.svg');
@@ -44,7 +51,7 @@
 
 @section('content')
     <div class="container py-4">
-        <nav class="small text-secondary mb-4" aria-label="Breadcrumb">
+        <nav class="small text-secondary mb-3" aria-label="Breadcrumb">
             <a
                 class="text-dark text-decoration-none"
                 href="{{ route('home') }}"
@@ -65,59 +72,97 @@
             <span>{{ $product->name }}</span>
         </nav>
 
+        <header class="mb-4">
+            <div class="small text-uppercase text-secondary fw-bold">
+                {{ $product->categoryRelation?->name ?: ($product->category ?: 'UNSTITCHED') }}
+            </div>
+            <h1 class="display-6 fw-normal mt-1 mb-0">{{ $product->name }}</h1>
+        </header>
+
         <section class="row g-4 g-lg-5">
             <div class="col-lg-7">
-                <div class="ratio ratio-4x5 bg-light rounded overflow-hidden">
-                    <img
-                        id="product-main-image"
-                        class="w-100 h-100 object-fit-contain bg-white"
-                        src="{{ $shareImage }}"
-                        alt="{{ $product->name }}"
-                        onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
-                    >
-                </div>
-
-                @if (count($images) > 1)
+                <div class="product-detail-gallery-wrap">
                     <div
-                        class="row row-cols-4 row-cols-sm-5 row-cols-md-6 g-2 mt-2"
-                        aria-label="Product gallery"
+                        id="productGallery"
+                        class="carousel slide product-detail-gallery ratio ratio-7x5 bg-light rounded overflow-hidden"
+                        data-bs-interval="false"
+                        data-bs-touch="true"
+                        aria-label="Product images"
                     >
-                        @foreach ($images as $index => $image)
-                            @php
-                                $imageUrl = $product->imageUrl($image);
-                            @endphp
+                        <div class="carousel-inner h-100">
+                            @forelse ($images as $index => $image)
+                                @php
+                                    $imageUrl = $product->imageUrl($image);
+                                @endphp
 
-                            <div class="col">
+                                <div class="carousel-item h-100 {{ $index === 0 ? 'active' : '' }}">
+                                    <img
+                                        class="d-block w-100 h-100 object-fit-contain bg-white"
+                                        src="{{ $imageUrl }}"
+                                        alt="{{ $product->name }} image {{ $index + 1 }}"
+                                        loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                                        onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
+                                    >
+                                </div>
+                            @empty
+                                <div class="carousel-item h-100 active">
+                                    <img
+                                        class="d-block w-100 h-100 object-fit-contain bg-white"
+                                        src="{{ asset('images/product-placeholder.svg') }}"
+                                        alt="{{ $product->name }}"
+                                    >
+                                </div>
+                            @endforelse
+                        </div>
+
+                        @if (count($images) > 1)
+                            <button class="carousel-control-prev" type="button" data-bs-target="#productGallery" data-bs-slide="prev" aria-label="Previous product image">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#productGallery" data-bs-slide="next" aria-label="Next product image">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            </button>
+                        @endif
+                    </div>
+
+                    @if (count($images) > 1)
+                        <div class="product-detail-thumbnails" aria-label="Choose a product image">
+                            @foreach ($images as $index => $image)
                                 <button
-                                    class="btn p-0 border {{ $index === 0 ? 'border-dark' : '' }} w-100 ratio ratio-3x4 overflow-hidden"
                                     type="button"
-                                    data-image="{{ $imageUrl }}"
+                                    data-bs-target="#productGallery"
+                                    data-bs-slide-to="{{ $index }}"
+                                    class="{{ $index === 0 ? 'active' : '' }}"
+                                    aria-current="{{ $index === 0 ? 'true' : 'false' }}"
                                     aria-label="View product image {{ $index + 1 }}"
                                 >
                                     <img
-                                        class="w-100 h-100 object-fit-contain bg-light"
-                                        src="{{ $imageUrl }}"
+                                        src="{{ $product->imageUrl($image) }}"
                                         alt="{{ $product->name }} image {{ $index + 1 }}"
                                         loading="lazy"
-                                        onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
                                     >
                                 </button>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
+                            @endforeach
+                        </div>
+
+                        <div class="carousel-indicators product-detail-indicators">
+                            @foreach ($images as $index => $image)
+                                <button
+                                    type="button"
+                                    data-bs-target="#productGallery"
+                                    data-bs-slide-to="{{ $index }}"
+                                    class="{{ $index === 0 ? 'active' : '' }}"
+                                    aria-current="{{ $index === 0 ? 'true' : 'false' }}"
+                                    aria-label="Show product image {{ $index + 1 }}"
+                                ></button>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
             </div>
 
             <div class="col-lg-5">
                 <div>
-                    <div class="small text-uppercase text-secondary fw-bold">
-                        {{ $product->categoryRelation?->name ?: ($product->category ?: 'UNSTITCHED') }}
-                    </div>
-
-                    <h1 class="display-6 fw-normal mt-2">
-                        {{ $product->name }}
-                    </h1>
-
                     @if ($product->price)
                         <div class="fs-4 fw-bold mb-2">
                             {{ number_format((float) $product->price, 0) }}
@@ -145,9 +190,38 @@
                         </div>
                     @endif
 
+                    <div class="alert alert-light border my-3" role="note">
+                        <div class="fw-semibold">Shipping policy</div>
+                        <div class="small text-secondary">
+                            Free delivery on orders of {{ number_format((float) config('store.free_shipping_threshold'), 0) }} {{ config('store.currency') }} or more.
+                            Orders below {{ number_format((float) config('store.free_shipping_threshold'), 0) }} {{ config('store.currency') }} have a flat
+                            {{ number_format((float) config('store.shipping_fee'), 0) }} {{ config('store.currency') }} delivery fee.
+                        </div>
+                    </div>
+
                     <div class="text-secondary my-4">
                         {!! nl2br(e($product->description)) !!}
                     </div>
+
+                    @if ($product->piece_count || $includedPieces)
+                        <div class="border rounded p-3 mb-4">
+                            <div class="fw-semibold mb-2">
+                                Suit details · {{ $product->piece_count ?? count($includedPieces) }} pieces
+                            </div>
+                            @if ($includedPieces)
+                                <ul class="list-unstyled small mb-0">
+                                    @foreach ($includedPieces as $piece)
+                                        <li>
+                                            {{ $suitPieceLabels[$piece] ?? $piece }}
+                                            @if (! empty($pieceLengths[$piece]))
+                                                <span class="text-secondary">· {{ $pieceLengths[$piece] }} in</span>
+                                            @endif
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+                    @endif
 
                     @if ($product->stock_quantity > 0)
                         <form
@@ -178,7 +252,7 @@
 
                                 <div class="col">
                                     <button
-                                        class="btn btn-dark w-100 py-2 text-uppercase fw-bold"
+                                        class="btn btn-dark w-100 text-uppercase fw-bold store-add-to-cart"
                                         type="submit"
                                     >
                                         <i class="fa-solid fa-cart-shopping me-2" aria-hidden="true"></i>Add to cart
@@ -186,6 +260,47 @@
                                 </div>
                             </div>
                         </form>
+
+                        @if ($whatsappNumber)
+                            @php
+                                $whatsappOrderNumber = preg_replace('/[^0-9]/', '', $whatsappNumber);
+                                $whatsappOrderMessage = "Hello, I would like to order this product:\n"
+                                    .$product->name
+                                    ."\nQuantity: 1"
+                                    ."\nUnit price: ".number_format((float) $product->price, 0).' '.$product->currency
+                                    .($product->piece_count
+                                        ? "\nTotal pieces: ".$product->piece_count
+                                        : '')
+                                    .($includedPieces
+                                        ? "\nIncluded pieces: ".implode(', ', array_map(
+                                            fn ($piece) => ($suitPieceLabels[$piece] ?? $piece)
+                                                .(empty($pieceLengths[$piece]) ? '' : ' ('.$pieceLengths[$piece].' in)'),
+                                            $includedPieces
+                                        ))
+                                        : '')
+                                    ."\nProduct link: ".route('shop.product', $product);
+                            @endphp
+
+                            <a
+                                class="btn btn-success w-100 py-2 mt-2 text-uppercase fw-bold"
+                                href="https://wa.me/{{ $whatsappOrderNumber }}?text={{ rawurlencode($whatsappOrderMessage) }}"
+                                data-whatsapp-order
+                                data-whatsapp-number="{{ $whatsappOrderNumber }}"
+                                data-product-name="{{ $product->name }}"
+                                data-product-price="{{ number_format((float) $product->price, 0) }} {{ $product->currency }}"
+                                data-product-piece-count="{{ $product->piece_count ?? count($includedPieces) }}"
+                                data-product-pieces="{{ implode(', ', array_map(
+                                    fn ($piece) => ($suitPieceLabels[$piece] ?? $piece)
+                                        .(empty($pieceLengths[$piece]) ? '' : ' ('.$pieceLengths[$piece].' in)'),
+                                    $includedPieces
+                                )) }}"
+                                data-product-url="{{ route('shop.product', $product) }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <i class="fa-brands fa-whatsapp me-2" aria-hidden="true"></i>Order via WhatsApp
+                            </a>
+                        @endif
 
                         <div class="row row-cols-3 g-2 mt-3">
                             <div class="col">
@@ -278,7 +393,7 @@
                                 data-bs-parent="#productInfo"
                             >
                                 <div class="accordion-body px-0 text-secondary">
-                                    Pay when your order arrives. Delivery charges and free-shipping eligibility are shown at checkout.
+                                    Pay when your order arrives. Delivery is free for orders of {{ number_format((float) config('store.free_shipping_threshold'), 0) }} {{ config('store.currency') }} or more. Orders below this amount have a flat {{ number_format((float) config('store.shipping_fee'), 0) }} {{ config('store.currency') }} delivery fee. Final delivery charges are shown in your cart and at checkout.
                                 </div>
                             </div>
                         </div>
@@ -341,20 +456,35 @@
 
 @push('scripts')
     <script>
-        document.querySelectorAll('[data-image]').forEach((button) => {
-            button.addEventListener('click', () => {
-                const mainImage = document.getElementById('product-main-image');
+        const whatsappOrderButton = document.querySelector('[data-whatsapp-order]');
+        const quantityInput = document.getElementById('quantity');
 
-                if (mainImage) {
-                    mainImage.src = button.dataset.image;
-                }
+        if (whatsappOrderButton && quantityInput) {
+            const updateWhatsAppOrderLink = () => {
+                const requestedQuantity = Number(quantityInput.value);
+                const quantity = Number.isInteger(requestedQuantity) && requestedQuantity > 0
+                    ? Math.min(requestedQuantity, Number(quantityInput.max))
+                    : 1;
+                const message = [
+                    'Hello, I would like to order this product:',
+                    whatsappOrderButton.dataset.productName,
+                    `Quantity: ${quantity}`,
+                    `Unit price: ${whatsappOrderButton.dataset.productPrice}`,
+                    ...(whatsappOrderButton.dataset.productPieceCount
+                        ? [`Total pieces: ${whatsappOrderButton.dataset.productPieceCount}`]
+                        : []),
+                    ...(whatsappOrderButton.dataset.productPieces
+                        ? [`Included pieces: ${whatsappOrderButton.dataset.productPieces}`]
+                        : []),
+                    `Product link: ${whatsappOrderButton.dataset.productUrl}`,
+                ].join('\n');
 
-                document.querySelectorAll('[data-image]').forEach((thumb) => {
-                    thumb.classList.remove('border-dark');
-                });
+                whatsappOrderButton.href = `https://wa.me/${whatsappOrderButton.dataset.whatsappNumber}?text=${encodeURIComponent(message)}`;
+            };
 
-                button.classList.add('border-dark');
-            });
-        });
+            quantityInput.addEventListener('input', updateWhatsAppOrderLink);
+            quantityInput.addEventListener('change', updateWhatsAppOrderLink);
+        }
+
     </script>
 @endpush
