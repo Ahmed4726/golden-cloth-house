@@ -68,6 +68,7 @@ class SocialCommerceTest extends TestCase
         $product = Product::create([
             'name' => 'Premium Shirt',
             'slug' => 'premium-shirt',
+            'sku' => 'PREMIUM-SHIRT-001',
             'price' => 3500,
             'currency' => 'PKR',
             'stock_quantity' => 10,

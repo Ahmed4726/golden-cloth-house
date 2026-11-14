@@ -53,7 +53,7 @@
                             <div class="card-body">
                                 <div class="row align-items-center g-3">
                                     <div class="col-4 col-sm-3 col-md-2">
-                                        <div class="ratio ratio-3x4 bg-light rounded overflow-hidden">
+                                        <div class="ratio ratio-1x1 bg-light rounded overflow-hidden">
                                             <img
                                                 class="w-100 h-100 object-fit-contain"
                                                 src="{{ $imageUrl }}"

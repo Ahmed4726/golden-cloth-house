@@ -37,7 +37,7 @@
 @endphp
 
 @section('content')
-    <section class="bg-dark text-white py-5 py-lg-6">
+    <section class="bg-dark text-white py-5">
         <div class="container py-lg-4">
             <div class="row align-items-center g-4 g-lg-5">
                 <div class="col-lg-8">
@@ -64,7 +64,7 @@
         </div>
     </section>
 
-    <section class="py-5 py-lg-6">
+    <section class="py-5">
         <div class="container">
             <div class="row g-4 g-lg-5 align-items-start">
                 <div class="col-lg-4">
@@ -138,7 +138,7 @@
         </div>
     </section>
 
-    <section class="py-5 py-lg-6">
+    <section class="py-5">
         <div class="container">
             <div class="row g-4 g-lg-5">
                 <div class="col-lg-6">
@@ -175,11 +175,13 @@
         </div>
     </section>
 
-    <section class="py-5 py-lg-6 text-center">
+    <section class="py-5 text-center">
         <div class="container">
             <p class="small text-uppercase fw-bold text-secondary mb-2">Continue your journey</p>
             <h2 class="display-6 fw-normal">Discover the latest from {{ $storeName }}</h2>
-            <p class="text-secondary mx-auto mb-4" style="max-width: 42rem;">Explore women’s and men’s unstitched collections, or get in touch with our team for help with a product or order.</p>
+            <div class="row justify-content-center">
+                <p class="col-lg-8 text-secondary mb-4">Explore women’s and men’s unstitched collections, or get in touch with our team for help with a product or order.</p>
+            </div>
             <div class="d-flex justify-content-center flex-wrap gap-2">
                 <a class="btn btn-dark btn-lg" href="{{ route('shop') }}">Shop all products</a>
                 <a class="btn btn-outline-dark btn-lg" href="{{ route('contact') }}">Contact us</a>

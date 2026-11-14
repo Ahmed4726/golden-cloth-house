@@ -17,86 +17,8 @@
     <meta name="description" content="{{ $pageDescription }}">
     <meta name="robots" content="{{ $indexable ? 'index,follow,max-image-preview:large' : 'noindex,follow' }}">
     <link rel="canonical" href="{{ $canonical }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
-    <style>
-        .ratio-2x1 { --bs-aspect-ratio: 50%; }
-        .ratio-3x4 { --bs-aspect-ratio: 133.333333%; }
-        .ratio-3x1 { --bs-aspect-ratio: 33.333333%; }
-        .ratio-4x5 { --bs-aspect-ratio: 125%; }
-        .ratio-7x5 { --bs-aspect-ratio: 71.428571%; }
-        .quick-view-button { width: 2.75rem; height: 2.75rem; padding: 0; }
-        .product-card-indicators,
-        .product-detail-indicators,
-        .quick-view-indicators { position: static; justify-content: center; gap: .4rem; margin: .55rem 0 0; }
-        .product-card-indicators [data-bs-target],
-        .product-detail-indicators [data-bs-target],
-        .quick-view-indicators [data-bs-target] { flex: 0 0 auto; width: .55rem; height: .55rem; margin: 0; border: 0; border-radius: 50%; background-color: #adb5bd; opacity: 1; }
-        .product-card-indicators .active,
-        .product-detail-indicators .active,
-        .quick-view-indicators .active { background-color: #212529; opacity: 1; }
-        .product-card-media,
-        .product-detail-gallery-wrap,
-        .quick-view-gallery-wrap { min-width: 0; }
-        .product-card-gallery .carousel-inner,
-        .product-card-gallery .carousel-item { height: 100%; }
-        .product-detail-gallery .carousel-control-prev,
-        .product-detail-gallery .carousel-control-next,
-        .quick-view-gallery .carousel-control-prev,
-        .quick-view-gallery .carousel-control-next { top: 50%; bottom: auto; width: 2.75rem; height: 2.75rem; border-radius: 50%; background-color: rgba(0, 0, 0, .45); opacity: 1; transform: translateY(-50%); }
-        .product-detail-gallery .carousel-control-prev,
-        .quick-view-gallery .carousel-control-prev { right: auto; left: .75rem; }
-        .product-detail-gallery .carousel-control-next,
-        .quick-view-gallery .carousel-control-next { right: .75rem; left: auto; }
-        .product-detail-thumbnails { display: flex; gap: .5rem; margin-top: .75rem; overflow-x: auto; padding: .15rem .1rem .35rem; }
-        .product-detail-thumbnails button { flex: 0 0 5rem; aspect-ratio: 1; overflow: hidden; padding: .15rem; border: 2px solid transparent; border-radius: .35rem; background: #fff; }
-        .product-detail-thumbnails button.active { border-color: #b08b43; }
-        .product-detail-thumbnails img { display: block; width: 100%; height: 100%; object-fit: contain; }
-        .quick-view-gallery .carousel-item img { height: 100%; }
-        .store-add-to-cart { min-height: 3rem; display: inline-flex; align-items: center; justify-content: center; gap: .5rem; }
-        .product-card-cart-form { min-width: 0; }
-        .product-card-cart-button { min-width: 0; padding-inline: .5rem; white-space: nowrap; }
-        .product-card-whatsapp-button { width: 3rem; min-width: 3rem; min-height: 3rem; display: inline-flex; align-items: center; justify-content: center; font-size: 1.15rem; }
-        .quick-view-cart-form { display: grid; grid-template-columns: minmax(5rem, .35fr) minmax(0, 1fr); align-items: end; gap: .75rem; }
-        .quick-view-cart-form .form-control { min-height: 3rem; }
-        .quick-view-cart-form .store-add-to-cart { width: 100%; }
-        .storefront-nav .navbar-nav > .nav-item > .nav-link { position: relative; padding-block: .9rem; transition: color .2s ease; }
-        .storefront-nav .navbar-nav > .nav-item > .nav-link::after { position: absolute; right: .5rem; bottom: .45rem; left: .5rem; height: 2px; background: #d3b16f; content: ""; transform: scaleX(0); transform-origin: left; transition: transform .2s ease; }
-        .storefront-nav .navbar-nav > .nav-item:hover > .nav-link::after,
-        .storefront-nav .navbar-nav > .nav-item:focus-within > .nav-link::after { transform: scaleX(1); }
-        .storefront-nav .store-nav-dropdown { min-width: 16rem; margin-top: .15rem; padding: .65rem; border: 1px solid rgba(0, 0, 0, .08); border-top: 2px solid #d3b16f; border-radius: .35rem; box-shadow: 0 1rem 2rem rgba(0, 0, 0, .18); }
-        .storefront-nav .store-nav-dropdown .dropdown-header { padding: .55rem .75rem .4rem; color: #777; font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-        .storefront-nav .store-nav-dropdown .dropdown-item { padding: .62rem .75rem; border-radius: .25rem; font-size: .92rem; transition: background-color .15s ease, color .15s ease; }
-        .storefront-nav .store-nav-dropdown .dropdown-item:hover,
-        .storefront-nav .store-nav-dropdown .dropdown-item:focus { color: #171717; background: #f5f0e5; }
-        .storefront-nav .dropdown-divider { margin: .4rem .5rem; }
-        .storefront-mobile-menu .accordion-item { border-color: #343a40; }
-        .storefront-mobile-menu .accordion-button { min-height: 3.25rem; font-weight: 600; }
-        .storefront-mobile-menu .accordion-button:not(.collapsed) { color: #e6ca8b; box-shadow: none; }
-        .storefront-mobile-menu .accordion-button:focus { box-shadow: inset 0 0 0 2px rgba(211, 177, 111, .55); }
-        .storefront-mobile-menu .store-mobile-link { transition: color .15s ease, background-color .15s ease; }
-        .storefront-mobile-menu .store-mobile-link:hover,
-        .storefront-mobile-menu .store-mobile-link:focus { color: #e6ca8b !important; background: #252a2e; }
-        @media (min-width: 992px) {
-            .py-lg-6 { padding-block: 5rem !important; }
-            .storefront-nav .nav-item.dropdown:hover > .store-nav-dropdown,
-            .storefront-nav .nav-item.dropdown:focus-within > .store-nav-dropdown { display: block; }
-        }
-
-        #homeHero .carousel-item .ratio {
-            --bs-aspect-ratio: 42.857143%;
-        }
-
-        @media (min-width: 992px) {
-            #homeHero .carousel-item .ratio {
-                --bs-aspect-ratio: 34.375%;
-            }
-        }
-    </style>
-    @stack('styles')
 
     <meta property="og:type" content="{{ $ogType ?? 'website' }}">
     <meta property="og:locale" content="en_PK">
@@ -122,7 +44,7 @@
 </head>
 <body class="bg-white text-dark">
     <a class="visually-hidden-focusable position-absolute top-0 start-0 p-2 bg-white text-dark z-3" href="#main-content">Skip to content</a>
-    <header class="sticky-top">
+    <header class="sticky-top shadow-sm">
         <div class="bg-black text-white border-bottom border-secondary">
             <div class="container-fluid px-3 px-lg-4 py-2">
                 <div class="row align-items-center g-2">
@@ -183,7 +105,7 @@
             </form>
         </div>
 
-        <nav class="navbar navbar-expand-lg navbar-dark bg-black border-bottom border-secondary storefront-nav" aria-label="Primary navigation">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-black border-bottom border-secondary" aria-label="Primary navigation">
             <div class="container-fluid px-3 px-lg-4">
                 <div class="collapse navbar-collapse justify-content-center d-none d-lg-flex">
                     <ul class="navbar-nav align-items-center gap-lg-4">
@@ -192,7 +114,7 @@
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link text-uppercase fw-medium dropdown-toggle" href="{{ route('shop', ['category' => 'women-unstitched']) }}" role="button" data-bs-toggle="dropdown" aria-expanded="false">Women</a>
-                            <ul class="dropdown-menu store-nav-dropdown">
+                            <ul class="dropdown-menu">
                                 <li><span class="dropdown-header">Women’s collections</span></li>
                                 <li><a class="dropdown-item" href="{{ route('shop', ['category' => 'women-unstitched']) }}">All Women Unstitched</a></li>
                                 <li><a class="dropdown-item" href="{{ route('shop', ['q' => '2 Piece', 'category' => 'women-unstitched']) }}">2 Piece Suits</a></li>
@@ -206,7 +128,7 @@
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link text-uppercase fw-medium dropdown-toggle" href="{{ route('shop', ['category' => 'men-unstitched']) }}" role="button" data-bs-toggle="dropdown" aria-expanded="false">Men</a>
-                            <ul class="dropdown-menu store-nav-dropdown">
+                            <ul class="dropdown-menu">
                                 <li><span class="dropdown-header">Men’s collections</span></li>
                                 <li><a class="dropdown-item" href="{{ route('shop', ['category' => 'men-unstitched']) }}">All Men Unstitched</a></li>
                                 <li><a class="dropdown-item" href="{{ route('shop', ['q' => 'Suit', 'category' => 'men-unstitched']) }}">Unstitched Suits</a></li>
@@ -236,7 +158,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body p-0">
-                <div class="accordion accordion-flush storefront-mobile-menu" id="gchMobileAccordion">
+                <div class="accordion accordion-flush" id="gchMobileAccordion" data-bs-theme="dark">
                     <div class="accordion-item bg-dark text-white">
                         <h2 class="accordion-header">
                             <a class="accordion-button collapsed bg-dark text-white text-decoration-none" href="{{ route('shop', ['sort' => 'newest']) }}">New In</a>
@@ -389,18 +311,18 @@
 
     <div class="modal fade" id="productQuickView" data-whatsapp-number="{{ $whatsappNumber ? preg_replace('/[^0-9]/', '', $whatsappNumber) : '' }}" tabindex="-1" aria-labelledby="productQuickViewTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content rounded-0 border-0">
-                <div class="modal-header border-0">
+            <div class="modal-content rounded-3 shadow-lg">
+                <div class="modal-header border-0 px-4 pt-4">
                     <h2 class="modal-title h5" id="productQuickViewTitle">Product details</h2>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body pt-0">
+                <div class="modal-body px-4 pb-4 pt-0">
                     <div class="row g-4 align-items-center">
                         <div class="col-md-6">
-                            <div class="quick-view-gallery-wrap">
+                            <div>
                                 <div
                                     id="quickViewGallery"
-                                    class="carousel slide quick-view-gallery ratio ratio-7x5 bg-light"
+                                    class="carousel slide quick-view-gallery ratio ratio-4x3 bg-light rounded overflow-hidden"
                                     data-bs-interval="false"
                                     data-bs-touch="true"
                                     aria-label="Product images"
@@ -417,7 +339,7 @@
                                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
                                     </button>
                                 </div>
-                                <div id="quickViewGalleryIndicators" class="carousel-indicators quick-view-indicators d-none"></div>
+                                <div id="quickViewGalleryIndicators" class="carousel-indicators position-static justify-content-center gap-0 w-100 m-0 mt-2 d-none"></div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -431,13 +353,15 @@
                             </div>
                             <div id="quickViewStock" class="small mb-4"></div>
                             <div class="d-grid gap-2">
-                                <form id="quickViewCartForm" class="quick-view-cart-form" method="POST" action="#">
+                                <form id="quickViewCartForm" class="row g-2 align-items-end" method="POST" action="#">
                                     @csrf
-                                    <div>
+                                    <div class="col-4">
                                         <label class="form-label small fw-semibold mb-1" for="quickViewQuantity">Quantity</label>
                                         <input id="quickViewQuantity" class="form-control" type="number" name="quantity" value="1" min="1" max="20" required>
                                     </div>
-                                    <button id="quickViewAddButton" class="btn btn-dark store-add-to-cart fw-semibold" type="submit"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>Add to cart</button>
+                                    <div class="col">
+                                        <button id="quickViewAddButton" class="btn btn-dark w-100 fw-semibold" type="submit"><i class="fa-solid fa-cart-shopping me-2" aria-hidden="true"></i>Add to cart</button>
+                                    </div>
                                 </form>
                                 <a id="quickViewLink" class="btn btn-outline-dark w-100" href="#">View product</a>
                             </div>
@@ -519,6 +443,7 @@
                 if (galleryImages.length > 1) {
                     const indicator = document.createElement('button');
                     indicator.type = 'button';
+                    indicator.className = 'bg-dark rounded-pill';
                     indicator.dataset.bsTarget = '#quickViewGallery';
                     indicator.dataset.bsSlideTo = String(index);
                     indicator.classList.toggle('active', index === 0);

@@ -204,7 +204,7 @@
                             class="card h-100 w-100 text-decoration-none text-dark border-0 shadow-sm overflow-hidden"
                             href="{{ route('shop.collection', $category) }}"
                         >
-                            <div class="ratio ratio-3x4 bg-light">
+                            <div class="ratio ratio-1x1 bg-light">
                                 <img
                                     class="w-100 h-100 object-fit-contain"
                                     src="{{ $image ? $categoryProduct->imageUrl($image) : asset('images/product-placeholder.svg') }}"
@@ -231,7 +231,7 @@
                             class="card h-100 w-100 bg-dark text-white text-decoration-none border-0"
                             href="{{ route('shop', ['category' => 'women-unstitched']) }}"
                         >
-                            <div class="ratio ratio-3x4">
+                            <div class="ratio ratio-1x1">
                                 <div class="d-flex flex-column justify-content-end p-4">
                                     <small>Women</small>
                                     <h3 class="h4 mb-0">Women Unstitched</h3>
@@ -245,7 +245,7 @@
                             class="card h-100 w-100 bg-dark text-white text-decoration-none border-0"
                             href="{{ route('shop', ['category' => 'men-unstitched']) }}"
                         >
-                            <div class="ratio ratio-3x4">
+                            <div class="ratio ratio-1x1">
                                 <div class="d-flex flex-column justify-content-end p-4">
                                     <small>Men</small>
                                     <h3 class="h4 mb-0">Men Unstitched</h3>
@@ -356,7 +356,7 @@
                             class="card h-100 w-100 bg-dark text-white text-decoration-none border-0"
                             href="{{ $link['url'] }}"
                         >
-                            <div class="ratio ratio-3x4">
+                            <div class="ratio ratio-1x1">
                                 <div class="d-flex flex-column justify-content-end p-4">
                                     <small class="text-uppercase">
                                         {{ $link['small'] }}

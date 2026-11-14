@@ -101,6 +101,7 @@ class StorefrontController extends Controller
             'products' => $products->paginate(24)->withQueryString(),
             'categories' => Category::where('active', true)->orderBy('sort_order')->orderBy('name')->get(),
             'brands' => Brand::where('active', true)->orderBy('sort_order')->orderBy('name')->get(),
+            'heroSlide' => HomepageSlide::where('active', true)->orderBy('sort_order')->first(),
             'collection' => $collection,
             'canonical' => $collection ? route('shop.collection', $collection) : route('shop'),
             'filter' => [

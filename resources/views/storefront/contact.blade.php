@@ -28,7 +28,7 @@
 @endphp
 
 @section('content')
-    <section class="bg-light py-5 py-lg-6">
+    <section class="bg-light py-5">
         <div class="container">
             <div class="row align-items-end g-3">
                 <div class="col-lg-8">
@@ -45,13 +45,13 @@
         </div>
     </section>
 
-    <section class="py-5 py-lg-6">
+    <section class="py-5">
         <div class="container">
             <div class="row g-4 g-lg-5">
                 <div class="col-lg-7">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <article class="card h-100 border-0 shadow-sm rounded-0">
+                            <article class="card h-100 border-0 shadow-sm rounded-3">
                                 <div class="card-body p-4">
                                     <div class="text-secondary fs-4 mb-3"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></div>
                                     <h2 class="h5">Visit our shop</h2>
@@ -61,7 +61,7 @@
                             </article>
                         </div>
                         <div class="col-md-6">
-                            <article class="card h-100 border-0 shadow-sm rounded-0">
+                            <article class="card h-100 border-0 shadow-sm rounded-3">
                                 <div class="card-body p-4">
                                     <div class="text-secondary fs-4 mb-3"><i class="fa-solid fa-comments" aria-hidden="true"></i></div>
                                     <h2 class="h5">Chat about a product</h2>

@@ -6,6 +6,7 @@ use App\Models\Brand;
 use App\Models\CatalogImport;
 use App\Models\Category;
 use App\Models\HomepageSlide;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -53,6 +54,7 @@ class CatalogImportTest extends TestCase
         $payload = [
             'products' => [[
                 'name' => 'Lime Vol-552 — Design 01',
+                'sku' => 'LIME-552-DESIGN-01',
                 'description' => 'Peach Slub Embroidered with Peach Slub Embroidered Dupatta.',
                 'retail_price' => 6200,
                 'discount_percent' => 3,
@@ -97,6 +99,8 @@ class CatalogImportTest extends TestCase
         ]);
 
         $product = $import->products()->firstOrFail();
+        $this->assertIsString($product->sku);
+        $this->assertNotSame('', $product->sku);
         $this->assertSame(['kameez', 'dupatta', 'trouser'], $product->included_pieces);
         $this->assertSame([
             'kameez' => 40,
@@ -182,6 +186,7 @@ class CatalogImportTest extends TestCase
             ->postJson('/admin/catalog-imports/'.$import->id.'/finalize', [
                 'products' => [[
                     'name' => 'Manual Design',
+                    'sku' => 'MANUAL-DESIGN-001',
                     'retail_price' => 1000,
                     'stock_quantity' => 1,
                     'gender' => 'women',
@@ -195,6 +200,8 @@ class CatalogImportTest extends TestCase
             'catalog_import_id' => $import->id,
             'active' => false,
         ]);
+        $this->assertIsString($import->products()->firstOrFail()->sku);
+        $this->assertNotSame('', $import->products()->firstOrFail()->sku);
         $this->assertDatabaseCount('brands', 0);
         $this->assertDatabaseCount('homepage_slides', 0);
     }
@@ -213,6 +220,7 @@ class CatalogImportTest extends TestCase
             ->postJson('/admin/catalog-imports/'.$import->id.'/finalize', [
                 'products' => [[
                     'name' => 'Lime Vol-552 — Design 01',
+                    'sku' => 'LIME-552-DESIGN-01',
                     'retail_price' => 6200,
                     'stock_quantity' => 3,
                     'gender' => 'women',
@@ -245,6 +253,7 @@ class CatalogImportTest extends TestCase
             'stock_quantity' => 7,
             'gender' => 'women',
             'piece_count' => 3,
+            'included_pieces' => ['kameez', 'dupatta', 'trouser'],
             'fabric' => 'Cotton lawn',
             'season' => 'Summer',
             'images' => [$image],
@@ -253,8 +262,8 @@ class CatalogImportTest extends TestCase
         $this->withSession(['admin_user_id' => $user->id])
             ->postJson('/admin/catalog-imports/'.$import->id.'/finalize', [
                 'products' => [
-                    ['name' => 'Autumn Collection — Design 01', ...$sharedDetails],
-                    ['name' => 'Autumn Collection — Design 02', ...$sharedDetails],
+                    ['name' => 'Autumn Collection — Design 01', 'sku' => 'AUTUMN-DESIGN-01', ...$sharedDetails],
+                    ['name' => 'Autumn Collection — Design 02', 'sku' => 'AUTUMN-DESIGN-02', ...$sharedDetails],
                 ],
             ])
             ->assertOk();
@@ -267,6 +276,7 @@ class CatalogImportTest extends TestCase
             'discount_percent' => 10,
             'stock_quantity' => 7,
             'piece_count' => 3,
+            'included_pieces' => ['kameez', 'dupatta', 'trouser'],
             'fabric' => 'Cotton lawn',
             'season' => 'Summer',
             'active' => false,
@@ -279,11 +289,107 @@ class CatalogImportTest extends TestCase
             'discount_percent' => 10,
             'stock_quantity' => 7,
             'piece_count' => 3,
+            'included_pieces' => ['kameez', 'dupatta', 'trouser'],
             'fabric' => 'Cotton lawn',
             'season' => 'Summer',
             'active' => false,
         ]);
+        $this->assertCount(2, $import->products()->pluck('sku')->unique());
         $this->assertDatabaseCount('homepage_slides', 0);
+    }
+
+    public function test_catalog_import_requires_a_sku_for_every_design(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $import = CatalogImport::create([
+            'name' => 'Unknown Collection',
+            'pdf_path' => 'catalog-imports/test.pdf',
+            'status' => 'uploaded',
+        ]);
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->postJson('/admin/catalog-imports/'.$import->id.'/finalize', [
+                'products' => [[
+                    'name' => 'Design without SKU',
+                    'retail_price' => 1000,
+                    'stock_quantity' => 1,
+                    'gender' => 'women',
+                    'images' => ['data:image/png;base64,'.base64_encode(str_repeat('a', 128))],
+                ]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('products.0.sku');
+
+        $this->assertDatabaseCount('products', 0);
+    }
+
+    public function test_catalog_import_rejects_duplicate_skus(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $import = CatalogImport::create([
+            'name' => 'Unknown Collection',
+            'pdf_path' => 'catalog-imports/test.pdf',
+            'status' => 'uploaded',
+        ]);
+        $image = 'data:image/png;base64,'.base64_encode(str_repeat('a', 128));
+        $sharedDetails = [
+            'sku' => 'DUPLICATE-DESIGN-SKU',
+            'retail_price' => 1000,
+            'stock_quantity' => 1,
+            'gender' => 'women',
+            'images' => [$image],
+        ];
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->postJson('/admin/catalog-imports/'.$import->id.'/finalize', [
+                'products' => [
+                    ['name' => 'Design 01', ...$sharedDetails],
+                    ['name' => 'Design 02', ...$sharedDetails],
+                ],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['products.0.sku', 'products.1.sku']);
+
+        $this->assertDatabaseCount('products', 0);
+    }
+
+    public function test_catalog_import_rejects_an_sku_already_used_by_another_product(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $import = CatalogImport::create([
+            'name' => 'Unknown Collection',
+            'pdf_path' => 'catalog-imports/test.pdf',
+            'status' => 'uploaded',
+        ]);
+        Product::create([
+            'name' => 'Existing Design',
+            'slug' => 'existing-design',
+            'sku' => 'EXISTING-DESIGN-001',
+            'price' => 1000,
+            'currency' => 'PKR',
+            'stock_quantity' => 1,
+            'image_urls' => [],
+            'media_paths' => [],
+        ]);
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->postJson('/admin/catalog-imports/'.$import->id.'/finalize', [
+                'products' => [[
+                    'name' => 'Another Design',
+                    'sku' => 'EXISTING-DESIGN-001',
+                    'retail_price' => 1000,
+                    'stock_quantity' => 1,
+                    'gender' => 'women',
+                    'images' => ['data:image/png;base64,'.base64_encode(str_repeat('a', 128))],
+                ]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('products.0.sku');
+
+        $this->assertDatabaseCount('products', 1);
     }
 
     public function test_unprocessed_catalog_cannot_be_published(): void

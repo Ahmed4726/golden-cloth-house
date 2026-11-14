@@ -81,10 +81,10 @@
 
         <section class="row g-4 g-lg-5">
             <div class="col-lg-7">
-                <div class="product-detail-gallery-wrap">
+                <div>
                     <div
                         id="productGallery"
-                        class="carousel slide product-detail-gallery ratio ratio-7x5 bg-light rounded overflow-hidden"
+                        class="carousel slide product-detail-gallery ratio ratio-4x3 bg-light rounded-3 overflow-hidden"
                         data-bs-interval="false"
                         data-bs-touch="true"
                         aria-label="Product images"
@@ -126,32 +126,35 @@
                     </div>
 
                     @if (count($images) > 1)
-                        <div class="product-detail-thumbnails" aria-label="Choose a product image">
+                        <div class="d-flex flex-nowrap gap-3 mt-4 overflow-auto" aria-label="Choose a product image">
                             @foreach ($images as $index => $image)
                                 <button
                                     type="button"
+                                    class="col-2 col-md-1 btn btn-outline-secondary p-2 {{ $index === 0 ? 'active' : '' }}"
                                     data-bs-target="#productGallery"
                                     data-bs-slide-to="{{ $index }}"
-                                    class="{{ $index === 0 ? 'active' : '' }}"
                                     aria-current="{{ $index === 0 ? 'true' : 'false' }}"
                                     aria-label="View product image {{ $index + 1 }}"
                                 >
-                                    <img
-                                        src="{{ $product->imageUrl($image) }}"
-                                        alt="{{ $product->name }} image {{ $index + 1 }}"
-                                        loading="lazy"
-                                    >
+                                    <div class="ratio ratio-1x1">
+                                        <img
+                                            class="w-100 h-100 object-fit-contain"
+                                            src="{{ $product->imageUrl($image) }}"
+                                            alt="{{ $product->name }} image {{ $index + 1 }}"
+                                            loading="lazy"
+                                        >
+                                    </div>
                                 </button>
                             @endforeach
                         </div>
 
-                        <div class="carousel-indicators product-detail-indicators">
+                        <div class="carousel-indicators position-static justify-content-center gap-0 w-100 m-0 mt-2">
                             @foreach ($images as $index => $image)
                                 <button
                                     type="button"
+                                    class="bg-dark {{ $index === 0 ? 'active' : '' }}"
                                     data-bs-target="#productGallery"
                                     data-bs-slide-to="{{ $index }}"
-                                    class="{{ $index === 0 ? 'active' : '' }}"
                                     aria-current="{{ $index === 0 ? 'true' : 'false' }}"
                                     aria-label="Show product image {{ $index + 1 }}"
                                 ></button>
@@ -252,7 +255,7 @@
 
                                 <div class="col">
                                     <button
-                                        class="btn btn-dark w-100 text-uppercase fw-bold store-add-to-cart"
+                                        class="btn btn-dark w-100 text-uppercase fw-bold"
                                         type="submit"
                                     >
                                         <i class="fa-solid fa-cart-shopping me-2" aria-hidden="true"></i>Add to cart

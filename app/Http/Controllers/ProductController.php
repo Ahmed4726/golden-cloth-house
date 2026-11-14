@@ -109,7 +109,7 @@ class ProductController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('products', 'slug')->ignore($product?->id)],
-            'sku' => ['nullable', 'string', 'max:100', Rule::unique('products', 'sku')->ignore($product?->id)],
+            'sku' => ['required', 'string', 'max:100', Rule::unique('products', 'sku')->ignore($product?->id)],
             'price' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', 'string', 'size:3'],
             'stock_quantity' => ['required', 'integer', 'min:0', 'max:100000'],
@@ -154,7 +154,7 @@ class ProductController extends Controller
         return [
             'name' => $data['name'],
             'slug' => ($data['slug'] ?? null) ?: Str::slug($data['name']),
-            'sku' => ($data['sku'] ?? '') ?: null,
+            'sku' => $data['sku'],
             'price' => $data['price'],
             'currency' => strtoupper($data['currency']),
             'stock_quantity' => $data['stock_quantity'],

@@ -32,7 +32,7 @@
                             </div>
                             <div>
                                 <h2 class="h5 fw-bold mb-1">Choose catalogue PDF</h2>
-                                <p class="text-secondary small mb-0">Maximum 50 MB. The selected file is rendered locally in your browser.</p>
+                                <p class="text-secondary small mb-0">Maximum 200 MB. The selected file is rendered locally in your browser.</p>
                             </div>
                         </div>
                     </div>
@@ -307,6 +307,7 @@
 
             let pdfDocument = null;
             let finalizeUrl = null;
+            let importUuid = null;
             let catalogPreset = null;
             let products = [];
             let activeProduct = 0;
@@ -413,9 +414,23 @@
                 return `${catalogTitle.value.trim()} — Design ${String(index + 1).padStart(2, '0')}`;
             }
 
+            function generatedSku() {
+                const uuid = String(importUuid).replaceAll('-', '').toUpperCase();
+                let sequence = 1;
+                let sku = '';
+
+                do {
+                    sku = `GCH-${uuid}-${String(sequence).padStart(3, '0')}`;
+                    sequence++;
+                } while (products.some((product) => product.sku.trim().toUpperCase() === sku));
+
+                return sku;
+            }
+
             function addProduct(data = {}) {
                 products.push({
                     design_code: data.design_code || '',
+                    sku: data.sku || generatedSku(),
                     selectedPages: [...(data.pages || [])],
                     mainPage: data.mainPage || (data.pages?.[0] ?? null),
                 });
@@ -446,6 +461,10 @@
                             </div>
                             <div class="card-body">
                                 <div class="fw-semibold mb-3">${escapeHtml(designTitle(index))}</div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold" for="catalog-sku-${index}">SKU</label>
+                                    <input class="form-control" id="catalog-sku-${index}" data-sku="${index}" maxlength="100" required value="${escapeHtml(product.sku)}">
+                                </div>
                                 <div class="d-grid mb-3">
                                     <button type="button" class="btn btn-outline-dark" data-open-picker="${index}">
                                         <i class="fa-solid fa-images me-1"></i> Choose Images (${product.selectedPages.length})
@@ -487,6 +506,11 @@
                     button.addEventListener('click', () => openPicker(Number(button.dataset.openPicker)));
                 });
 
+                productList.querySelectorAll('[data-sku]').forEach((input) => {
+                    input.addEventListener('input', () => {
+                        products[Number(input.dataset.sku)].sku = input.value;
+                    });
+                });
             }
 
             function updatePageCards() {
@@ -738,7 +762,9 @@
 
                 try {
                     const payload = await uploadPdf(file);
+                    if (!payload.import_uuid) throw new Error('The uploaded PDF did not return a catalog identifier.');
                     finalizeUrl = payload.finalize_url;
+                    importUuid = payload.import_uuid;
                     catalogName.textContent = payload.name || file.name;
                     setPresetValue(catalogTitle, payload.name || file.name.replace(/\.pdf$/i, ''));
 
@@ -819,6 +845,16 @@
                     builderStatus.innerHTML = '<span class="text-danger">Every design needs at least one selected image.</span>';
                     return;
                 }
+                const invalidSku = products.find((product) => !product.sku.trim());
+                if (invalidSku) {
+                    builderStatus.innerHTML = '<span class="text-danger">Every design needs an SKU.</span>';
+                    return;
+                }
+                const skuValues = products.map((product) => product.sku.trim().toLowerCase());
+                if (new Set(skuValues).size !== skuValues.length) {
+                    builderStatus.innerHTML = '<span class="text-danger">Every design must have a unique SKU.</span>';
+                    return;
+                }
                 if ((sliderTitle.value.trim() || sliderLink.value.trim()) && !sliderPage) {
                     builderStatus.innerHTML = '<span class="text-danger">Choose a slider image before entering slider title or link.</span>';
                     return;
@@ -856,6 +892,7 @@
                         payloadProducts.push({
                             ...sharedDetails,
                             name: designTitle(index),
+                            sku: product.sku.trim(),
                             design_code: product.design_code || `DESIGN-${String(index + 1).padStart(2, '0')}`,
                             images,
                         });

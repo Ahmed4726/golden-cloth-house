@@ -10,7 +10,7 @@
     </div>
     <div class="col-md-6">
         <label class="form-label fw-semibold" for="product-sku">SKU</label>
-        <input class="form-control" id="product-sku" name="sku" value="{{ old('sku', $product->sku ?? '') }}">
+        <input class="form-control" id="product-sku" name="sku" maxlength="100" required value="{{ old('sku', $product->sku ?? '') }}">
     </div>
 
     <div class="col-md-5">
@@ -142,19 +142,13 @@
         <div class="col-12">
             <label class="form-label fw-semibold">Uploaded images</label>
             <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-2">
-                @foreach ($product->media_paths as $path)
+                @foreach ($product->media_paths as $imageIndex => $path)
                     <div class="col">
                         <div class="card h-100">
                             <img class="card-img-top object-fit-contain bg-light" src="{{ $product->imageUrl($path) }}" alt="{{ $product->name }}" loading="lazy">
                             <div class="card-body p-2">
                                 <div class="small text-secondary text-truncate mb-2">{{ basename($path) }}</div>
-                                <form method="POST" action="{{ route('products.images.remove', $product) }}" onsubmit="return confirm('Remove this image?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <input type="hidden" name="type" value="media">
-                                    <input type="hidden" name="value" value="{{ $path }}">
-                                    <button class="btn btn-sm btn-outline-danger w-100" type="submit">Remove</button>
-                                </form>
+                                <button class="btn btn-sm btn-outline-danger w-100" type="submit" form="remove-product-media-{{ $imageIndex }}">Remove</button>
                             </div>
                         </div>
                     </div>
@@ -171,19 +165,13 @@
     @if (isset($product) && $product->image_urls)
         <div class="col-12">
             <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-2">
-                @foreach ($product->image_urls as $url)
+                @foreach ($product->image_urls as $imageIndex => $url)
                     <div class="col">
                         <div class="card h-100">
                             <img class="card-img-top object-fit-contain bg-light" src="{{ $url }}" alt="{{ $product->name }}" loading="lazy" onerror="this.classList.add('opacity-25')">
                             <div class="card-body p-2">
                                 <div class="small text-secondary mb-2">External image</div>
-                                <form method="POST" action="{{ route('products.images.remove', $product) }}" onsubmit="return confirm('Remove this image URL?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <input type="hidden" name="type" value="url">
-                                    <input type="hidden" name="value" value="{{ $url }}">
-                                    <button class="btn btn-sm btn-outline-danger w-100" type="submit">Remove</button>
-                                </form>
+                                <button class="btn btn-sm btn-outline-danger w-100" type="submit" form="remove-product-url-{{ $imageIndex }}">Remove</button>
                             </div>
                         </div>
                     </div>

@@ -41,7 +41,7 @@ class CatalogImportController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'pdf' => ['required', 'file', 'mimes:pdf', 'max:51200'],
+            'pdf' => ['required', 'file', 'mimes:pdf', 'max:204800'],
         ]);
 
         $file = $data['pdf'];
@@ -166,6 +166,7 @@ class CatalogImportController extends Controller
         $data = $request->validate([
             'products' => ['required', 'array', 'min:1', 'max:100'],
             'products.*.name' => ['required', 'string', 'max:255'],
+            'products.*.sku' => ['required', 'string', 'max:100', 'distinct:ignore_case', Rule::unique('products', 'sku')],
             'products.*.description' => ['nullable', 'string', 'max:10000'],
             'products.*.retail_price' => ['required', 'numeric', 'min:0'],
             'products.*.discount_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
@@ -173,7 +174,7 @@ class CatalogImportController extends Controller
             'products.*.gender' => ['required', 'in:women,men'],
             'products.*.piece_count' => ['nullable', 'integer', 'min:1', 'max:10'],
             'products.*.included_pieces' => ['nullable', 'array', 'max:3'],
-            'products.*.included_pieces.*' => ['string', 'in:kameez,dupatta,trouser', 'distinct'],
+            'products.*.included_pieces.*' => ['string', 'in:kameez,dupatta,trouser'],
             'products.*.piece_lengths' => ['nullable', 'array:kameez,dupatta,trouser'],
             'products.*.piece_lengths.kameez' => ['nullable', 'numeric', 'min:1', 'max:100'],
             'products.*.piece_lengths.dupatta' => ['nullable', 'numeric', 'min:1', 'max:100'],
@@ -289,7 +290,7 @@ class CatalogImportController extends Controller
                 $product = Product::create([
                     'name' => $name,
                     'slug' => $this->uniqueSlug($name),
-                    'sku' => null,
+                    'sku' => $item['sku'],
                     'price' => $salePrice,
                     'currency' => 'PKR',
                     'stock_quantity' => $item['stock_quantity'],

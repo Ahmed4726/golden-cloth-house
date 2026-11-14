@@ -23,11 +23,11 @@
     $pieceLengths = $product->piece_lengths ?? [];
 @endphp
 
-<article class="card h-100 w-100 border shadow-sm bg-white rounded-0 d-flex flex-column">
-    <div class="product-card-media">
+<article class="card h-100 w-100 border-0 shadow-sm bg-white rounded-3 overflow-hidden d-flex flex-column">
+    <div>
         <div
             id="productCardGallery{{ $product->id }}"
-            class="carousel slide product-card-gallery ratio ratio-7x5 bg-light position-relative overflow-hidden"
+            class="carousel slide product-card-gallery ratio ratio-4x3 w-100 bg-light position-relative overflow-hidden"
             data-bs-interval="false"
             data-bs-touch="true"
         >
@@ -63,7 +63,7 @@
                 @endif
 
                 <button
-                    class="btn btn-light position-absolute top-0 end-0 m-2 rounded-circle shadow-sm quick-view-button pe-auto"
+                    class="btn btn-sm btn-light position-absolute top-0 end-0 m-2 rounded-circle shadow-sm pe-auto"
                     type="button"
                     data-bs-toggle="modal"
                     data-bs-target="#productQuickView"
@@ -92,13 +92,13 @@
         </div>
 
         @if (count($galleryImageUrls) > 1)
-            <div class="carousel-indicators product-card-indicators">
+            <div class="carousel-indicators position-static justify-content-center gap-0 w-100 m-0 mt-2">
                 @foreach ($galleryImageUrls as $index => $galleryImageUrl)
                     <button
                         type="button"
+                        class="bg-dark {{ $index === 0 ? 'active' : '' }}"
                         data-bs-target="#productCardGallery{{ $product->id }}"
                         data-bs-slide-to="{{ $index }}"
-                        class="{{ $index === 0 ? 'active' : '' }}"
                         aria-current="{{ $index === 0 ? 'true' : 'false' }}"
                         aria-label="Show image {{ $index + 1 }} of {{ $product->name }}"
                     ></button>
@@ -125,7 +125,7 @@
             </h3>
         </a>
 
-        <div class="mt-auto pt-3">
+        <div class="pt-3">
             @if ($product->price)
                 <div class="fw-bold">
                     {{ number_format((float) $product->price, 0) }} {{ $product->currency }}
@@ -138,69 +138,68 @@
                     @endif
                 </div>
             @endif
+        </div>
 
-            <div class="pt-3">
-                @if ($product->stock_quantity > 0)
-                    <div class="d-flex gap-2">
-                        <form class="flex-grow-1 product-card-cart-form" method="POST" action="{{ route('cart.add', $product) }}">
-                            @csrf
+        <div class="mt-auto pt-3">
+            @if ($product->stock_quantity > 0)
+                <div class="row g-2">
+                    <form class="{{ $whatsappNumber ? 'col-9 col-xxl-8' : 'col' }}" method="POST" action="{{ route('cart.add', $product) }}">
+                        @csrf
 
-                            <input type="hidden" name="quantity" value="1">
+                        <input type="hidden" name="quantity" value="1">
 
-                            <button
-                                class="btn btn-dark w-100 text-uppercase fw-bold store-add-to-cart product-card-cart-button"
-                                type="submit"
-                            >
-                                <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
-                                <span class="visually-hidden">Add to cart</span>
-                                <span class="d-none d-lg-inline">Add</span>
-                                <span class="d-none d-xl-inline">to cart</span>
-                            </button>
-                        </form>
+                        <button
+                            class="btn btn-dark w-100 h-100 py-2 text-uppercase fw-bold d-inline-flex align-items-center justify-content-center gap-2"
+                            type="submit"
+                            aria-label="Add {{ $product->name }} to cart"
+                        >
+                            <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+                            <span class="visually-hidden">Add to cart</span>
+                        </button>
+                    </form>
 
-                        @if ($whatsappNumber)
-                            @php
-                                $whatsappOrderNumber = preg_replace('/[^0-9]/', '', $whatsappNumber);
-                                $whatsappOrderPieces = array_map(
-                                    fn ($piece) => ($pieceLabels[$piece] ?? $piece)
-                                        .(empty($pieceLengths[$piece]) ? '' : ' ('.$pieceLengths[$piece].' in)'),
-                                    $includedPieces
-                                );
-                                $whatsappOrderMessage = "Hello, I would like to order this product:\n"
-                                    .$product->name
-                                    ."\nQuantity: 1"
-                                    ."\nUnit price: ".number_format((float) $product->price, 0).' '.$product->currency
-                                    .($product->piece_count
-                                        ? "\nTotal pieces: ".$product->piece_count
-                                        : '')
-                                    .($whatsappOrderPieces
-                                        ? "\nIncluded pieces: ".implode(', ', $whatsappOrderPieces)
-                                        : '')
-                                    ."\nProduct link: ".route('shop.product', $product);
-                            @endphp
+                    @if ($whatsappNumber)
+                        @php
+                            $whatsappOrderNumber = preg_replace('/[^0-9]/', '', $whatsappNumber);
+                            $whatsappOrderPieces = array_map(
+                                fn ($piece) => ($pieceLabels[$piece] ?? $piece)
+                                    .(empty($pieceLengths[$piece]) ? '' : ' ('.$pieceLengths[$piece].' in)'),
+                                $includedPieces
+                            );
+                            $whatsappOrderMessage = "Hello, I would like to order this product:\n"
+                                .$product->name
+                                ."\nQuantity: 1"
+                                ."\nUnit price: ".number_format((float) $product->price, 0).' '.$product->currency
+                                .($product->piece_count
+                                    ? "\nTotal pieces: ".$product->piece_count
+                                    : '')
+                                .($whatsappOrderPieces
+                                    ? "\nIncluded pieces: ".implode(', ', $whatsappOrderPieces)
+                                    : '')
+                                ."\nProduct link: ".route('shop.product', $product);
+                        @endphp
 
-                            <a
-                                class="btn btn-success product-card-whatsapp-button"
-                                href="https://wa.me/{{ $whatsappOrderNumber }}?text={{ rawurlencode($whatsappOrderMessage) }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label="Order {{ $product->name }} via WhatsApp"
-                                title="Order via WhatsApp"
-                            >
-                                <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
-                            </a>
-                        @endif
-                    </div>
-                @else
-                    <button
-                        class="btn btn-outline-secondary w-100 store-add-to-cart"
-                        type="button"
-                        disabled
-                    >
-                        Out of stock
-                    </button>
-                @endif
-            </div>
+                        <a
+                            class="col-3 col-xxl-4 btn btn-success rounded-3 py-2 d-inline-flex align-items-center justify-content-center gap-2"
+                            href="https://wa.me/{{ $whatsappOrderNumber }}?text={{ rawurlencode($whatsappOrderMessage) }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="Order {{ $product->name }} via WhatsApp"
+                            title="Order via WhatsApp"
+                        >
+                            <i class="fa-brands fa-whatsapp fs-5" aria-hidden="true"></i>
+                        </a>
+                    @endif
+                </div>
+            @else
+                <button
+                    class="btn btn-outline-secondary w-100"
+                    type="button"
+                    disabled
+                >
+                    Out of stock
+                </button>
+            @endif
         </div>
     </div>
 </article>

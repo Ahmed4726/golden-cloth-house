@@ -23,6 +23,7 @@ class CommerceStoreTest extends TestCase
         $response = $this->withSession(['admin_user_id' => $admin->id])
             ->post('/admin/products', [
                 'name' => 'Classic Kurta',
+                'sku' => 'CLASSIC-KURTA-001',
                 'price' => 3500,
                 'currency' => 'PKR',
                 'stock_quantity' => 5,
@@ -41,6 +42,7 @@ class CommerceStoreTest extends TestCase
         $response->assertRedirect(route('products.index'));
 
         $product = Product::firstOrFail();
+        $this->assertSame('CLASSIC-KURTA-001', $product->sku);
         $this->assertSame(2, $product->piece_count);
         $this->assertSame(['kameez', 'dupatta'], $product->included_pieces);
         $this->assertSame([
@@ -51,11 +53,100 @@ class CommerceStoreTest extends TestCase
         Storage::disk('public')->assertExists($product->media_paths[0]);
     }
 
+    public function test_product_cannot_be_created_without_a_sku(): void
+    {
+        $admin = User::factory()->create();
+
+        $this->withSession(['admin_user_id' => $admin->id])
+            ->from('/admin/products/create')
+            ->post('/admin/products', [
+                'name' => 'Classic Kurta',
+                'price' => 3500,
+                'currency' => 'PKR',
+                'stock_quantity' => 5,
+            ])
+            ->assertRedirect('/admin/products/create')
+            ->assertSessionHasErrors(['sku' => 'The sku field is required.']);
+
+        $this->assertDatabaseCount('products', 0);
+    }
+
+    public function test_product_sku_must_be_unique(): void
+    {
+        $admin = User::factory()->create();
+        Product::create([
+            'name' => 'Existing Kurta',
+            'slug' => 'existing-kurta',
+            'sku' => 'SHARED-SKU-001',
+            'price' => 3500,
+            'currency' => 'PKR',
+            'stock_quantity' => 5,
+            'image_urls' => [],
+            'media_paths' => [],
+        ]);
+
+        $this->withSession(['admin_user_id' => $admin->id])
+            ->post('/admin/products', [
+                'name' => 'Another Kurta',
+                'sku' => 'SHARED-SKU-001',
+                'price' => 3500,
+                'currency' => 'PKR',
+                'stock_quantity' => 5,
+            ])
+            ->assertSessionHasErrors('sku');
+
+        $this->assertDatabaseCount('products', 1);
+    }
+
+    public function test_product_can_be_updated_when_existing_images_are_displayed(): void
+    {
+        $admin = User::factory()->create();
+        $product = Product::create([
+            'name' => 'Classic Kurta',
+            'slug' => 'classic-kurta',
+            'sku' => 'CLASSIC-KURTA-001',
+            'price' => 3500,
+            'currency' => 'PKR',
+            'stock_quantity' => 5,
+            'image_urls' => ['https://example.com/kurta.jpg'],
+            'media_paths' => ['products/kurta.jpg'],
+        ]);
+
+        $this->withSession(['admin_user_id' => $admin->id])
+            ->get(route('products.edit', $product))
+            ->assertOk()
+            ->assertSee('form="remove-product-media-0"', false)
+            ->assertSee('form="remove-product-url-0"', false)
+            ->assertSee('id="remove-product-media-0"', false)
+            ->assertSee('id="remove-product-url-0"', false);
+
+        $this->withSession(['admin_user_id' => $admin->id])
+            ->put(route('products.update', $product), [
+                'name' => 'Updated Classic Kurta',
+                'slug' => 'updated-classic-kurta',
+                'sku' => 'CLASSIC-KURTA-001',
+                'price' => 4000,
+                'currency' => 'PKR',
+                'stock_quantity' => 8,
+                'image_urls' => 'https://example.com/kurta.jpg',
+                'active' => 1,
+            ])
+            ->assertRedirect(route('products.index'));
+
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'name' => 'Updated Classic Kurta',
+            'price' => 4000,
+            'stock_quantity' => 8,
+        ]);
+    }
+
     public function test_customer_can_add_product_to_cart_and_checkout_with_cod(): void
     {
         $product = Product::create([
             'name' => 'Premium Shalwar Kameez',
             'slug' => 'premium-shalwar-kameez',
+            'sku' => 'PREMIUM-SHALWAR-001',
             'price' => 4000,
             'currency' => 'PKR',
             'stock_quantity' => 3,
@@ -99,6 +190,7 @@ class CommerceStoreTest extends TestCase
         $product = Product::create([
             'name' => 'Everyday Fabric',
             'slug' => 'everyday-fabric',
+            'sku' => 'EVERYDAY-FABRIC-001',
             'price' => 4000,
             'currency' => 'PKR',
             'stock_quantity' => 2,
@@ -168,6 +260,15 @@ class CommerceStoreTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
+    public function test_authenticated_admin_visiting_login_is_redirected_to_dashboard(): void
+    {
+        $admin = User::factory()->create();
+
+        $this->withSession(['admin_user_id' => $admin->id])
+            ->get(route('login'))
+            ->assertRedirect(route('dashboard'));
+    }
+
     public function test_about_page_shows_store_history_address_and_search_details(): void
     {
         $this->get(route('about'))
@@ -211,6 +312,7 @@ class CommerceStoreTest extends TestCase
         $product = Product::create([
             'name' => 'Premium Shalwar Kameez',
             'slug' => 'premium-shalwar-kameez',
+            'sku' => 'PREMIUM-SHALWAR-001',
             'price' => 4000,
             'currency' => 'PKR',
             'stock_quantity' => 3,
@@ -230,7 +332,7 @@ class CommerceStoreTest extends TestCase
 
         $this->get(route('shop.product', $product))
             ->assertOk()
-            ->assertSee('ratio-7x5', false)
+            ->assertSee('ratio-4x3', false)
             ->assertSee('productGallery', false)
             ->assertSee('data-bs-slide-to="1"', false)
             ->assertSee('Free delivery on orders of 5,000 PKR or more.')
@@ -245,6 +347,7 @@ class CommerceStoreTest extends TestCase
         $product = Product::create([
             'name' => 'Two Piece Suit',
             'slug' => 'two-piece-suit',
+            'sku' => 'TWO-PIECE-SUIT-001',
             'price' => 4000,
             'currency' => 'PKR',
             'stock_quantity' => 3,
@@ -265,10 +368,10 @@ class CommerceStoreTest extends TestCase
 
         $this->get(route('shop'))
             ->assertOk()
-            ->assertSee('ratio-7x5', false)
+            ->assertSee('ratio-4x3', false)
             ->assertSee('Order via WhatsApp')
             ->assertSee('id="quickViewImage"', false)
-            ->assertSee('quick-view-gallery ratio ratio-7x5 bg-light', false)
+            ->assertSee('quick-view-gallery ratio ratio-4x3 bg-light', false)
             ->assertSee('quickViewGalleryIndicators', false)
             ->assertSee('data-product-images=', false)
             ->assertSee('data-product-included-pieces="kameez,dupatta"', false)
@@ -284,6 +387,7 @@ class CommerceStoreTest extends TestCase
         $product = Product::create([
             'name' => 'Two Piece Suit',
             'slug' => 'two-piece-suit',
+            'sku' => 'TWO-PIECE-SUIT-001',
             'price' => 4000,
             'currency' => 'PKR',
             'stock_quantity' => 3,
@@ -326,6 +430,7 @@ class CommerceStoreTest extends TestCase
         $product = Product::create([
             'name' => 'Premium Shalwar Kameez',
             'slug' => 'premium-shalwar-kameez',
+            'sku' => 'PREMIUM-SHALWAR-001',
             'price' => 4000,
             'currency' => 'PKR',
             'stock_quantity' => 3,
@@ -362,6 +467,7 @@ class CommerceStoreTest extends TestCase
         $product = Product::create([
             'name' => 'Premium Shalwar Kameez',
             'slug' => 'premium-shalwar-kameez',
+            'sku' => 'PREMIUM-SHALWAR-001',
             'price' => 4000,
             'currency' => 'PKR',
             'stock_quantity' => 3,

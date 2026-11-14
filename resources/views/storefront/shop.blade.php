@@ -18,29 +18,112 @@
 @endphp
 
 @section('content')
-    <section class="py-5 text-center">
+    <section class="bg-body-tertiary py-5">
         <div class="container">
-            <div class="small text-uppercase text-secondary mb-2">
-                <a class="text-dark text-decoration-none" href="{{ route('home') }}">Home</a> / {{ $collection?->name ?: 'Shop' }}
+            <div class="row align-items-center g-4 g-lg-5">
+                <div class="col-lg-6 text-center text-lg-start">
+                    <div class="small text-uppercase fw-bold text-secondary mb-3">
+                        {{ $collection ? 'A closer look at' : 'Thoughtfully chosen for you' }}
+                    </div>
+                    <h1 class="display-4 fw-normal mb-3">
+                        {{ $collection?->name ?: 'Find fabric you’ll love wearing.' }}
+                    </h1>
+                    <p class="lead text-secondary mb-4">
+                        {{ $collection?->description ?: 'Explore unstitched styles with beautiful prints, considered details and fabrics for every day and every occasion. Discover your next favorite from Golden Cloth House.' }}
+                    </p>
+                    <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-2 mb-4">
+                        <a class="btn btn-dark btn-lg px-4" href="#shop-products">
+                            Explore the collection
+                            <i class="fa-solid fa-arrow-down ms-2 small" aria-hidden="true"></i>
+                        </a>
+                        <a class="btn btn-outline-dark btn-lg px-4" href="{{ route('about') }}">Our story</a>
+                    </div>
+
+                    @if ($categories->isNotEmpty())
+                        <nav class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-2" aria-label="Browse collections">
+                            @foreach ($categories->take(5) as $category)
+                                <a class="btn btn-sm btn-outline-secondary rounded-pill" href="{{ route('shop.collection', $category) }}">
+                                    {{ $category->name }}
+                                    <i class="fa-solid fa-arrow-up-right-from-square small" aria-hidden="true"></i>
+                                </a>
+                            @endforeach
+                        </nav>
+                    @endif
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="ratio ratio-4x3 bg-dark rounded-3 shadow overflow-hidden" aria-label="Featured collection">
+                        @if ($heroSlide?->imageUrl())
+                            <a class="d-block w-100 h-100 text-white text-decoration-none" href="{{ $heroSlide->button_url ?: '#shop-products' }}" aria-label="{{ $heroSlide->title ?: 'Explore the featured collection' }}">
+                                <img
+                                    class="w-100 h-100 object-fit-cover"
+                                    src="{{ $heroSlide->imageUrl() }}"
+                                    alt="{{ $heroSlide->title ?: 'Featured collection from '.config('store.name') }}"
+                                    loading="eager"
+                                >
+                                <span class="badge text-bg-light position-absolute top-0 end-0 m-3 rounded-pill shadow">
+                                    30+ years
+                                </span>
+                                <span class="position-absolute bottom-0 start-0 w-100 bg-dark bg-opacity-75 text-white p-3 p-lg-4">
+                                    <span class="small text-uppercase fw-semibold">Featured collection</span>
+                                    @if ($heroSlide->title)
+                                        <span class="d-block h3 fw-semibold mb-0">{{ $heroSlide->title }}</span>
+                                    @endif
+                                </span>
+                            </a>
+                        @else
+                            <div class="d-flex flex-column align-items-center justify-content-center text-center text-white p-4">
+                                <span class="badge text-bg-light rounded-pill mb-3">30+ years</span>
+                                <i class="fa-solid fa-wand-magic-sparkles fs-1 mb-3" aria-hidden="true"></i>
+                                <span class="small text-uppercase fw-semibold">Golden Cloth House</span>
+                                <span class="h3 fw-normal mb-0">Curated with care</span>
+                            </div>
+                        @endif
+                    </div>
+                </div>
             </div>
-            <div class="small text-uppercase text-secondary fw-bold">{{ $collection ? 'The collection' : 'Shop the collection' }}</div>
-            <h1 class="display-5 fw-normal">{{ $collection?->name ?: 'Shop Unstitched Wear' }}</h1>
-            <p class="text-secondary mx-auto col-lg-7 mb-0">
-                {{ $collection?->description ?: 'Women and men unstitched clothing, with printed, embroidered and seasonal collections available for delivery across Pakistan.' }}
-            </p>
+        </div>
+    </section>
+
+    <section class="border-bottom" aria-label="Shopping benefits">
+        <div class="container py-3">
+            <div class="row row-cols-1 row-cols-sm-3 g-3">
+                <div class="col">
+                    <div class="d-flex align-items-center justify-content-center gap-3 h-100">
+                        <span class="rounded-circle bg-body-secondary text-dark p-3"><i class="fa-solid fa-award" aria-hidden="true"></i></span>
+                        <span><strong class="d-block small">30+ years of experience</strong><span class="small text-secondary">Serving Gujrat with care</span></span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="d-flex align-items-center justify-content-center gap-3 h-100">
+                        <span class="rounded-circle bg-body-secondary text-dark p-3"><i class="fa-solid fa-truck-fast" aria-hidden="true"></i></span>
+                        <span><strong class="d-block small">Delivery across Pakistan</strong><span class="small text-secondary">Your favorites, delivered</span></span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="d-flex align-items-center justify-content-center gap-3 h-100">
+                        <span class="rounded-circle bg-body-secondary text-dark p-3"><i class="fa-solid fa-box-open" aria-hidden="true"></i></span>
+                        <span><strong class="d-block small">Free delivery from PKR 5,000</strong><span class="small text-secondary">Easy cash-on-delivery checkout</span></span>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
     <section class="pb-5">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center gap-3 mb-4">
-                <button class="btn btn-outline-dark d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#shopFilters" aria-controls="shopFilters">
+        <div class="container py-5" id="shop-products">
+            <div class="d-flex justify-content-between align-items-end gap-3 mb-4">
+                <div>
+                    <div class="small text-uppercase fw-bold text-secondary mb-2">Made for your wardrobe</div>
+                    <h2 class="h2 fw-normal mb-1">{{ $collection ? 'Explore this collection' : 'Explore our collection' }}</h2>
+                    <div class="text-secondary small">
+                        {{ $products->total() }} {{ \Illuminate\Support\Str::plural('piece', $products->total()) }}
+                        @if ($filter['sale']) · Sale @endif
+                    </div>
+                </div>
+                <button class="btn btn-outline-dark d-lg-none flex-shrink-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#shopFilters" aria-controls="shopFilters">
                     Filter & sort
                 </button>
-                <div class="text-secondary">
-                    {{ $products->total() }} products · Showing {{ $products->firstItem() ?? 0 }}–{{ $products->lastItem() ?? 0 }}
-                    @if ($filter['sale']) · Sale @endif
-                </div>
             </div>
 
             <div class="row g-4">
@@ -50,6 +133,9 @@
 
                 <div class="col-lg-9">
                     @if ($products->isNotEmpty())
+                        <div class="d-none d-lg-flex justify-content-end text-secondary small mb-3">
+                            Showing {{ $products->firstItem() }}–{{ $products->lastItem() }} of {{ $products->total() }}
+                        </div>
                         <div class="row row-cols-2 row-cols-md-3 g-3 g-lg-4">
                             @foreach ($products as $product)
                                 <div class="col d-flex">
