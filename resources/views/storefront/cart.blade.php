@@ -5,7 +5,7 @@
     $whatsappOrderItems = array_map(
         fn ($item) => '- '.$item['product']->name.' (Qty: '.$item['quantity'].') — '
             .number_format((float) $item['lineTotal'], 0).' '.$item['product']->currency
-            ."\n".route('shop.product', $item['product']),
+            ."\n".route('shop.product', $item['product']->slug),
         $items
     );
     $whatsappOrderMessage = "Hello, I would like to place this order:\n"
@@ -67,7 +67,7 @@
                                     <div class="col-sm">
                                         <a
                                             class="text-dark text-decoration-none"
-                                            href="{{ route('shop.product', $item['product']) }}"
+                                            href="{{ route('shop.product', $item['product']->slug) }}"
                                         >
                                             <strong>{{ $item['product']->name }}</strong>
                                         </a>

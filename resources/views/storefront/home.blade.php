@@ -202,7 +202,7 @@
                     <div class="col-6 col-lg-3 d-flex">
                         <a
                             class="card h-100 w-100 text-decoration-none text-dark border-0 shadow-sm overflow-hidden"
-                            href="{{ route('shop.collection', $category) }}"
+                            href="{{ route('shop.collection', $category->slug) }}"
                         >
                             <div class="ratio ratio-1x1 bg-light">
                                 <img
@@ -257,6 +257,71 @@
             </div>
         </div>
     </section>
+
+    @if ($brands->isNotEmpty())
+        <section class="py-5 bg-light">
+            <div class="container">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
+                    <div>
+                        <div class="small text-uppercase text-secondary fw-bold">Our labels</div>
+                        <h2 class="display-6 fw-normal mb-0">Shop by brand</h2>
+                    </div>
+                    <a class="link-dark fw-bold text-uppercase small" href="{{ route('shop') }}">Explore all products</a>
+                </div>
+                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+                    @foreach ($brands as $brand)
+                        @php
+                            $brandProduct = $brand->products->first();
+                            $brandImage = $brandProduct?->images()[0] ?? null;
+                        @endphp
+                        <div class="col">
+                            <a class="card h-100 text-decoration-none text-dark border-0 shadow-sm overflow-hidden" href="{{ route('shop.brand', $brand->slug) }}">
+                                <div class="ratio ratio-1x1 bg-white">
+                                    <img class="w-100 h-100 object-fit-contain" src="{{ $brandImage ? $brandProduct->imageUrl($brandImage) : asset('images/product-placeholder.svg') }}" alt="{{ $brand->name }}" loading="lazy">
+                                </div>
+                                <div class="card-body d-flex justify-content-between align-items-center gap-2">
+                                    <h3 class="h5 mb-0 text-truncate">{{ $brand->name }}</h3>
+                                    <span class="small text-secondary">Shop <i class="fa-solid fa-arrow-right"></i></span>
+                                </div>
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
+
+    @if ($featuredProducts->isNotEmpty())
+        <section class="py-5">
+            <div class="container">
+                <div class="text-center mb-4">
+                    <div class="small text-uppercase text-secondary fw-bold">Handpicked for you</div>
+                    <h2 class="display-6 fw-normal">Featured pieces</h2>
+                </div>
+                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-lg-4">
+                    @foreach ($featuredProducts as $product)
+                        <div class="col d-flex">@include('storefront.product-card', ['product' => $product])</div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
+
+    @if ($saleProducts->isNotEmpty())
+        <section class="py-5 bg-light">
+            <div class="container">
+                <div class="text-center mb-4">
+                    <div class="small text-uppercase text-secondary fw-bold">Limited-time offers</div>
+                    <h2 class="display-6 fw-normal">On sale</h2>
+                </div>
+                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-lg-4">
+                    @foreach ($saleProducts as $product)
+                        <div class="col d-flex">@include('storefront.product-card', ['product' => $product])</div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
 
     <section class="py-5 bg-light">
         <div class="container">

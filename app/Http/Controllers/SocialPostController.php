@@ -11,10 +11,27 @@ use Illuminate\Support\Facades\DB;
 
 class SocialPostController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'in:draft,scheduled,queued,processing,published,failed'],
+        ]);
+        $search = trim($filters['q'] ?? '');
+
         return view('posts.index', [
-            'posts' => SocialPost::with(['publications.connection', 'product'])->latest()->paginate(15),
+            'posts' => SocialPost::withCount('publications')
+                ->when($search !== '', function ($query) use ($search) {
+                    $query->where(function ($query) use ($search) {
+                        $query->where('title', 'like', "%{$search}%")
+                            ->orWhere('caption', 'like', "%{$search}%")
+                            ->orWhereHas('product', fn ($productQuery) => $productQuery->where('name', 'like', "%{$search}%"));
+                    });
+                })
+                ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+                ->latest()
+                ->paginate(15)
+                ->withQueryString(),
         ]);
     }
 

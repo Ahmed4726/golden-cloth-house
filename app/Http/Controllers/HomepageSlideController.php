@@ -8,10 +8,27 @@ use Illuminate\Support\Facades\Storage;
 
 class HomepageSlideController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'in:active,hidden'],
+        ]);
+        $search = trim($filters['q'] ?? '');
+
         return view('slides.index', [
-            'slides' => HomepageSlide::orderBy('sort_order')->latest()->get(),
+            'slides' => HomepageSlide::query()
+                ->when($search !== '', function ($query) use ($search) {
+                    $query->where(function ($query) use ($search) {
+                        $query->where('title', 'like', "%{$search}%")
+                            ->orWhere('subtitle', 'like', "%{$search}%");
+                    });
+                })
+                ->when(isset($filters['status']), fn ($query) => $query->where('active', $filters['status'] === 'active'))
+                ->orderBy('sort_order')
+                ->latest()
+                ->paginate(20)
+                ->withQueryString(),
         ]);
     }
 

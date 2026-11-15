@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Fabric;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -12,11 +13,35 @@ use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'brand_id' => ['nullable', 'integer', 'exists:brands,id'],
+            'status' => ['nullable', 'in:active,hidden'],
+        ]);
+
+        $search = trim($filters['q'] ?? '');
+
         return view('products.index', [
             'products' => Product::with(['categoryRelation', 'brand'])
-                ->orderByDesc('featured')->orderBy('sort_order')->latest()->paginate(20),
+                ->when($search !== '', function ($query) use ($search) {
+                    $query->where(function ($query) use ($search) {
+                        $query->where('name', 'like', "%{$search}%")
+                            ->orWhere('sku', 'like', "%{$search}%");
+                    });
+                })
+                ->when($filters['category_id'] ?? null, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
+                ->when($filters['brand_id'] ?? null, fn ($query, $brandId) => $query->where('brand_id', $brandId))
+                ->when(isset($filters['status']), fn ($query) => $query->where('active', $filters['status'] === 'active'))
+                ->orderByDesc('featured')
+                ->orderBy('sort_order')
+                ->latest()
+                ->paginate(20)
+                ->withQueryString(),
+            'categories' => Category::orderBy('name')->get(),
+            'brands' => Brand::orderBy('name')->get(),
         ]);
     }
 
@@ -25,6 +50,7 @@ class ProductController extends Controller
         return view('products.create', [
             'categories' => Category::where('active', true)->orderBy('sort_order')->orderBy('name')->get(),
             'brands' => Brand::where('active', true)->orderBy('sort_order')->orderBy('name')->get(),
+            'fabrics' => Fabric::where('active', true)->orderBy('sort_order')->orderBy('name')->get(),
         ]);
     }
 
@@ -45,6 +71,7 @@ class ProductController extends Controller
             'product' => $product->load(['categoryRelation', 'brand']),
             'categories' => Category::where('active', true)->orderBy('sort_order')->orderBy('name')->get(),
             'brands' => Brand::where('active', true)->orderBy('sort_order')->orderBy('name')->get(),
+            'fabrics' => Fabric::where('active', true)->orderBy('sort_order')->orderBy('name')->get(),
         ]);
     }
 
@@ -109,7 +136,7 @@ class ProductController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('products', 'slug')->ignore($product?->id)],
-            'sku' => ['required', 'string', 'max:100', Rule::unique('products', 'sku')->ignore($product?->id)],
+            'sku' => ['required', 'string', 'max:20', Rule::unique('products', 'sku')->ignore($product?->id)],
             'price' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', 'string', 'size:3'],
             'stock_quantity' => ['required', 'integer', 'min:0', 'max:100000'],
@@ -126,8 +153,11 @@ class ProductController extends Controller
             'piece_lengths.kameez' => ['nullable', 'numeric', 'min:1', 'max:100'],
             'piece_lengths.dupatta' => ['nullable', 'numeric', 'min:1', 'max:100'],
             'piece_lengths.trouser' => ['nullable', 'numeric', 'min:1', 'max:100'],
+            'kameez_fabric_id' => ['nullable', 'integer', 'exists:fabrics,id'],
+            'trouser_fabric_id' => ['nullable', 'integer', 'exists:fabrics,id'],
+            'dupatta_fabric_id' => ['nullable', 'integer', 'exists:fabrics,id'],
             'fabric' => ['nullable', 'string', 'max:100'],
-            'season' => ['nullable', 'string', 'max:50'],
+            'season' => ['nullable', 'in:Summer,Winter'],
             'design_code' => ['nullable', 'string', 'max:100'],
             'category' => ['nullable', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:10000'],
@@ -170,6 +200,9 @@ class ProductController extends Controller
                 : ($data['piece_count'] ?? null),
             'included_pieces' => $includedPieces,
             'piece_lengths' => $pieceLengths,
+            'kameez_fabric_id' => $data['kameez_fabric_id'] ?? null,
+            'trouser_fabric_id' => $data['trouser_fabric_id'] ?? null,
+            'dupatta_fabric_id' => $data['dupatta_fabric_id'] ?? null,
             'fabric' => $data['fabric'] ?? null,
             'season' => $data['season'] ?? null,
             'design_code' => $data['design_code'] ?? null,

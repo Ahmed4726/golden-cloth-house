@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Brand;
 use App\Models\CatalogImport;
 use App\Models\Category;
+use App\Models\Fabric;
 use App\Models\HomepageSlide;
 use App\Models\Product;
 use App\Models\User;
@@ -171,6 +172,50 @@ class CatalogImportTest extends TestCase
         Storage::disk('public')->assertMissing($slide->image_path);
     }
 
+    public function test_catalog_builder_uses_managed_piece_fabrics_and_two_seasons(): void
+    {
+        $user = User::factory()->create();
+        Fabric::factory()->create(['name' => 'Linen']);
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->get(route('catalog-imports.create'))
+            ->assertOk()
+            ->assertSee('Kameez fabric')
+            ->assertSee('Shalwar / trouser fabric')
+            ->assertSee('Dupatta fabric')
+            ->assertSee('<option value="Summer">Summer</option>', false)
+            ->assertSee('<option value="Winter">Winter</option>', false)
+            ->assertSee('Linen');
+    }
+
+    public function test_catalog_import_rejects_an_unsupported_season(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $import = CatalogImport::create([
+            'name' => 'Unsupported Season Collection',
+            'pdf_path' => 'catalog-imports/test.pdf',
+            'status' => 'uploaded',
+        ]);
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->postJson(route('catalog-imports.finalize', $import), [
+                'products' => [[
+                    'name' => 'Spring Design',
+                    'sku' => 'SPRING-DESIGN-1',
+                    'retail_price' => 1000,
+                    'stock_quantity' => 1,
+                    'gender' => 'women',
+                    'season' => 'Spring',
+                    'images' => ['data:image/png;base64,'.base64_encode(str_repeat('a', 128))],
+                ]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('products.0.season');
+
+        $this->assertDatabaseCount('products', 0);
+    }
+
     public function test_manual_catalog_imports_create_only_inactive_products(): void
     {
         Storage::fake('public');
@@ -246,6 +291,9 @@ class CatalogImportTest extends TestCase
             'status' => 'uploaded',
         ]);
         $image = 'data:image/png;base64,'.base64_encode(str_repeat('a', 128));
+        $kameezFabric = Fabric::factory()->create(['name' => 'Cotton lawn']);
+        $trouserFabric = Fabric::factory()->create(['name' => 'Cambric']);
+        $dupattaFabric = Fabric::factory()->create(['name' => 'Chiffon']);
         $sharedDetails = [
             'description' => 'Matching embroidered outfits.',
             'retail_price' => 5000,
@@ -256,6 +304,9 @@ class CatalogImportTest extends TestCase
             'included_pieces' => ['kameez', 'dupatta', 'trouser'],
             'fabric' => 'Cotton lawn',
             'season' => 'Summer',
+            'kameez_fabric_id' => $kameezFabric->id,
+            'trouser_fabric_id' => $trouserFabric->id,
+            'dupatta_fabric_id' => $dupattaFabric->id,
             'images' => [$image],
         ];
 
@@ -276,11 +327,17 @@ class CatalogImportTest extends TestCase
             'discount_percent' => 10,
             'stock_quantity' => 7,
             'piece_count' => 3,
-            'included_pieces' => ['kameez', 'dupatta', 'trouser'],
             'fabric' => 'Cotton lawn',
             'season' => 'Summer',
+            'kameez_fabric_id' => $kameezFabric->id,
+            'trouser_fabric_id' => $trouserFabric->id,
+            'dupatta_fabric_id' => $dupattaFabric->id,
             'active' => false,
         ]);
+        $catalogProduct = Product::where('name', 'Autumn Collection — Design 01')->firstOrFail();
+        $this->assertSame(['kameez', 'dupatta', 'trouser'], $catalogProduct->included_pieces);
+        $secondCatalogProduct = Product::where('name', 'Autumn Collection — Design 02')->firstOrFail();
+        $this->assertSame(['kameez', 'dupatta', 'trouser'], $secondCatalogProduct->included_pieces);
         $this->assertDatabaseHas('products', [
             'name' => 'Autumn Collection — Design 02',
             'description' => 'Matching embroidered outfits.',
@@ -289,7 +346,6 @@ class CatalogImportTest extends TestCase
             'discount_percent' => 10,
             'stock_quantity' => 7,
             'piece_count' => 3,
-            'included_pieces' => ['kameez', 'dupatta', 'trouser'],
             'fabric' => 'Cotton lawn',
             'season' => 'Summer',
             'active' => false,

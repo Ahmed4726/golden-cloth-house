@@ -36,7 +36,7 @@
                     <div class="carousel-item h-100 {{ $index === 0 ? 'active' : '' }}">
                         <a
                             class="d-block w-100 h-100"
-                            href="{{ route('shop.product', $product) }}"
+                            href="{{ route('shop.product', $product->slug) }}"
                             aria-label="View {{ $product->name }}"
                         >
                             <img
@@ -81,7 +81,7 @@
                     data-product-piece-length-kameez="{{ $product->piece_lengths['kameez'] ?? '' }}"
                     data-product-piece-length-dupatta="{{ $product->piece_lengths['dupatta'] ?? '' }}"
                     data-product-piece-length-trouser="{{ $product->piece_lengths['trouser'] ?? '' }}"
-                    data-product-url="{{ route('shop.product', $product) }}"
+                    data-product-url="{{ route('shop.product', $product->slug) }}"
                     data-cart-url="{{ route('cart.add', $product) }}"
                     aria-label="Quick view {{ $product->name }}"
                     title="Quick view"
@@ -117,7 +117,7 @@
 
         <a
             class="text-decoration-none text-dark"
-            href="{{ route('shop.product', $product) }}"
+            href="{{ route('shop.product', $product->slug) }}"
             title="{{ $product->name }}"
         >
             <h3 class="h6 fw-semibold mt-1 mb-0 text-truncate">
@@ -176,7 +176,7 @@
                                 .($whatsappOrderPieces
                                     ? "\nIncluded pieces: ".implode(', ', $whatsappOrderPieces)
                                     : '')
-                                ."\nProduct link: ".route('shop.product', $product);
+                                ."\nProduct link: ".route('shop.product', $product->slug);
                         @endphp
 
                         <a

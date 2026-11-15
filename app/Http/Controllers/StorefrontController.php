@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\HomepageSlide;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class StorefrontController extends Controller
 {
@@ -14,25 +15,22 @@ class StorefrontController extends Controller
     {
         $categories = Category::where('active', true)
             ->withCount(['products as active_products_count' => fn ($query) => $query->where('active', true)])
+            ->with(['products' => fn ($query) => $query
+                ->where('active', true)
+                ->where('stock_quantity', '>', 0)
+                ->latest()
+                ->limit(1)])
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
 
         $categoryHighlights = $categories
             ->filter(fn ($category) => $category->active_products_count > 0)
-            ->take(8)
-            ->map(function ($category) {
-                $product = Product::where('active', true)
-                    ->where('category_id', $category->id)
-                    ->where('stock_quantity', '>', 0)
-                    ->latest()
-                    ->first();
-
-                return [
-                    'category' => $category,
-                    'product' => $product,
-                ];
-            });
+            ->take(12)
+            ->map(fn ($category) => [
+                'category' => $category,
+                'product' => $category->products->first(),
+            ]);
 
         return view('storefront.home', [
             'slides' => HomepageSlide::where('active', true)->orderBy('sort_order')->get(),
@@ -42,6 +40,34 @@ class StorefrontController extends Controller
                 ->orderBy('sort_order')
                 ->latest()
                 ->take(12)
+                ->get(),
+            'featuredProducts' => Product::where('active', true)
+                ->where('stock_quantity', '>', 0)
+                ->where('featured', true)
+                ->orderBy('sort_order')
+                ->latest()
+                ->take(8)
+                ->get(),
+            'saleProducts' => Product::where('active', true)
+                ->where('stock_quantity', '>', 0)
+                ->whereNotNull('compare_at_price')
+                ->whereColumn('compare_at_price', '>', 'price')
+                ->latest()
+                ->take(8)
+                ->get(),
+            'brands' => Brand::where('active', true)
+                ->whereHas('products', fn ($query) => $query
+                    ->where('active', true)
+                    ->where('stock_quantity', '>', 0))
+                ->with(['products' => fn ($query) => $query
+                    ->where('active', true)
+                    ->where('stock_quantity', '>', 0)
+                    ->orderByDesc('featured')
+                    ->orderBy('sort_order')
+                    ->latest()
+                    ->limit(4)])
+                ->orderBy('sort_order')
+                ->orderBy('name')
                 ->get(),
             'categories' => $categories,
             'categoryHighlights' => $categoryHighlights,
@@ -96,6 +122,9 @@ class StorefrontController extends Controller
         $collection = $request->routeIs('shop.collection')
             ? $request->route('category')
             : null;
+        $brandCollection = $request->routeIs('shop.brand')
+            ? $request->route('brand')
+            : null;
 
         return view('storefront.shop', [
             'products' => $products->paginate(24)->withQueryString(),
@@ -103,7 +132,10 @@ class StorefrontController extends Controller
             'brands' => Brand::where('active', true)->orderBy('sort_order')->orderBy('name')->get(),
             'heroSlide' => HomepageSlide::where('active', true)->orderBy('sort_order')->first(),
             'collection' => $collection,
-            'canonical' => $collection ? route('shop.collection', $collection) : route('shop'),
+            'brandCollection' => $brandCollection,
+            'canonical' => $collection
+                ? route('shop.collection', $collection->slug)
+                : ($brandCollection ? route('shop.brand', $brandCollection->slug) : route('shop')),
             'filter' => [
                 'q' => (string) $request->input('q', ''),
                 'category' => (string) $request->input('category', ''),
@@ -126,9 +158,19 @@ class StorefrontController extends Controller
         return $this->shop($request);
     }
 
+    public function brand(Brand $brand, Request $request): View
+    {
+        abort_unless($brand->active, 404);
+
+        $request->query->set('brand', (string) $brand->id);
+
+        return $this->shop($request);
+    }
+
     public function product(Product $product)
     {
         abort_unless($product->active, 404);
+        $product->load(['kameezFabric', 'trouserFabric', 'dupattaFabric']);
 
         $related = Product::where('active', true)
             ->where('id', '!=', $product->id)

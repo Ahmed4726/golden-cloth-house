@@ -81,7 +81,11 @@
                     </div>
                     <div class="col-6 col-lg-3">
                         <label class="form-label fw-semibold" for="catalogSeason">Season</label>
-                        <input id="catalogSeason" class="form-control" maxlength="50">
+                        <select id="catalogSeason" class="form-select">
+                            <option value="">Not specified</option>
+                            <option value="Summer">Summer</option>
+                            <option value="Winter">Winter</option>
+                        </select>
                     </div>
                     <div class="col-6 col-lg-3">
                         <label class="form-label fw-semibold" for="catalogGender">Gender</label>
@@ -108,6 +112,17 @@
                             @endforeach
                         </select>
                     </div>
+                    @foreach (['kameez' => 'Kameez fabric', 'trouser' => 'Shalwar / trouser fabric', 'dupatta' => 'Dupatta fabric'] as $piece => $label)
+                        <div class="col-6 col-lg-3">
+                            <label class="form-label fw-semibold" for="catalog-{{ $piece }}-fabric">{{ $label }}</label>
+                            <select id="catalog-{{ $piece }}-fabric" class="form-select">
+                                <option value="">Not specified</option>
+                                @foreach ($fabrics as $fabric)
+                                    <option value="{{ $fabric->id }}">{{ $fabric->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endforeach
                     <div class="col-12">
                         <label class="form-label fw-semibold" for="catalogDescription">Product description</label>
                         <textarea id="catalogDescription" class="form-control" rows="3" maxlength="10000"></textarea>
@@ -415,7 +430,7 @@
             }
 
             function generatedSku() {
-                const uuid = String(importUuid).replaceAll('-', '').toUpperCase();
+                const uuid = String(importUuid).replaceAll('-', '').slice(0, 10).toUpperCase();
                 let sequence = 1;
                 let sku = '';
 
@@ -463,7 +478,7 @@
                                 <div class="fw-semibold mb-3">${escapeHtml(designTitle(index))}</div>
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold" for="catalog-sku-${index}">SKU</label>
-                                    <input class="form-control" id="catalog-sku-${index}" data-sku="${index}" maxlength="100" required value="${escapeHtml(product.sku)}">
+                                    <input class="form-control" id="catalog-sku-${index}" data-sku="${index}" maxlength="20" required value="${escapeHtml(product.sku)}">
                                 </div>
                                 <div class="d-grid mb-3">
                                     <button type="button" class="btn btn-outline-dark" data-open-picker="${index}">
@@ -874,6 +889,9 @@
                         piece_lengths: selectedCatalogPieceLengths(),
                         fabric: catalogFabric.value.trim(),
                         season: catalogSeason.value.trim(),
+                        kameez_fabric_id: document.getElementById('catalog-kameez-fabric').value || null,
+                        trouser_fabric_id: document.getElementById('catalog-trouser-fabric').value || null,
+                        dupatta_fabric_id: document.getElementById('catalog-dupatta-fabric').value || null,
                         category_id: catalogCategory.value === '' ? null : Number(catalogCategory.value),
                         brand_id: catalogBrand.value === '' ? null : Number(catalogBrand.value),
                         stock_quantity: Number(catalogStock.value),

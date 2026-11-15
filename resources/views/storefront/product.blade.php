@@ -42,7 +42,7 @@
             'availability' => $product->stock_quantity > 0
                 ? 'https://schema.org/InStock'
                 : 'https://schema.org/OutOfStock',
-            'url' => route('shop.product', $product),
+            'url' => route('shop.product', $product->slug),
         ],
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
@@ -225,6 +225,17 @@
                             @endif
                         </div>
                     @endif
+                    @if ($product->kameezFabric || $product->trouserFabric || $product->dupattaFabric || $product->season)
+                        <div class="border rounded p-3 mb-4">
+                            <div class="fw-semibold mb-2">Fabric & season</div>
+                            <ul class="list-unstyled small mb-0">
+                                @if ($product->kameezFabric)<li>Kameez: {{ $product->kameezFabric->name }}</li>@endif
+                                @if ($product->trouserFabric)<li>Shalwar / trouser: {{ $product->trouserFabric->name }}</li>@endif
+                                @if ($product->dupattaFabric)<li>Dupatta: {{ $product->dupattaFabric->name }}</li>@endif
+                                @if ($product->season)<li>Season: {{ $product->season }}</li>@endif
+                            </ul>
+                        </div>
+                    @endif
 
                     @if ($product->stock_quantity > 0)
                         <form
@@ -281,7 +292,7 @@
                                             $includedPieces
                                         ))
                                         : '')
-                                    ."\nProduct link: ".route('shop.product', $product);
+                                    ."\nProduct link: ".route('shop.product', $product->slug);
                             @endphp
 
                             <a
@@ -297,7 +308,7 @@
                                         .(empty($pieceLengths[$piece]) ? '' : ' ('.$pieceLengths[$piece].' in)'),
                                     $includedPieces
                                 )) }}"
-                                data-product-url="{{ route('shop.product', $product) }}"
+                                data-product-url="{{ route('shop.product', $product->slug) }}"
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >

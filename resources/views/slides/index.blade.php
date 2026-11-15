@@ -9,6 +9,29 @@
         <a class="btn btn-dark" href="{{ route('slides.create') }}">Add Slide</a>
     </div>
 
+    <form class="card border-0 shadow-sm mb-4" method="GET" action="{{ route('slides.index') }}">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="slide-search">Search slides</label>
+                    <input class="form-control" id="slide-search" name="q" value="{{ request('q') }}" placeholder="Title or subtitle">
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="form-label" for="slide-status">Status</label>
+                    <select class="form-select" id="slide-status" name="status">
+                        <option value="">All statuses</option>
+                        <option value="active" @selected(request('status') === 'active')>Active</option>
+                        <option value="hidden" @selected(request('status') === 'hidden')>Hidden</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3 d-flex gap-2">
+                    <button class="btn btn-dark flex-grow-1" type="submit">Filter</button>
+                    <a class="btn btn-outline-secondary" href="{{ route('slides.index') }}">Reset</a>
+                </div>
+            </div>
+        </div>
+    </form>
+
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -63,6 +86,16 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+        <div class="card-footer bg-white d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            <span class="text-secondary small">
+                @if ($slides->total())
+                    Showing {{ $slides->firstItem() }}–{{ $slides->lastItem() }} of {{ $slides->total() }} slides
+                @else
+                    No matching slides
+                @endif
+            </span>
+            {{ $slides->links() }}
         </div>
     </div>
 @endsection

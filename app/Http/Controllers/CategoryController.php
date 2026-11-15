@@ -8,10 +8,27 @@ use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'in:active,hidden'],
+        ]);
+        $search = trim($filters['q'] ?? '');
+
         return view('categories.index', [
-            'categories' => Category::withCount('products')->orderBy('sort_order')->orderBy('name')->paginate(20),
+            'categories' => Category::withCount('products')
+                ->when($search !== '', function ($query) use ($search) {
+                    $query->where(function ($query) use ($search) {
+                        $query->where('name', 'like', "%{$search}%")
+                            ->orWhere('slug', 'like', "%{$search}%");
+                    });
+                })
+                ->when(isset($filters['status']), fn ($query) => $query->where('active', $filters['status'] === 'active'))
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->paginate(20)
+                ->withQueryString(),
         ]);
     }
 

@@ -114,7 +114,7 @@
                 <div class="card-header bg-white border-0 rounded-top-4 px-4 pt-4 pb-3">
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
                         <div>
-                            <h2 class="h5 fw-bold mb-1" id="recentOrdersHeading">Recent COD orders</h2>
+                            <h2 class="h5 fw-bold mb-1" id="recentOrdersHeading">Recent orders</h2>
                             <p class="small text-secondary mb-0">The latest orders placed by your customers.</p>
                         </div>
                         <a class="btn btn-sm btn-outline-dark" href="{{ route('orders.index') }}">View all orders</a>
@@ -150,8 +150,8 @@
                                         </a>
                                     </td>
                                     <td>
-                                        <div class="fw-medium">{{ $order->customer_name }}</div>
-                                        <div class="small text-secondary">{{ $order->customer_phone }}</div>
+                                        <div class="fw-medium">{{ $order->customer_name ?: 'Walk-in customer' }}</div>
+                                        <div class="small text-secondary">{{ $order->customer_phone ?: 'No phone provided' }}</div>
                                     </td>
                                     <td><span class="badge rounded-pill {{ $orderStatusClass }}">{{ ucfirst($order->status) }}</span></td>
                                     <td class="text-end fw-semibold text-nowrap">{{ number_format((float) $order->total, 0) }} {{ $order->currency }}</td>

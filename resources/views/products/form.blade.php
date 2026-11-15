@@ -10,7 +10,8 @@
     </div>
     <div class="col-md-6">
         <label class="form-label fw-semibold" for="product-sku">SKU</label>
-        <input class="form-control" id="product-sku" name="sku" maxlength="100" required value="{{ old('sku', $product->sku ?? '') }}">
+        <input class="form-control" id="product-sku" name="sku" maxlength="20" required value="{{ old('sku', $product->sku ?? '') }}">
+        <div class="form-text">Keep SKUs short (20 characters maximum).</div>
     </div>
 
     <div class="col-md-5">
@@ -113,13 +114,31 @@
         </fieldset>
     </div>
 
+    @foreach (['kameez' => 'Kameez fabric', 'trouser' => 'Shalwar / trouser fabric', 'dupatta' => 'Dupatta fabric'] as $piece => $label)
+        @php
+            $fabricField = $piece.'_fabric_id';
+        @endphp
+        <div class="col-md-4">
+            <label class="form-label fw-semibold" for="{{ $fabricField }}">{{ $label }}</label>
+            <select class="form-select" id="{{ $fabricField }}" name="{{ $fabricField }}">
+                <option value="">Not specified</option>
+                @foreach ($fabrics as $fabricOption)
+                    <option value="{{ $fabricOption->id }}" @selected(old($fabricField, $product->{$fabricField} ?? '') == $fabricOption->id)>{{ $fabricOption->name }}</option>
+                @endforeach
+            </select>
+        </div>
+    @endforeach
     <div class="col-md-4">
-        <label class="form-label fw-semibold" for="fabric">Fabric</label>
-        <input class="form-control" id="fabric" name="fabric" value="{{ old('fabric', $product->fabric ?? '') }}" placeholder="Khaddar, Lawn, Slub…">
+        <label class="form-label fw-semibold" for="fabric">Other fabric details</label>
+        <input class="form-control" id="fabric" name="fabric" value="{{ old('fabric', $product->fabric ?? '') }}" placeholder="Optional notes">
     </div>
     <div class="col-md-4">
         <label class="form-label fw-semibold" for="season">Season</label>
-        <input class="form-control" id="season" name="season" value="{{ old('season', $product->season ?? '') }}">
+        <select class="form-select" id="season" name="season">
+            <option value="">Not specified</option>
+            <option value="Summer" @selected(old('season', $product->season ?? '') === 'Summer')>Summer</option>
+            <option value="Winter" @selected(old('season', $product->season ?? '') === 'Winter')>Winter</option>
+        </select>
     </div>
     <div class="col-md-4">
         <label class="form-label fw-semibold" for="design-code">Design code</label>

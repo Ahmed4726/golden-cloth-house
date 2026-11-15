@@ -38,8 +38,11 @@
                     <a class="nav-link text-white {{ request()->routeIs('catalog-imports.*') ? 'active' : '' }}" href="{{ route('catalog-imports.index') }}"><i class="fa-solid fa-file-pdf me-2"></i>PDF Catalogs</a>
                     <a class="nav-link text-white {{ request()->routeIs('categories.*') ? 'active' : '' }}" href="{{ route('categories.index') }}"><i class="fa-solid fa-tags me-2"></i>Categories</a>
                     <a class="nav-link text-white {{ request()->routeIs('brands.*') ? 'active' : '' }}" href="{{ route('brands.index') }}"><i class="fa-solid fa-award me-2"></i>Brands</a>
+                    <a class="nav-link text-white {{ request()->routeIs('fabrics.*') ? 'active' : '' }}" href="{{ route('fabrics.index') }}"><i class="fa-solid fa-layer-group me-2"></i>Fabrics</a>
+                    <a class="nav-link text-white {{ request()->routeIs('coupons.*') ? 'active' : '' }}" href="{{ route('coupons.index') }}"><i class="fa-solid fa-ticket me-2"></i>Coupons</a>
                     <a class="nav-link text-white {{ request()->routeIs('slides.*') ? 'active' : '' }}" href="{{ route('slides.index') }}"><i class="fa-solid fa-images me-2"></i>Homepage Slider</a>
                     <a class="nav-link text-white {{ request()->routeIs('orders.*') ? 'active' : '' }}" href="{{ route('orders.index') }}"><i class="fa-solid fa-bag-shopping me-2"></i>Orders</a>
+                    <a class="nav-link text-white {{ request()->routeIs('customers.*') ? 'active' : '' }}" href="{{ route('customers.index') }}"><i class="fa-solid fa-users me-2"></i>Customers</a>
                     <a class="nav-link text-white {{ request()->routeIs('connections.*') ? 'active' : '' }}" href="{{ route('connections.index') }}"><i class="fa-solid fa-share-nodes me-2"></i>Social Connections</a>
                     <a class="nav-link text-white {{ request()->routeIs('posts.*') ? 'active' : '' }}" href="{{ route('posts.index') }}"><i class="fa-solid fa-paper-plane me-2"></i>Social Posts</a>
                     <a class="nav-link text-white {{ request()->routeIs('posts.create') ? 'active' : '' }}" href="{{ route('posts.create') }}"><i class="fa-solid fa-circle-plus me-2"></i>Create Post</a>

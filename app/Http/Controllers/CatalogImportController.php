@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Brand;
 use App\Models\CatalogImport;
 use App\Models\Category;
+use App\Models\Fabric;
 use App\Models\HomepageSlide;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
@@ -17,10 +18,21 @@ use RuntimeException;
 
 class CatalogImportController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'in:uploaded,completed,published'],
+        ]);
+        $search = trim($filters['q'] ?? '');
+
         return view('catalog-imports.index', [
-            'imports' => CatalogImport::withCount('products')->latest()->paginate(15),
+            'imports' => CatalogImport::withCount('products')
+                ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
+                ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+                ->latest()
+                ->paginate(15)
+                ->withQueryString(),
         ]);
     }
 
@@ -32,6 +44,10 @@ class CatalogImportController extends Controller
                 ->orderBy('name')
                 ->get(),
             'brands' => Brand::where('active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
+            'fabrics' => Fabric::where('active', true)
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(),
@@ -166,7 +182,7 @@ class CatalogImportController extends Controller
         $data = $request->validate([
             'products' => ['required', 'array', 'min:1', 'max:100'],
             'products.*.name' => ['required', 'string', 'max:255'],
-            'products.*.sku' => ['required', 'string', 'max:100', 'distinct:ignore_case', Rule::unique('products', 'sku')],
+            'products.*.sku' => ['required', 'string', 'max:20', 'distinct:ignore_case', Rule::unique('products', 'sku')],
             'products.*.description' => ['nullable', 'string', 'max:10000'],
             'products.*.retail_price' => ['required', 'numeric', 'min:0'],
             'products.*.discount_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
@@ -179,8 +195,11 @@ class CatalogImportController extends Controller
             'products.*.piece_lengths.kameez' => ['nullable', 'numeric', 'min:1', 'max:100'],
             'products.*.piece_lengths.dupatta' => ['nullable', 'numeric', 'min:1', 'max:100'],
             'products.*.piece_lengths.trouser' => ['nullable', 'numeric', 'min:1', 'max:100'],
+            'products.*.kameez_fabric_id' => ['nullable', 'integer', 'exists:fabrics,id'],
+            'products.*.trouser_fabric_id' => ['nullable', 'integer', 'exists:fabrics,id'],
+            'products.*.dupatta_fabric_id' => ['nullable', 'integer', 'exists:fabrics,id'],
             'products.*.fabric' => ['nullable', 'string', 'max:100'],
-            'products.*.season' => ['nullable', 'string', 'max:50'],
+            'products.*.season' => ['nullable', 'in:Summer,Winter'],
             'products.*.design_code' => ['nullable', 'string', 'max:100'],
             'products.*.category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'products.*.brand_id' => ['nullable', 'integer', 'exists:brands,id'],
@@ -306,6 +325,9 @@ class CatalogImportController extends Controller
                         : ($item['piece_count'] ?? null),
                     'included_pieces' => $includedPieces,
                     'piece_lengths' => $pieceLengths,
+                    'kameez_fabric_id' => $item['kameez_fabric_id'] ?? null,
+                    'trouser_fabric_id' => $item['trouser_fabric_id'] ?? null,
+                    'dupatta_fabric_id' => $item['dupatta_fabric_id'] ?? null,
                     'fabric' => $item['fabric'] ?? null,
                     'season' => $item['season'] ?? null,
                     'design_code' => $item['design_code'] ?? null,

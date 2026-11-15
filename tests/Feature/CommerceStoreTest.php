@@ -98,6 +98,25 @@ class CommerceStoreTest extends TestCase
         $this->assertDatabaseCount('products', 1);
     }
 
+    public function test_product_sku_must_not_exceed_twenty_characters(): void
+    {
+        $admin = User::factory()->create();
+
+        $this->withSession(['admin_user_id' => $admin->id])
+            ->from('/admin/products/create')
+            ->post('/admin/products', [
+                'name' => 'Long SKU Product',
+                'sku' => 'SKU-IS-TOO-LONG-123456',
+                'price' => 3500,
+                'currency' => 'PKR',
+                'stock_quantity' => 5,
+            ])
+            ->assertRedirect('/admin/products/create')
+            ->assertSessionHasErrors('sku');
+
+        $this->assertDatabaseCount('products', 0);
+    }
+
     public function test_product_can_be_updated_when_existing_images_are_displayed(): void
     {
         $admin = User::factory()->create();
@@ -169,7 +188,7 @@ class CommerceStoreTest extends TestCase
 
         $order = Order::firstOrFail();
 
-        $response->assertRedirect(route('checkout.success', $order));
+        $response->assertRedirect(route('checkout.success', ['order' => $order->order_number]));
         $this->assertSame('pending', $order->status);
         $this->assertSame('cod', $order->payment_method);
         $this->assertSame('0.00', $order->shipping_amount);
@@ -323,12 +342,14 @@ class CommerceStoreTest extends TestCase
             ],
             'media_paths' => [],
         ]);
-        StoreSetting::create(['whatsapp_number' => '923001234567']);
+        $storeSetting = new StoreSetting(['whatsapp_number' => '923001234567']);
+        $storeSetting->id = StoreSetting::SINGLETON_ID;
+        $storeSetting->save();
 
         $message = "Hello, I would like to order this product:\n"
             ."Premium Shalwar Kameez\nQuantity: 1\nUnit price: 4,000 PKR\nProduct link: "
-            .route('shop.product', $product);
-        $expectedLink = 'href="https://wa.me/923001234567?text='.rawurlencode($message).'"';
+            .route('shop.product', $product->slug);
+        $expectedLink = 'https://wa.me/923001234567?text='.rawurlencode($message);
 
         $this->get(route('shop.product', $product))
             ->assertOk()
@@ -364,7 +385,9 @@ class CommerceStoreTest extends TestCase
             ],
             'media_paths' => [],
         ]);
-        StoreSetting::create(['whatsapp_number' => '923001234567']);
+        $storeSetting = new StoreSetting(['whatsapp_number' => '923001234567']);
+        $storeSetting->id = StoreSetting::SINGLETON_ID;
+        $storeSetting->save();
 
         $this->get(route('shop'))
             ->assertOk()
@@ -404,23 +427,26 @@ class CommerceStoreTest extends TestCase
             ],
             'media_paths' => [],
         ]);
-        StoreSetting::create(['whatsapp_number' => '923001234567']);
+        $storeSetting = new StoreSetting(['whatsapp_number' => '923001234567']);
+        $storeSetting->id = StoreSetting::SINGLETON_ID;
+        $storeSetting->save();
 
         $message = "Hello, I would like to order this product:\n"
             ."Two Piece Suit\nQuantity: 1\nUnit price: 4,000 PKR\nTotal pieces: 2"
             ."\nIncluded pieces: Kameez (shirt) (40 in), Dupatta (2.5 in)"
-            ."\nProduct link: ".route('shop.product', $product);
-        $expectedLink = 'href="https://wa.me/923001234567?text='.rawurlencode($message).'"';
+            ."\nProduct link: ".route('shop.product', $product->slug);
+        $expectedLink = 'https://wa.me/923001234567?text='.rawurlencode($message);
 
         $this->get(route('shop'))
             ->assertOk()
             ->assertSee('productCardGallery'.$product->id, false)
             ->assertSee('Show image 2 of Two Piece Suit', false)
-            ->assertSee('product-card-cart-button', false)
-            ->assertSee('visually-hidden">Add to cart</span>', false)
-            ->assertSee('d-none d-lg-inline">Add</span>', false)
-            ->assertSee('d-none d-xl-inline">to cart</span>', false)
-            ->assertSee('product-card-whatsapp-button', false)
+            ->assertSee('class="row g-2"', false)
+            ->assertSee('aria-label="Add Two Piece Suit to cart"', false)
+            ->assertSee('<span class="visually-hidden">Add to cart</span>', false)
+            ->assertDontSee('>Add</span>', false)
+            ->assertSee('class="col-9 col-xxl-8"', false)
+            ->assertSee('col-3 col-xxl-4 btn btn-success', false)
             ->assertSee('aria-label="Order Two Piece Suit via WhatsApp"', false)
             ->assertSee($expectedLink, false);
     }
@@ -438,7 +464,9 @@ class CommerceStoreTest extends TestCase
             'image_urls' => [],
             'media_paths' => [],
         ]);
-        StoreSetting::create(['whatsapp_number' => '923001234567']);
+        $storeSetting = new StoreSetting(['whatsapp_number' => '923001234567']);
+        $storeSetting->id = StoreSetting::SINGLETON_ID;
+        $storeSetting->save();
         $this->withSession([
             'cart' => [
                 (string) $product->id => [
@@ -450,9 +478,9 @@ class CommerceStoreTest extends TestCase
 
         $message = "Hello, I would like to place this order:\n"
             ."- Premium Shalwar Kameez (Qty: 2) — 8,000 PKR\n"
-            .route('shop.product', $product)
+            .route('shop.product', $product->slug)
             ."\n\nSubtotal: 8,000 PKR\nDelivery: Free\nTotal: 8,000 PKR";
-        $expectedLink = 'href="https://wa.me/923001234567?text='.rawurlencode($message).'"';
+        $expectedLink = 'https://wa.me/923001234567?text='.rawurlencode($message);
 
         $this->get(route('cart.index'))
             ->assertOk()

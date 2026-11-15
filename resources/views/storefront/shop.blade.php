@@ -3,15 +3,15 @@
 @php
     $title = $collection
         ? $collection->name.' | '.config('store.name')
-        : 'Shop | '.config('store.name');
+        : ($brandCollection ? $brandCollection->name.' | '.config('store.name') : 'Shop | '.config('store.name'));
     $description = \Illuminate\Support\Str::limit(
-        strip_tags($collection?->description ?: 'Shop women and men unstitched wear from '.config('store.name').'. Filter by category, fabric, price, availability and newness.'),
+        strip_tags($collection?->description ?: $brandCollection?->description ?: 'Shop women and men unstitched wear from '.config('store.name').'. Filter by category, fabric, price, availability and newness.'),
         155
     );
-    $schema = $collection ? json_encode([
+    $schema = $collection || $brandCollection ? json_encode([
         '@context' => 'https://schema.org',
         '@type' => 'CollectionPage',
-        'name' => $collection->name,
+        'name' => $collection?->name ?: $brandCollection->name,
         'description' => $description,
         'url' => $canonical,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null;
@@ -23,13 +23,13 @@
             <div class="row align-items-center g-4 g-lg-5">
                 <div class="col-lg-6 text-center text-lg-start">
                     <div class="small text-uppercase fw-bold text-secondary mb-3">
-                        {{ $collection ? 'A closer look at' : 'Thoughtfully chosen for you' }}
+                        {{ $collection || $brandCollection ? 'A closer look at' : 'Thoughtfully chosen for you' }}
                     </div>
                     <h1 class="display-4 fw-normal mb-3">
-                        {{ $collection?->name ?: 'Find fabric you’ll love wearing.' }}
+                        {{ $collection?->name ?: ($brandCollection?->name ?: 'Find fabric you’ll love wearing.') }}
                     </h1>
                     <p class="lead text-secondary mb-4">
-                        {{ $collection?->description ?: 'Explore unstitched styles with beautiful prints, considered details and fabrics for every day and every occasion. Discover your next favorite from Golden Cloth House.' }}
+                        {{ $collection?->description ?: ($brandCollection?->description ?: 'Explore unstitched styles with beautiful prints, considered details and fabrics for every day and every occasion. Discover your next favorite from Golden Cloth House.') }}
                     </p>
                     <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-2 mb-4">
                         <a class="btn btn-dark btn-lg px-4" href="#shop-products">
@@ -42,7 +42,7 @@
                     @if ($categories->isNotEmpty())
                         <nav class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-2" aria-label="Browse collections">
                             @foreach ($categories->take(5) as $category)
-                                <a class="btn btn-sm btn-outline-secondary rounded-pill" href="{{ route('shop.collection', $category) }}">
+                                <a class="btn btn-sm btn-outline-secondary rounded-pill" href="{{ route('shop.collection', $category->slug) }}">
                                     {{ $category->name }}
                                     <i class="fa-solid fa-arrow-up-right-from-square small" aria-hidden="true"></i>
                                 </a>
@@ -115,7 +115,7 @@
             <div class="d-flex justify-content-between align-items-end gap-3 mb-4">
                 <div>
                     <div class="small text-uppercase fw-bold text-secondary mb-2">Made for your wardrobe</div>
-                    <h2 class="h2 fw-normal mb-1">{{ $collection ? 'Explore this collection' : 'Explore our collection' }}</h2>
+                    <h2 class="h2 fw-normal mb-1">{{ $collection || $brandCollection ? 'Explore this collection' : 'Explore our collection' }}</h2>
                     <div class="text-secondary small">
                         {{ $products->total() }} {{ \Illuminate\Support\Str::plural('piece', $products->total()) }}
                         @if ($filter['sale']) · Sale @endif

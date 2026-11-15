@@ -38,7 +38,7 @@
 
     @foreach ($categories as $category)
         <url>
-            <loc>{{ route('shop.collection', $category) }}</loc>
+            <loc>{{ route('shop.collection', $category->slug) }}</loc>
             <lastmod>{{ optional($category->updated_at)->toAtomString() }}</lastmod>
             <changefreq>weekly</changefreq>
             <priority>0.8</priority>
@@ -47,7 +47,7 @@
 
     @foreach ($products as $product)
         <url>
-            <loc>{{ route('shop.product', $product) }}</loc>
+            <loc>{{ route('shop.product', $product->slug) }}</loc>
             <lastmod>{{ optional($product->updated_at)->toAtomString() }}</lastmod>
             <changefreq>weekly</changefreq>
             <priority>0.8</priority>

@@ -6,7 +6,10 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogImportController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\CouponController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FabricController;
 use App\Http\Controllers\HomepageSlideController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\OrderController;
@@ -24,6 +27,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [StorefrontController::class, 'home'])->name('home');
 Route::get('/shop', [StorefrontController::class, 'shop'])->name('shop');
 Route::get('/collections/{category:slug}', [StorefrontController::class, 'collection'])->name('shop.collection');
+Route::get('/brands/{brand:slug}', [StorefrontController::class, 'brand'])->name('shop.brand');
 Route::get('/shop/{product:slug}', [StorefrontController::class, 'product'])->name('shop.product');
 
 Route::get('/about', fn () => view('storefront.about'))->name('about');
@@ -38,6 +42,8 @@ Route::patch('/cart', [CartController::class, 'update'])->name('cart.update');
 Route::delete('/cart/{product}', [CartController::class, 'remove'])->name('cart.remove');
 Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::post('/checkout/coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.coupon.store');
+Route::delete('/checkout/coupon', [CheckoutController::class, 'removeCoupon'])->name('checkout.coupon.destroy');
 Route::get('/order/{order:order_number}/success', [CheckoutController::class, 'success'])->name('checkout.success');
 Route::get('/track-order', [OrderTrackingController::class, 'index'])->name('order.track');
 Route::post('/track-order', [OrderTrackingController::class, 'show'])->name('order.track.submit');
@@ -85,6 +91,8 @@ Route::middleware('admin.session')->prefix('admin')->group(function () {
     Route::delete('/products/{product}/images', [ProductController::class, 'removeImage'])->name('products.images.remove');
     Route::resource('/categories', CategoryController::class)->except(['show']);
     Route::resource('/brands', BrandController::class)->except(['show']);
+    Route::resource('/fabrics', FabricController::class)->except(['show']);
+    Route::resource('/coupons', CouponController::class)->except(['show']);
     Route::resource('/slides', HomepageSlideController::class)->except(['show']);
 
     Route::get('/catalog-imports', [CatalogImportController::class, 'index'])->name('catalog-imports.index');
@@ -100,6 +108,10 @@ Route::middleware('admin.session')->prefix('admin')->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+    Route::get('/products/{product}/sale', [OrderController::class, 'createSale'])->name('products.sales.create');
+    Route::post('/products/{product}/sale', [OrderController::class, 'storeSale'])->name('products.sales.store');
 
     Route::get('/connections', [SocialConnectionController::class, 'index'])->name('connections.index');
     Route::get('/connections/{provider}/oauth', [SocialConnectionController::class, 'oauth'])->name('social.oauth');

@@ -14,6 +14,12 @@
     </section>
 
     <div class="container pb-5">
+        @if (session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+        @if ($errors->any())
+            <div class="alert alert-danger">{{ $errors->first() }}</div>
+        @endif
         <div class="row g-4">
             <div class="col-lg-8">
                 <form class="card border" method="POST" action="{{ route('checkout.store') }}">
@@ -75,6 +81,12 @@
                             <span>Subtotal</span>
                             <strong>{{ number_format($subtotal, 0) }} {{ config('store.currency') }}</strong>
                         </div>
+                        @if ($coupon)
+                            <div class="d-flex justify-content-between align-items-center py-2 text-success">
+                                <span>Coupon ({{ $coupon->code }})</span>
+                                <strong>−{{ number_format($coupon_discount, 0) }} {{ config('store.currency') }}</strong>
+                            </div>
+                        @endif
                         <div class="d-flex justify-content-between py-2">
                             <span>Delivery</span>
                             <strong>{{ $shipping > 0 ? number_format($shipping, 0).' '.config('store.currency') : 'Free' }}</strong>
@@ -84,6 +96,22 @@
                             <strong>{{ number_format($total, 0) }} {{ config('store.currency') }}</strong>
                         </div>
                         <a class="btn btn-outline-dark w-100 mt-3" href="{{ route('cart.index') }}">Back to Cart</a>
+                        @if ($coupon)
+                            <form method="POST" action="{{ route('checkout.coupon.destroy') }}" class="mt-3">
+                                @csrf
+                                @method('DELETE')
+                                <button class="btn btn-outline-secondary w-100" type="submit">Remove coupon</button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('checkout.coupon.store') }}" class="mt-3">
+                                @csrf
+                                <label class="form-label fw-semibold" for="coupon_code">Coupon code</label>
+                                <div class="input-group">
+                                    <input class="form-control" id="coupon_code" name="coupon_code" value="{{ old('coupon_code') }}" maxlength="40" placeholder="Enter code" required>
+                                    <button class="btn btn-outline-dark" type="submit">Apply</button>
+                                </div>
+                            </form>
+                        @endif
                     </div>
                 </div>
             </aside>

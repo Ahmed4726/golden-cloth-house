@@ -25,6 +25,9 @@ class Product extends Model
         'piece_count',
         'included_pieces',
         'piece_lengths',
+        'kameez_fabric_id',
+        'trouser_fabric_id',
+        'dupatta_fabric_id',
         'fabric',
         'season',
         'design_code',
@@ -60,6 +63,21 @@ class Product extends Model
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    public function kameezFabric(): BelongsTo
+    {
+        return $this->belongsTo(Fabric::class, 'kameez_fabric_id');
+    }
+
+    public function trouserFabric(): BelongsTo
+    {
+        return $this->belongsTo(Fabric::class, 'trouser_fabric_id');
+    }
+
+    public function dupattaFabric(): BelongsTo
+    {
+        return $this->belongsTo(Fabric::class, 'dupatta_fabric_id');
     }
 
     public function catalogImport(): BelongsTo
