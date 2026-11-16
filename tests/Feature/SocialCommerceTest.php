@@ -167,6 +167,54 @@ class SocialCommerceTest extends TestCase
         Http::assertSent(fn (Request $request): bool => $request->url() === 'https://graph.facebook.com/123/photos');
     }
 
+    public function test_multiple_facebook_images_are_published_as_one_post(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://graph.facebook.com/123/photos' => Http::sequence()
+                ->push(['id' => 'facebook-image-1'])
+                ->push(['id' => 'facebook-image-2']),
+            'https://graph.facebook.com/123/feed' => Http::response(['id' => 'facebook-post-789']),
+        ]);
+
+        $user = User::factory()->create();
+        $connection = SocialConnection::create([
+            'provider' => SocialProvider::Facebook,
+            'name' => 'Test Page',
+            'external_id' => '123',
+            'access_token' => 'token',
+            'active' => true,
+            'status' => 'connected',
+        ]);
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->post('/admin/posts', [
+                'title' => 'New collection',
+                'caption' => 'Explore the new collection.',
+                'media_type' => 'image',
+                'media_urls' => "https://example.com/image-1.jpg\nhttps://example.com/image-2.jpg",
+                'connections' => [$connection->id],
+                'action' => 'publish',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('social_posts', [
+            'title' => 'New collection',
+            'caption' => 'Explore the new collection.',
+            'status' => 'published',
+        ]);
+        $this->assertDatabaseHas('social_post_publications', [
+            'social_connection_id' => $connection->id,
+            'status' => 'published',
+            'external_id' => 'facebook-post-789',
+        ]);
+        Http::assertSentCount(3);
+        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://graph.facebook.com/123/feed'
+            && $request['message'] === 'Explore the new collection.'
+            && $request['attached_media[0]'] === '{"media_fbid":"facebook-image-1"}'
+            && $request['attached_media[1]'] === '{"media_fbid":"facebook-image-2"}');
+    }
+
     public function test_readiness_endpoint_has_all_providers(): void
     {
         $user = User::factory()->create();
