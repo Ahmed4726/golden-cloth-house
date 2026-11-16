@@ -215,6 +215,63 @@ class SocialCommerceTest extends TestCase
             && $request['attached_media[1]'] === '{"media_fbid":"facebook-image-2"}');
     }
 
+    public function test_multiple_instagram_images_are_published_as_one_carousel_post(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://graph.facebook.com/456/media' => Http::sequence()
+                ->push(['id' => 'instagram-child-1'])
+                ->push(['id' => 'instagram-child-2'])
+                ->push(['id' => 'instagram-carousel-123']),
+            'https://graph.facebook.com/456/media_publish' => Http::response(['id' => 'instagram-post-456']),
+        ]);
+
+        $user = User::factory()->create();
+        $connection = SocialConnection::create([
+            'provider' => SocialProvider::Instagram,
+            'name' => 'Test Instagram Account',
+            'external_id' => '456',
+            'access_token' => 'token',
+            'active' => true,
+            'status' => 'connected',
+        ]);
+
+        $this->withSession(['admin_user_id' => $user->id])
+            ->post('/admin/posts', [
+                'title' => 'New collection',
+                'caption' => 'Explore the new collection.',
+                'media_type' => 'image',
+                'media_urls' => "https://example.com/image-1.jpg\nhttps://example.com/image-2.jpg",
+                'connections' => [$connection->id],
+                'action' => 'publish',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('social_posts', [
+            'title' => 'New collection',
+            'caption' => 'Explore the new collection.',
+            'status' => 'published',
+        ]);
+        $this->assertDatabaseHas('social_post_publications', [
+            'social_connection_id' => $connection->id,
+            'status' => 'published',
+            'external_id' => 'instagram-post-456',
+        ]);
+        Http::assertSentCount(4);
+        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://graph.facebook.com/456/media'
+            && $request['media_type'] === 'CAROUSEL'
+            && $request['children'] === 'instagram-child-1,instagram-child-2'
+            && $request['caption'] === 'Explore the new collection.');
+        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://graph.facebook.com/456/media'
+            && $request['image_url'] === 'https://example.com/image-1.jpg'
+            && $request['is_carousel_item'] === '1');
+        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://graph.facebook.com/456/media'
+            && $request['image_url'] === 'https://example.com/image-2.jpg'
+            && $request['is_carousel_item'] === '1');
+        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://graph.facebook.com/456/media_publish'
+            && $request['creation_id'] === 'instagram-carousel-123');
+    }
+
     public function test_readiness_endpoint_has_all_providers(): void
     {
         $user = User::factory()->create();

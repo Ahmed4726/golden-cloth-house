@@ -40,7 +40,7 @@
                             aria-label="View {{ $product->name }}"
                         >
                             <img
-                                class="d-block w-100 h-100 object-fit-contain bg-white"
+                                class="d-block w-100 h-100 object-fit-contain bg-white product-image-zoom"
                                 src="{{ $galleryImageUrl }}"
                                 alt="{{ $product->name }} image {{ $index + 1 }}"
                                 loading="lazy"

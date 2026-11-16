@@ -19,6 +19,23 @@
     <link rel="canonical" href="{{ $canonical }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <style>
+        .product-image-zoom {
+            transition: transform 350ms ease;
+        }
+
+        @media (hover: hover) {
+            .product-image-zoom:hover {
+                transform: scale(1.12);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .product-image-zoom {
+                transition: none;
+            }
+        }
+    </style>
 
     <meta property="og:type" content="{{ $ogType ?? 'website' }}">
     <meta property="og:locale" content="en_PK">
@@ -329,7 +346,7 @@
                                 >
                                     <div id="quickViewGalleryItems" class="carousel-inner h-100">
                                         <div class="carousel-item h-100 active">
-                                            <img id="quickViewImage" class="d-block w-100 h-100 object-fit-contain" src="{{ asset('images/product-placeholder.svg') }}" alt="" loading="lazy">
+                                            <img id="quickViewImage" class="d-block w-100 h-100 object-fit-contain product-image-zoom" src="{{ asset('images/product-placeholder.svg') }}" alt="" loading="lazy">
                                         </div>
                                     </div>
                                     <button class="carousel-control-prev d-none" type="button" data-bs-target="#quickViewGallery" data-bs-slide="prev" aria-label="Previous product image">
@@ -433,7 +450,7 @@
                 item.className = `carousel-item h-100${index === 0 ? ' active' : ''}`;
 
                 const imageElement = document.createElement('img');
-                imageElement.className = 'd-block w-100 h-100 object-fit-contain';
+                imageElement.className = 'd-block w-100 h-100 object-fit-contain product-image-zoom';
                 imageElement.src = image;
                 imageElement.alt = `${trigger.dataset.productName} image ${index + 1}`;
                 imageElement.loading = index === 0 ? 'eager' : 'lazy';

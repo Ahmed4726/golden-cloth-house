@@ -97,7 +97,7 @@
 
                                 <div class="carousel-item h-100 {{ $index === 0 ? 'active' : '' }}">
                                     <img
-                                        class="d-block w-100 h-100 object-fit-contain bg-white"
+                                        class="d-block w-100 h-100 object-fit-contain bg-white product-image-zoom"
                                         src="{{ $imageUrl }}"
                                         alt="{{ $product->name }} image {{ $index + 1 }}"
                                         loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
@@ -107,7 +107,7 @@
                             @empty
                                 <div class="carousel-item h-100 active">
                                     <img
-                                        class="d-block w-100 h-100 object-fit-contain bg-white"
+                                        class="d-block w-100 h-100 object-fit-contain bg-white product-image-zoom"
                                         src="{{ asset('images/product-placeholder.svg') }}"
                                         alt="{{ $product->name }}"
                                     >

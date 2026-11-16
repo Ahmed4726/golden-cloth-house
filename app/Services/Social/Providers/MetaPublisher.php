@@ -63,11 +63,48 @@ class MetaPublisher implements SocialPublisher
             return ['external_id' => $r->json('id'), 'media_ids' => $mediaIds, 'response' => $r->json()];
         }
         if ($connection->provider->value === 'instagram') {
-            $r = Http::asForm()->post("$base/$id/media", ['image_url' => $images[0], 'caption' => $post->caption, 'access_token' => $token]);
+            if (count($images) > 10) {
+                throw new RuntimeException('Instagram carousel posts cannot contain more than 10 images.');
+            }
+
+            if (count($images) === 1) {
+                $r = Http::asForm()->post("$base/$id/media", [
+                    'image_url' => $images[0],
+                    'caption' => $post->caption,
+                    'access_token' => $token,
+                ]);
+            } else {
+                $children = [];
+                foreach ($images as $image) {
+                    $r = Http::asForm()->post("$base/$id/media", [
+                        'image_url' => $image,
+                        'is_carousel_item' => true,
+                        'access_token' => $token,
+                    ]);
+                    if ($r->failed()) {
+                        throw new RuntimeException('Instagram carousel image creation failed: '.$r->body());
+                    }
+                    $child = $r->json('id');
+                    if (! $child) {
+                        throw new RuntimeException('Instagram carousel image creation returned no container ID.');
+                    }
+                    $children[] = $child;
+                }
+
+                $r = Http::asForm()->post("$base/$id/media", [
+                    'media_type' => 'CAROUSEL',
+                    'children' => implode(',', $children),
+                    'caption' => $post->caption,
+                    'access_token' => $token,
+                ]);
+            }
             if ($r->failed()) {
                 throw new RuntimeException('Instagram media creation failed: '.$r->body());
             }
             $creation = $r->json('id');
+            if (! $creation) {
+                throw new RuntimeException('Instagram media creation returned no container ID.');
+            }
             $r = Http::asForm()->post("$base/$id/media_publish", ['creation_id' => $creation, 'access_token' => $token]);
             if ($r->failed()) {
                 throw new RuntimeException('Instagram publish failed: '.$r->body());
