@@ -278,10 +278,19 @@
                         @if ($whatsappNumber)
                             @php
                                 $whatsappOrderNumber = preg_replace('/[^0-9]/', '', $whatsappNumber);
+                                $whatsappSubtotal = (float) $product->price;
+                                $whatsappShipping = $whatsappSubtotal > 0 && $whatsappSubtotal < config('store.free_shipping_threshold')
+                                    ? (float) config('store.shipping_fee')
+                                    : 0;
                                 $whatsappOrderMessage = "Hello, I would like to order this product:\n"
                                     .$product->name
                                     ."\nQuantity: 1"
                                     ."\nUnit price: ".number_format((float) $product->price, 0).' '.$product->currency
+                                    ."\nSubtotal: ".number_format($whatsappSubtotal, 0).' '.$product->currency
+                                    ."\nDelivery: ".($whatsappShipping > 0
+                                        ? number_format($whatsappShipping, 0).' '.$product->currency
+                                        : 'Free')
+                                    ."\nTotal: ".number_format($whatsappSubtotal + $whatsappShipping, 0).' '.$product->currency
                                     .($product->piece_count
                                         ? "\nTotal pieces: ".$product->piece_count
                                         : '')
@@ -302,6 +311,10 @@
                                 data-whatsapp-number="{{ $whatsappOrderNumber }}"
                                 data-product-name="{{ $product->name }}"
                                 data-product-price="{{ number_format((float) $product->price, 0) }} {{ $product->currency }}"
+                                data-product-amount="{{ (float) $product->price }}"
+                                data-product-currency="{{ $product->currency }}"
+                                data-shipping-fee="{{ config('store.shipping_fee') }}"
+                                data-free-shipping-threshold="{{ config('store.free_shipping_threshold') }}"
                                 data-product-piece-count="{{ $product->piece_count ?? count($includedPieces) }}"
                                 data-product-pieces="{{ implode(', ', array_map(
                                     fn ($piece) => ($suitPieceLabels[$piece] ?? $piece)
@@ -479,11 +492,21 @@
                 const quantity = Number.isInteger(requestedQuantity) && requestedQuantity > 0
                     ? Math.min(requestedQuantity, Number(quantityInput.max))
                     : 1;
+                const subtotal = Number(whatsappOrderButton.dataset.productAmount) * quantity;
+                const shippingFee = Number(whatsappOrderButton.dataset.shippingFee);
+                const shippingThreshold = Number(whatsappOrderButton.dataset.freeShippingThreshold);
+                const shipping = subtotal > 0 && subtotal < shippingThreshold ? shippingFee : 0;
+                const formatAmount = (amount) => Math.round(amount).toLocaleString('en-US');
                 const message = [
                     'Hello, I would like to order this product:',
                     whatsappOrderButton.dataset.productName,
                     `Quantity: ${quantity}`,
                     `Unit price: ${whatsappOrderButton.dataset.productPrice}`,
+                    `Subtotal: ${formatAmount(subtotal)} ${whatsappOrderButton.dataset.productCurrency}`,
+                    `Delivery: ${shipping > 0
+                        ? `${formatAmount(shipping)} ${whatsappOrderButton.dataset.productCurrency}`
+                        : 'Free'}`,
+                    `Total: ${formatAmount(subtotal + shipping)} ${whatsappOrderButton.dataset.productCurrency}`,
                     ...(whatsappOrderButton.dataset.productPieceCount
                         ? [`Total pieces: ${whatsappOrderButton.dataset.productPieceCount}`]
                         : []),

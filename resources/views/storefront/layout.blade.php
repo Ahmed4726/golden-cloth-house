@@ -309,7 +309,7 @@
         </a>
     @endif
 
-    <div class="modal fade" id="productQuickView" data-whatsapp-number="{{ $whatsappNumber ? preg_replace('/[^0-9]/', '', $whatsappNumber) : '' }}" tabindex="-1" aria-labelledby="productQuickViewTitle" aria-hidden="true">
+    <div class="modal fade" id="productQuickView" data-whatsapp-number="{{ $whatsappNumber ? preg_replace('/[^0-9]/', '', $whatsappNumber) : '' }}" data-shipping-fee="{{ config('store.shipping_fee') }}" data-free-shipping-threshold="{{ config('store.free_shipping_threshold') }}" tabindex="-1" aria-labelledby="productQuickViewTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content rounded-3 shadow-lg">
                 <div class="modal-header border-0 px-4 pt-4">
@@ -501,11 +501,21 @@
                 const quantity = Number.isInteger(requestedQuantity) && requestedQuantity > 0
                     ? Math.min(requestedQuantity, Number(quantityInput.max))
                     : 1;
+                const unitPrice = Number(trigger.dataset.productAmount);
+                const currency = trigger.dataset.productCurrency;
+                const subtotal = unitPrice * quantity;
+                const shippingFee = Number(modal.dataset.shippingFee);
+                const shippingThreshold = Number(modal.dataset.freeShippingThreshold);
+                const shipping = subtotal > 0 && subtotal < shippingThreshold ? shippingFee : 0;
+                const formatAmount = (amount) => Math.round(amount).toLocaleString('en-US');
                 const message = [
                     'Hello, I would like to order this product:',
                     trigger.dataset.productName,
                     `Quantity: ${quantity}`,
                     `Unit price: ${trigger.dataset.productPrice}`,
+                    `Subtotal: ${formatAmount(subtotal)} ${currency}`,
+                    `Delivery: ${shipping > 0 ? `${formatAmount(shipping)} ${currency}` : 'Free'}`,
+                    `Total: ${formatAmount(subtotal + shipping)} ${currency}`,
                     ...(pieceCount ? [`Total pieces: ${pieceCount}`] : []),
                     ...(pieces.length ? [`Included pieces: ${pieces.join(', ')}`] : []),
                     `Product link: ${trigger.dataset.productUrl}`,

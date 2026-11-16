@@ -347,7 +347,8 @@ class CommerceStoreTest extends TestCase
         $storeSetting->save();
 
         $message = "Hello, I would like to order this product:\n"
-            ."Premium Shalwar Kameez\nQuantity: 1\nUnit price: 4,000 PKR\nProduct link: "
+            ."Premium Shalwar Kameez\nQuantity: 1\nUnit price: 4,000 PKR"
+            ."\nSubtotal: 4,000 PKR\nDelivery: 200 PKR\nTotal: 4,200 PKR\nProduct link: "
             .route('shop.product', $product->slug);
         $expectedLink = 'https://wa.me/923001234567?text='.rawurlencode($message);
 
@@ -360,6 +361,34 @@ class CommerceStoreTest extends TestCase
             ->assertSee('flat 200 PKR delivery fee')
             ->assertSee('Premium Shalwar Kameez')
             ->assertSee('Order via WhatsApp')
+            ->assertSee($expectedLink, false);
+    }
+
+    public function test_direct_whatsapp_order_shows_free_delivery_above_the_threshold(): void
+    {
+        $product = Product::create([
+            'name' => 'Premium Shalwar Kameez',
+            'slug' => 'premium-shalwar-kameez-free-delivery',
+            'sku' => 'PREMIUM-SHALWAR-002',
+            'price' => 6000,
+            'currency' => 'PKR',
+            'stock_quantity' => 3,
+            'active' => true,
+            'image_urls' => [],
+            'media_paths' => [],
+        ]);
+        $storeSetting = new StoreSetting(['whatsapp_number' => '923001234567']);
+        $storeSetting->id = StoreSetting::SINGLETON_ID;
+        $storeSetting->save();
+
+        $message = "Hello, I would like to order this product:\n"
+            ."Premium Shalwar Kameez\nQuantity: 1\nUnit price: 6,000 PKR"
+            ."\nSubtotal: 6,000 PKR\nDelivery: Free\nTotal: 6,000 PKR\nProduct link: "
+            .route('shop.product', $product->slug);
+        $expectedLink = 'https://wa.me/923001234567?text='.rawurlencode($message);
+
+        $this->get(route('shop.product', $product))
+            ->assertOk()
             ->assertSee($expectedLink, false);
     }
 
@@ -401,6 +430,9 @@ class CommerceStoreTest extends TestCase
             ->assertSee('data-product-piece-count="2"', false)
             ->assertSee('data-product-piece-length-kameez="40"', false)
             ->assertSee('data-product-piece-length-dupatta="2.5"', false)
+            ->assertSee('data-product-amount="4000"', false)
+            ->assertSee('data-shipping-fee="200"', false)
+            ->assertSee('data-free-shipping-threshold="5000"', false)
             ->assertSee('id="quickViewWhatsAppLink"', false)
             ->assertSee('id="quickViewPieceList"', false);
     }
@@ -432,8 +464,9 @@ class CommerceStoreTest extends TestCase
         $storeSetting->save();
 
         $message = "Hello, I would like to order this product:\n"
-            ."Two Piece Suit\nQuantity: 1\nUnit price: 4,000 PKR\nTotal pieces: 2"
-            ."\nIncluded pieces: Kameez (shirt) (40 in), Dupatta (2.5 in)"
+            ."Two Piece Suit\nQuantity: 1\nUnit price: 4,000 PKR"
+            ."\nSubtotal: 4,000 PKR\nDelivery: 200 PKR\nTotal: 4,200 PKR"
+            ."\nTotal pieces: 2\nIncluded pieces: Kameez (shirt) (40 in), Dupatta (2.5 in)"
             ."\nProduct link: ".route('shop.product', $product->slug);
         $expectedLink = 'https://wa.me/923001234567?text='.rawurlencode($message);
 

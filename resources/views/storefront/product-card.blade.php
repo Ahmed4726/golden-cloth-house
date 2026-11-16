@@ -72,6 +72,8 @@
                     data-product-images="{{ json_encode($galleryImageUrls) }}"
                     data-product-category="{{ $product->categoryRelation?->name ?: ($product->category ?: 'Unstitched') }}"
                     data-product-price="{{ $product->price ? number_format((float) $product->price, 0) . ' ' . $product->currency : '' }}"
+                    data-product-amount="{{ (float) $product->price }}"
+                    data-product-currency="{{ $product->currency }}"
                     data-product-compare-price="{{ $isSale ? number_format((float) $product->compare_at_price, 0) . ' ' . $product->currency : '' }}"
                     data-product-description="{{ $product->description }}"
                     data-product-in-stock="{{ $product->stock_quantity > 0 ? 'true' : 'false' }}"
@@ -161,6 +163,10 @@
                     @if ($whatsappNumber)
                         @php
                             $whatsappOrderNumber = preg_replace('/[^0-9]/', '', $whatsappNumber);
+                            $whatsappSubtotal = (float) $product->price;
+                            $whatsappShipping = $whatsappSubtotal > 0 && $whatsappSubtotal < config('store.free_shipping_threshold')
+                                ? (float) config('store.shipping_fee')
+                                : 0;
                             $whatsappOrderPieces = array_map(
                                 fn ($piece) => ($pieceLabels[$piece] ?? $piece)
                                     .(empty($pieceLengths[$piece]) ? '' : ' ('.$pieceLengths[$piece].' in)'),
@@ -170,6 +176,11 @@
                                 .$product->name
                                 ."\nQuantity: 1"
                                 ."\nUnit price: ".number_format((float) $product->price, 0).' '.$product->currency
+                                ."\nSubtotal: ".number_format($whatsappSubtotal, 0).' '.$product->currency
+                                ."\nDelivery: ".($whatsappShipping > 0
+                                    ? number_format($whatsappShipping, 0).' '.$product->currency
+                                    : 'Free')
+                                ."\nTotal: ".number_format($whatsappSubtotal + $whatsappShipping, 0).' '.$product->currency
                                 .($product->piece_count
                                     ? "\nTotal pieces: ".$product->piece_count
                                     : '')

@@ -3,14 +3,15 @@
 namespace Tests\Feature;
 
 use App\Enums\SocialProvider;
-use App\Jobs\PublishSocialPost;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\SocialConnection;
+use App\Models\SocialPost;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Bus;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class SocialCommerceTest extends TestCase
@@ -60,7 +61,10 @@ class SocialCommerceTest extends TestCase
 
     public function test_product_can_be_published_to_selected_social_accounts_using_product_content(): void
     {
-        Bus::fake();
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://graph.facebook.com/123/photos' => Http::response(['post_id' => 'facebook-post-456']),
+        ]);
 
         $user = User::factory()->create();
         $category = Category::create(['name' => 'Shirts', 'slug' => 'shirts', 'active' => true]);
@@ -76,7 +80,7 @@ class SocialCommerceTest extends TestCase
             'category_id' => $category->id,
             'brand_id' => $brand->id,
             'description' => 'Premium cotton shirt.',
-            'image_urls' => ['https://example.com/shirt.jpg'],
+            'image_urls' => ['/storage/products/shirt.jpg'],
             'media_paths' => [],
             'active' => true,
         ]);
@@ -89,7 +93,7 @@ class SocialCommerceTest extends TestCase
             'status' => 'connected',
         ]);
 
-        $this->withSession(['admin_user_id' => $user->id])
+        $response = $this->withSession(['admin_user_id' => $user->id])
             ->post('/admin/posts', [
                 'product_id' => $product->id,
                 'media_type' => 'image',
@@ -98,13 +102,69 @@ class SocialCommerceTest extends TestCase
             ])
             ->assertRedirect();
 
-        Bus::assertDispatched(PublishSocialPost::class);
+        $response->assertSessionHas('success', 'Post published successfully.');
         $this->assertDatabaseHas('social_posts', [
             'product_id' => $product->id,
             'title' => 'Premium Shirt',
             'caption' => 'Premium cotton shirt.',
-            'status' => 'queued',
+            'status' => 'published',
         ]);
+        $this->assertDatabaseHas('social_post_publications', [
+            'social_connection_id' => $connection->id,
+            'status' => 'published',
+            'external_id' => 'facebook-post-456',
+        ]);
+
+        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://graph.facebook.com/123/photos'
+            && $request['caption'] === 'Premium cotton shirt.'
+            && $request['url'] === rtrim((string) config('app.url'), '/').'/storage/products/shirt.jpg'
+            && $request['access_token'] === 'token');
+    }
+
+    public function test_failed_social_publication_is_saved_and_reported_to_the_admin(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://graph.facebook.com/123/photos' => Http::response(['error' => 'Invalid access token'], 401),
+        ]);
+
+        $user = User::factory()->create();
+        $connection = SocialConnection::create([
+            'provider' => SocialProvider::Facebook,
+            'name' => 'Test Page',
+            'external_id' => '123',
+            'access_token' => 'expired-token',
+            'active' => true,
+            'status' => 'connected',
+        ]);
+
+        $response = $this->withSession(['admin_user_id' => $user->id])
+            ->post('/admin/posts', [
+                'media_type' => 'image',
+                'media_urls' => 'https://example.com/image.jpg',
+                'connections' => [$connection->id],
+                'action' => 'publish',
+            ])
+            ->assertRedirect();
+
+        $response->assertSessionHas('error', 'Social publishing failed: Facebook publish failed: {"error":"Invalid access token"}');
+        $post = SocialPost::firstOrFail();
+        $this->get(route('posts.show', $post))
+            ->assertOk()
+            ->assertSee('Social publishing failed: Facebook publish failed: {"error":"Invalid access token"}');
+        $this->assertDatabaseHas('social_posts', ['status' => 'failed']);
+        $this->assertDatabaseHas('social_post_publications', [
+            'social_connection_id' => $connection->id,
+            'status' => 'failed',
+            'error' => 'Facebook publish failed: {"error":"Invalid access token"}',
+        ]);
+        $this->assertDatabaseHas('social_connections', [
+            'id' => $connection->id,
+            'status' => 'error',
+            'last_error' => 'Facebook publish failed: {"error":"Invalid access token"}',
+        ]);
+
+        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://graph.facebook.com/123/photos');
     }
 
     public function test_readiness_endpoint_has_all_providers(): void

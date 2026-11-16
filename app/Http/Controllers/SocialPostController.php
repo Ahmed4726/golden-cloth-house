@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\PublishSocialPost;
 use App\Models\Product;
 use App\Models\SocialConnection;
 use App\Models\SocialPost;
+use App\Services\Social\SocialPostPublishingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -46,7 +46,7 @@ class SocialPostController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, SocialPostPublishingService $publisher)
     {
         $data = $request->validate([
             'product_id' => ['nullable', 'integer', 'exists:products,id'],
@@ -81,6 +81,9 @@ class SocialPostController extends Controller
         $urls = collect(preg_split('/\r?\n/', $rawUrls))
             ->map(fn ($value) => trim($value))
             ->filter()
+            ->map(fn (string $value): string => filter_var($value, FILTER_VALIDATE_URL)
+                ? $value
+                : rtrim((string) config('app.url'), '/').'/'.ltrim($value, '/'))
             ->values()
             ->all();
 
@@ -122,17 +125,22 @@ class SocialPostController extends Controller
                     'status' => $status === 'draft' ? 'draft' : 'queued',
                 ]);
 
-                if ($status === 'queued') {
-                    PublishSocialPost::dispatch($publication->id);
-                }
             }
 
             return $post;
         });
 
+        if ($status === 'queued') {
+            $this->publishQueuedPublications($post, $publisher);
+
+            return redirect()
+                ->route('posts.show', $post)
+                ->with(...$this->publicationFeedback($post->fresh()));
+        }
+
         return redirect()
             ->route('posts.show', $post)
-            ->with('success', $status === 'queued' ? 'Publishing has been queued.' : 'Post saved.');
+            ->with('success', 'Post saved.');
     }
 
     public function show(SocialPost $post)
@@ -142,16 +150,41 @@ class SocialPostController extends Controller
         ]);
     }
 
-    public function publish(SocialPost $post)
+    public function publish(SocialPost $post, SocialPostPublishingService $publisher)
     {
         foreach ($post->publications()->whereIn('status', ['queued', 'failed', 'draft'])->get() as $publication) {
             $publication->update(['status' => 'queued', 'error' => null]);
-            PublishSocialPost::dispatch($publication->id);
         }
 
         $post->update(['status' => 'queued']);
+        $this->publishQueuedPublications($post, $publisher);
 
-        return back()->with('success', 'Publishing queued.');
+        return back()->with(...$this->publicationFeedback($post->fresh()));
+    }
+
+    private function publishQueuedPublications(SocialPost $post, SocialPostPublishingService $publisher): void
+    {
+        foreach ($post->publications()->where('status', 'queued')->get() as $publication) {
+            $publisher->publish($publication);
+        }
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function publicationFeedback(SocialPost $post): array
+    {
+        $error = $post->publications()->where('status', 'failed')->value('error');
+
+        if ($error) {
+            return ['error', 'Social publishing failed: '.$error];
+        }
+
+        if ($post->status === 'published') {
+            return ['success', 'Post published successfully.'];
+        }
+
+        return ['success', 'Publishing was accepted and is still processing on one or more platforms.'];
     }
 
     private function productMediaUrls(Product $product): array
