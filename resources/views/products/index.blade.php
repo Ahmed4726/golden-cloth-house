@@ -53,6 +53,7 @@
         method="POST"
         action="{{ route('products.bulk-sale.update', request()->only(['q', 'category_id', 'brand_id', 'status', 'page'])) }}"
     >
+    
         @csrf
         <div class="card-body">
             <div class="row g-3 align-items-end">
