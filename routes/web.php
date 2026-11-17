@@ -87,6 +87,7 @@ Route::middleware('admin.session')->prefix('admin')->group(function () {
     Route::get('/settings', [StoreSettingController::class, 'edit'])->name('settings.edit');
     Route::patch('/settings', [StoreSettingController::class, 'update'])->name('settings.update');
 
+    Route::post('/products/bulk-sale', [ProductController::class, 'updateBulkSale'])->name('products.bulk-sale.update');
     Route::resource('/products', ProductController::class)->except(['show']);
     Route::delete('/products/{product}/images', [ProductController::class, 'removeImage'])->name('products.images.remove');
     Route::resource('/categories', CategoryController::class)->except(['show']);

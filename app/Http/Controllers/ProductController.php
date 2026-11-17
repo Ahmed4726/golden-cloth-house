@@ -6,7 +6,9 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Fabric;
 use App\Models\Product;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -43,6 +45,64 @@ class ProductController extends Controller
             'categories' => Category::orderBy('name')->get(),
             'brands' => Brand::orderBy('name')->get(),
         ]);
+    }
+
+    public function updateBulkSale(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'product_ids' => ['required', 'array', 'min:1', 'max:100'],
+            'product_ids.*' => ['required', 'integer', 'distinct', 'exists:products,id'],
+            'action' => ['required', 'in:apply,remove'],
+            'discount_percent' => ['exclude_unless:action,apply', 'required', 'numeric', 'gt:0', 'max:100'],
+        ]);
+
+        $discountPercent = (float) ($validated['discount_percent'] ?? 0);
+        $updatedCount = DB::transaction(function () use ($validated, $discountPercent): int {
+            $products = Product::whereKey($validated['product_ids'])
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($products as $product) {
+                $hasExistingSale = $product->compare_at_price !== null
+                    && (float) $product->compare_at_price > (float) $product->price;
+                $originalPrice = $hasExistingSale
+                    ? (float) $product->compare_at_price
+                    : (float) $product->price;
+
+                if ($validated['action'] === 'apply') {
+                    $product->update([
+                        'price' => round($originalPrice * (1 - ($discountPercent / 100)), 2),
+                        'compare_at_price' => $originalPrice,
+                        'discount_percent' => $discountPercent,
+                    ]);
+
+                    continue;
+                }
+
+                $product->update([
+                    'price' => $originalPrice,
+                    'compare_at_price' => null,
+                    'discount_percent' => 0,
+                ]);
+            }
+
+            return $products->count();
+        });
+
+        $redirectQuery = array_intersect_key(
+            $request->query(),
+            array_flip(['q', 'category_id', 'brand_id', 'status', 'page'])
+        );
+        $productLabel = $updatedCount === 1 ? 'product' : 'products';
+
+        if ($validated['action'] === 'apply') {
+            $formattedDiscount = rtrim(rtrim(number_format($discountPercent, 2, '.', ''), '0'), '.');
+            $message = "Applied a {$formattedDiscount}% sale to {$updatedCount} selected {$productLabel}.";
+        } else {
+            $message = "Removed sales from {$updatedCount} selected {$productLabel}.";
+        }
+
+        return redirect()->route('products.index', $redirectQuery)->with('success', $message);
     }
 
     public function create()
