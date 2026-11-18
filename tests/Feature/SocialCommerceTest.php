@@ -59,6 +59,34 @@ class SocialCommerceTest extends TestCase
         $this->assertDatabaseHas('brands', ['name' => 'Golden Label', 'slug' => 'golden-label']);
     }
 
+    public function test_deleting_a_product_keeps_linked_social_posts_and_clears_the_product_reference(): void
+    {
+        $admin = User::factory()->create();
+        $product = Product::create([
+            'name' => 'Premium Shirt',
+            'slug' => 'premium-shirt-delete-test',
+            'sku' => 'PREMIUM-DELETE-01',
+            'price' => 3500,
+            'currency' => 'PKR',
+            'stock_quantity' => 10,
+        ]);
+        $post = SocialPost::create([
+            'product_id' => $product->id,
+            'title' => 'Premium Shirt launch',
+            'status' => 'draft',
+        ]);
+
+        $this->withSession(['admin_user_id' => $admin->id])
+            ->delete(route('products.destroy', $product))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('products', ['id' => $product->id]);
+        $this->assertDatabaseHas('social_posts', [
+            'id' => $post->id,
+            'product_id' => null,
+        ]);
+    }
+
     public function test_product_can_be_published_to_selected_social_accounts_using_product_content(): void
     {
         Http::preventStrayRequests();
