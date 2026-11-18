@@ -5,7 +5,10 @@ namespace Tests\Feature;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use DOMDocument;
+use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class StorefrontDiscoveryTest extends TestCase
@@ -64,6 +67,51 @@ class StorefrontDiscoveryTest extends TestCase
             ->assertSee('Discoverable Product');
     }
 
+    public function test_product_detail_gallery_opens_an_accessible_image_viewer(): void
+    {
+        $product = $this->createProductWithImage(
+            'Zoomable Product',
+            'zoomable-product',
+            'https://example.com/zoomable-product.jpg'
+        );
+
+        $this->get(route('shop.product', $product->slug))
+            ->assertOk()
+            ->assertSee('data-image-viewer-index="0"', false)
+            ->assertSee('id="productImageViewer"', false)
+            ->assertSee('aria-label="Zoom image"', false);
+    }
+
+    public function test_shop_featured_collection_image_is_stable_for_a_day_and_rotates_the_next_day(): void
+    {
+        $this->createProductWithImage(
+            'First Daily Feature',
+            'first-daily-feature',
+            'https://example.com/first-daily-feature.jpg'
+        );
+        $this->createProductWithImage(
+            'Second Daily Feature',
+            'second-daily-feature',
+            'https://example.com/second-daily-feature.jpg'
+        );
+        $this->travelTo(Carbon::parse('2026-11-18 12:00:00'));
+
+        $firstDayImage = $this->featuredCollectionImage(
+            $this->get(route('shop'))->assertOk()->getContent()
+        );
+        $sameDayImage = $this->featuredCollectionImage(
+            $this->get(route('shop'))->assertOk()->getContent()
+        );
+
+        $this->travelTo(Carbon::parse('2026-11-19 12:00:00'));
+        $nextDayImage = $this->featuredCollectionImage(
+            $this->get(route('shop'))->assertOk()->getContent()
+        );
+
+        $this->assertSame($firstDayImage, $sameDayImage);
+        $this->assertNotSame($firstDayImage, $nextDayImage);
+    }
+
     private function createProduct(Category $category, Brand $brand, array $attributes = []): Product
     {
         return Product::create([
@@ -81,5 +129,38 @@ class StorefrontDiscoveryTest extends TestCase
             'media_paths' => [],
             ...$attributes,
         ]);
+    }
+
+    private function createProductWithImage(string $name, string $slug, string $imageUrl): Product
+    {
+        return Product::create([
+            'name' => $name,
+            'slug' => $slug,
+            'sku' => strtoupper(str_replace('-', '', $slug)),
+            'price' => 4000,
+            'currency' => 'PKR',
+            'stock_quantity' => 2,
+            'active' => true,
+            'image_urls' => [$imageUrl],
+            'media_paths' => [],
+        ]);
+    }
+
+    private function featuredCollectionImage(string $html): string
+    {
+        $document = new DOMDocument;
+        $previousErrorSetting = libxml_use_internal_errors(true);
+        $loaded = $document->loadHTML($html);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previousErrorSetting);
+        $this->assertTrue($loaded);
+        $images = (new DOMXPath($document))->query('//*[@aria-label="Featured collection"]//img');
+        $this->assertNotFalse($images);
+        $this->assertSame(1, $images->length);
+
+        $image = $images->item(0);
+        $this->assertInstanceOf(\DOMElement::class, $image);
+
+        return $image->getAttribute('src');
     }
 }

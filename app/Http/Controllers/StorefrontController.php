@@ -126,6 +126,37 @@ class StorefrontController extends Controller
             ? $request->route('brand')
             : null;
 
+        $dailyFeaturedCollection = null;
+
+        if (! $collection && ! $brandCollection) {
+            $featuredImages = Product::query()
+                ->where('active', true)
+                ->where('stock_quantity', '>', 0)
+                ->where(function ($query) {
+                    $query->whereJsonLength('media_paths', '>', 0)
+                        ->orWhereJsonLength('image_urls', '>', 0);
+                })
+                ->with('categoryRelation:id,name')
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
+                ->limit(30)
+                ->get()
+                ->flatMap(fn (Product $product) => collect($product->images())
+                    ->map(fn (string $image) => [
+                        'product' => $product,
+                        'image' => $product->imageUrl($image),
+                    ]))
+                ->unique('image')
+                ->values();
+
+            if ($featuredImages->isNotEmpty()) {
+                $today = now()->startOfDay();
+                $dayNumber = intdiv($today->getTimestamp() + $today->getOffset(), 86400);
+                $dailyIndex = $dayNumber % $featuredImages->count();
+                $dailyFeaturedCollection = $featuredImages->get($dailyIndex);
+            }
+        }
+
         return view('storefront.shop', [
             'products' => $products->paginate(24)->withQueryString(),
             'categories' => Category::where('active', true)->orderBy('sort_order')->orderBy('name')->get(),
@@ -133,6 +164,7 @@ class StorefrontController extends Controller
             'heroSlide' => HomepageSlide::where('active', true)->orderBy('sort_order')->first(),
             'collection' => $collection,
             'brandCollection' => $brandCollection,
+            'dailyFeaturedCollection' => $dailyFeaturedCollection,
             'canonical' => $collection
                 ? route('shop.collection', $collection->slug)
                 : ($brandCollection ? route('shop.brand', $brandCollection->slug) : route('shop')),

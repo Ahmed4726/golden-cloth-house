@@ -53,7 +53,29 @@
 
                 <div class="col-lg-6">
                     <div class="ratio ratio-4x3 bg-dark rounded-3 shadow overflow-hidden" aria-label="Featured collection">
-                        @if ($heroSlide?->imageUrl())
+                        @if (! $collection && ! $brandCollection && $dailyFeaturedCollection)
+                            @php
+                                $featuredProduct = $dailyFeaturedCollection['product'];
+                            @endphp
+                            <a class="d-block w-100 h-100 text-white text-decoration-none" href="{{ route('shop.product', $featuredProduct->slug) }}" aria-label="View {{ $featuredProduct->name }}">
+                                <img
+                                    class="w-100 h-100 object-fit-cover"
+                                    src="{{ $dailyFeaturedCollection['image'] }}"
+                                    alt="{{ $featuredProduct->name }}"
+                                    loading="eager"
+                                >
+                                <span class="badge text-bg-light position-absolute top-0 end-0 m-3 rounded-pill shadow">
+                                    Today’s pick
+                                </span>
+                                <span class="position-absolute bottom-0 start-0 w-100 bg-dark bg-opacity-75 text-white p-3 p-lg-4">
+                                    <span class="small text-uppercase fw-semibold">Featured collection</span>
+                                    <span class="d-block h3 fw-semibold mb-0">{{ $featuredProduct->name }}</span>
+                                    @if ($featuredProduct->categoryRelation)
+                                        <span class="small">{{ $featuredProduct->categoryRelation->name }}</span>
+                                    @endif
+                                </span>
+                            </a>
+                        @elseif ($heroSlide?->imageUrl())
                             <a class="d-block w-100 h-100 text-white text-decoration-none" href="{{ $heroSlide->button_url ?: '#shop-products' }}" aria-label="{{ $heroSlide->title ?: 'Explore the featured collection' }}">
                                 <img
                                     class="w-100 h-100 object-fit-cover"

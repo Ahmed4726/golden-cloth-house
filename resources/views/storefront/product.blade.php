@@ -2,6 +2,10 @@
 
 @php
     $images = $product->images();
+    $imageUrls = array_map(
+        fn ($image) => $product->imageUrl($image),
+        $images
+    );
     $firstImage = $images[0] ?? null;
     $suitPieceLabels = [
         'kameez' => 'Kameez (shirt)',
@@ -88,6 +92,8 @@
                         data-bs-interval="false"
                         data-bs-touch="true"
                         aria-label="Product images"
+                        data-image-viewer-gallery="{{ json_encode($imageUrls, JSON_UNESCAPED_SLASHES) }}"
+                        data-image-viewer-title="{{ $product->name }}"
                     >
                         <div class="carousel-inner h-100">
                             @forelse ($images as $index => $image)
@@ -96,13 +102,23 @@
                                 @endphp
 
                                 <div class="carousel-item h-100 {{ $index === 0 ? 'active' : '' }}">
-                                    <img
-                                        class="d-block w-100 h-100 object-fit-contain bg-white product-image-zoom"
-                                        src="{{ $imageUrl }}"
-                                        alt="{{ $product->name }} image {{ $index + 1 }}"
-                                        loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
-                                        onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
+                                    <button
+                                        class="product-image-viewer-trigger position-relative d-flex w-100 h-100 align-items-center justify-content-center border-0 bg-white p-0"
+                                        type="button"
+                                        data-image-viewer-index="{{ $index }}"
+                                        aria-label="Enlarge {{ $product->name }} image {{ $index + 1 }}"
                                     >
+                                        <img
+                                            class="d-block w-100 h-100 object-fit-contain bg-white product-image-zoom"
+                                            src="{{ $imageUrl }}"
+                                            alt="{{ $product->name }} image {{ $index + 1 }}"
+                                            loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                                            onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
+                                        >
+                                        <span class="position-absolute bottom-0 end-0 m-3 d-flex align-items-center justify-content-center rounded-circle bg-white p-2 shadow" aria-hidden="true">
+                                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                                        </span>
+                                    </button>
                                 </div>
                             @empty
                                 <div class="carousel-item h-100 active">

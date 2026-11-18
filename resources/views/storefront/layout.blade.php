@@ -30,6 +30,28 @@
             transition: transform 350ms ease;
         }
 
+        .product-image-viewer-trigger {
+            cursor: zoom-in;
+        }
+
+        .product-image-viewer-stage {
+            min-height: min(70vh, 50rem);
+            overflow: auto;
+        }
+
+        .product-image-viewer-image {
+            max-width: 100%;
+            max-height: calc(100vh - 8rem);
+            object-fit: contain;
+            cursor: zoom-in;
+            transition: transform 200ms ease;
+        }
+
+        .product-image-viewer-image.is-zoomed {
+            transform: scale(1.75);
+            cursor: zoom-out;
+        }
+
         @media (hover: hover) {
             .product-image-zoom:hover {
                 transform: scale(1.12);
@@ -332,6 +354,36 @@
         </a>
     @endif
 
+    @if (request()->routeIs('shop.product'))
+        <div class="modal fade" id="productImageViewer" tabindex="-1" aria-labelledby="productImageViewerTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-xl modal-fullscreen-md-down">
+                <div class="modal-content bg-dark text-white border-0">
+                    <div class="modal-header border-0">
+                        <div>
+                            <h2 class="modal-title h6 mb-1" id="productImageViewerTitle">Product images</h2>
+                            <span class="small text-white-50" id="productImageViewerCounter"></span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-outline-light btn-sm" id="productImageViewerZoom" type="button" aria-label="Zoom image">
+                                <i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close image viewer"></button>
+                        </div>
+                    </div>
+                    <div class="modal-body product-image-viewer-stage d-flex align-items-center justify-content-center p-0">
+                        <button class="btn btn-dark position-absolute start-0 top-50 translate-middle-y ms-3" id="productImageViewerPrevious" type="button" aria-label="Previous image">
+                            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                        </button>
+                        <img class="product-image-viewer-image" id="productImageViewerImage" src="" alt="">
+                        <button class="btn btn-dark position-absolute end-0 top-50 translate-middle-y me-3" id="productImageViewerNext" type="button" aria-label="Next image">
+                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="modal fade" id="productQuickView" data-whatsapp-number="{{ $whatsappNumber ? preg_replace('/[^0-9]/', '', $whatsappNumber) : '' }}" data-shipping-fee="{{ config('store.shipping_fee') }}" data-free-shipping-threshold="{{ config('store.free_shipping_threshold') }}" tabindex="-1" aria-labelledby="productQuickViewTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content rounded-3 shadow-lg">
@@ -400,6 +452,57 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        const productImageViewer = document.getElementById('productImageViewer');
+        if (productImageViewer) {
+            const productGallery = document.querySelector('[data-image-viewer-gallery]');
+            const productImages = JSON.parse(productGallery?.dataset.imageViewerGallery || '[]');
+            const productName = productGallery?.dataset.imageViewerTitle || 'Product';
+            const viewerImage = productImageViewer.querySelector('#productImageViewerImage');
+            const viewerCounter = productImageViewer.querySelector('#productImageViewerCounter');
+            const zoomButton = productImageViewer.querySelector('#productImageViewerZoom');
+            const zoomIcon = zoomButton.querySelector('i');
+            const previousButton = productImageViewer.querySelector('#productImageViewerPrevious');
+            const nextButton = productImageViewer.querySelector('#productImageViewerNext');
+            let currentImageIndex = 0;
+
+            const displayImage = (index) => {
+                if (productImages.length === 0) {
+                    return;
+                }
+
+                currentImageIndex = (index + productImages.length) % productImages.length;
+                viewerImage.src = productImages[currentImageIndex];
+                viewerImage.alt = `${productName} image ${currentImageIndex + 1}`;
+                viewerImage.classList.remove('is-zoomed');
+                zoomButton.setAttribute('aria-label', 'Zoom image');
+                zoomIcon.classList.replace('fa-magnifying-glass-minus', 'fa-magnifying-glass-plus');
+                viewerCounter.textContent = `${currentImageIndex + 1} / ${productImages.length}`;
+            };
+
+            const toggleZoom = () => {
+                const isZoomed = viewerImage.classList.toggle('is-zoomed');
+                zoomButton.setAttribute('aria-label', isZoomed ? 'Zoom out' : 'Zoom image');
+                zoomIcon.classList.toggle('fa-magnifying-glass-plus', !isZoomed);
+                zoomIcon.classList.toggle('fa-magnifying-glass-minus', isZoomed);
+            };
+
+            previousButton.classList.toggle('d-none', productImages.length < 2);
+            nextButton.classList.toggle('d-none', productImages.length < 2);
+            viewerCounter.classList.toggle('d-none', productImages.length < 2);
+
+            document.querySelectorAll('.product-image-viewer-trigger').forEach((trigger) => {
+                trigger.addEventListener('click', () => {
+                    displayImage(Number(trigger.dataset.imageViewerIndex));
+                    bootstrap.Modal.getOrCreateInstance(productImageViewer).show();
+                });
+            });
+
+            previousButton.addEventListener('click', () => displayImage(currentImageIndex - 1));
+            nextButton.addEventListener('click', () => displayImage(currentImageIndex + 1));
+            zoomButton.addEventListener('click', toggleZoom);
+            viewerImage.addEventListener('click', toggleZoom);
+        }
+
         document.querySelectorAll('.product-card-gallery, .product-detail-gallery, .quick-view-gallery').forEach((carousel) => {
             carousel.addEventListener('slide.bs.carousel', (event) => {
                 const target = `#${carousel.id}`;
