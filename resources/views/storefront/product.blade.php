@@ -189,7 +189,7 @@
                         </div>
                     @else
                         <div class="small text-danger text-uppercase fw-bold">
-                            Currently out of stock
+                            Sold out
                         </div>
                     @endif
 

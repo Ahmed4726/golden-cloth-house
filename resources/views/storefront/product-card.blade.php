@@ -208,7 +208,7 @@
                     type="button"
                     disabled
                 >
-                    Out of stock
+                    Sold out
                 </button>
             @endif
         </div>

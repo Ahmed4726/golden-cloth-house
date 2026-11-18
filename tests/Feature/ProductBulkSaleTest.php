@@ -66,11 +66,13 @@ class ProductBulkSaleTest extends TestCase
         $this->withSession(['admin_user_id' => $admin->id])
             ->get(route('products.index'))
             ->assertOk()
-            ->assertSee('Bulk sale pricing')
+            ->assertSee('Bulk product actions')
             ->assertSee('Apply discount')
             ->assertSee('Remove sale')
+            ->assertSee('Record selected sale')
             ->assertSee('form="bulk-sale-form"', false)
-            ->assertSee('value="'.$product->id.'"', false);
+            ->assertSee('value="'.$product->id.'"', false)
+            ->assertSee('quantities['.$product->id.']', false);
     }
 
     public function test_admin_cannot_apply_a_discount_above_one_hundred_percent(): void

@@ -58,8 +58,8 @@
         <div class="card-body">
             <div class="row g-3 align-items-end">
                 <div class="col-12 col-lg">
-                    <h2 class="h5 fw-bold mb-1">Bulk sale pricing</h2>
-                    <p class="text-secondary small mb-0">Select products on this page. The discount uses each product’s original price; removing a sale restores that price.</p>
+                    <h2 class="h5 fw-bold mb-1">Bulk product actions</h2>
+                    <p class="text-secondary small mb-0">Select products on this page. Record their quantities as one in-store sale, or manage sale pricing separately.</p>
                     <div class="small mt-2" aria-live="polite">
                         <span id="selected-products-count">0</span> products selected
                     </div>
@@ -74,6 +74,7 @@
                 <div class="col-12 col-sm-7 col-lg-auto d-flex flex-wrap gap-2">
                     <button class="btn btn-dark" type="submit" name="action" value="apply">Apply discount</button>
                     <button class="btn btn-outline-secondary" type="submit" name="action" value="remove">Remove sale</button>
+                    <button class="btn btn-outline-success" type="submit" formaction="{{ route('orders.bulk-sales.store') }}">Record selected sale</button>
                 </div>
             </div>
         </div>
@@ -91,6 +92,7 @@
                         <th>SKU</th>
                         <th>Price</th>
                         <th>Stock</th>
+                        <th>Sale qty</th>
                         <th>Images</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -142,6 +144,18 @@
                                 @endif
                             </td>
                             <td>{{ $product->stock_quantity }}</td>
+                            <td>
+                                <input
+                                    class="form-control form-control-sm"
+                                    type="number"
+                                    name="quantities[{{ $product->id }}]"
+                                    min="1"
+                                    max="{{ max($product->stock_quantity, 1) }}"
+                                    value="{{ old('quantities.'.$product->id, 1) }}"
+                                    form="bulk-sale-form"
+                                    aria-label="Quantity sold for {{ $product->name }}"
+                                >
+                            </td>
                             <td>{{ count($product->images()) }}</td>
                             <td><span class="badge {{ $product->active ? 'text-bg-success' : 'text-bg-secondary' }}">{{ $product->active ? 'Active' : 'Hidden' }}</span></td>
                             <td>
@@ -157,7 +171,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="8" class="text-secondary">No products yet.</td></tr>
+                        <tr><td colspan="9" class="text-secondary">No products yet.</td></tr>
                     @endforelse
                 </tbody>
             </table>

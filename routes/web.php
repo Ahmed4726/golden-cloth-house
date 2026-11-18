@@ -107,6 +107,7 @@ Route::middleware('admin.session')->prefix('admin')->group(function () {
     Route::delete('/catalog-imports/{catalogImport}', [CatalogImportController::class, 'destroy'])->name('catalog-imports.destroy');
 
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::post('/orders/bulk-sales', [OrderController::class, 'storeBulkSale'])->name('orders.bulk-sales.store');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');

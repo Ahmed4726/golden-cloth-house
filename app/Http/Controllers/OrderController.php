@@ -123,6 +123,105 @@ class OrderController extends Controller
             ->with('success', 'In-store sale recorded and stock updated.');
     }
 
+    public function storeBulkSale(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'product_ids' => ['required', 'array', 'min:1', 'max:100'],
+            'product_ids.*' => ['required', 'integer', 'distinct', 'exists:products,id'],
+            'quantities' => ['required', 'array'],
+            'quantities.*' => ['required', 'integer', 'min:1', 'max:100000'],
+        ]);
+
+        foreach ($data['product_ids'] as $productId) {
+            if (! array_key_exists($productId, $data['quantities'])) {
+                throw ValidationException::withMessages([
+                    'quantities.'.$productId => 'Enter a quantity for each selected product.',
+                ]);
+            }
+        }
+
+        $order = DB::transaction(function () use ($data): Order {
+            $products = Product::query()
+                ->whereKey($data['product_ids'])
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            if ($products->count() !== count($data['product_ids'])) {
+                throw ValidationException::withMessages([
+                    'product_ids' => 'One or more selected products are no longer available.',
+                ]);
+            }
+
+            $currency = $products->first()->currency;
+            $subtotal = 0.0;
+            $items = [];
+
+            foreach ($data['product_ids'] as $productId) {
+                $product = $products->get($productId);
+                $quantity = (int) $data['quantities'][$productId];
+
+                if ($product->stock_quantity < $quantity) {
+                    throw ValidationException::withMessages([
+                        'quantities.'.$productId => 'Only '.$product->stock_quantity.' item(s) are currently in stock.',
+                    ]);
+                }
+
+                if ($product->currency !== $currency) {
+                    throw ValidationException::withMessages([
+                        'product_ids' => 'Selected products must use the same currency.',
+                    ]);
+                }
+
+                $unitPrice = (float) $product->price;
+                $lineTotal = round($unitPrice * $quantity, 2);
+                $subtotal = round($subtotal + $lineTotal, 2);
+                $image = $product->images()[0] ?? null;
+
+                $items[] = [
+                    'product' => $product,
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'sku' => $product->sku,
+                    'quantity' => $quantity,
+                    'unit_price' => $unitPrice,
+                    'line_total' => $lineTotal,
+                    'image_url' => $image && str_starts_with($image, 'http')
+                        ? $image
+                        : ($image ? asset('storage/'.$image) : null),
+                ];
+            }
+
+            $order = Order::create([
+                'order_number' => $this->inStoreOrderNumber(),
+                'status' => 'delivered',
+                'payment_method' => 'cash',
+                'payment_status' => 'paid',
+                'currency' => $currency,
+                'subtotal' => $subtotal,
+                'shipping_amount' => 0,
+                'discount_amount' => 0,
+                'total' => $subtotal,
+                'delivered_at' => now(),
+            ]);
+
+            foreach ($items as $item) {
+                $product = $item['product'];
+                unset($item['product']);
+
+                $order->items()->create($item);
+                $product->decrement('stock_quantity', $item['quantity']);
+            }
+
+            return $order;
+        });
+
+        return redirect()
+            ->route('orders.show', $order)
+            ->with('success', 'Bulk in-store sale recorded and stock updated.');
+    }
+
     public function update(Request $request, Order $order)
     {
         $data = $request->validate([

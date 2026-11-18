@@ -490,7 +490,7 @@
             modal.querySelector('#quickViewComparePrice').classList.toggle('d-none', !comparePrice);
             modal.querySelector('#quickViewDescription').textContent = description;
             modal.querySelector('#quickViewDescription').classList.toggle('d-none', !description);
-            modal.querySelector('#quickViewStock').textContent = inStock ? 'In stock' : 'Out of stock';
+            modal.querySelector('#quickViewStock').textContent = inStock ? 'In stock' : 'Sold out';
             modal.querySelector('#quickViewStock').className = `small mb-4 ${inStock ? 'text-success' : 'text-secondary'}`;
             modal.querySelector('#quickViewLink').href = trigger.dataset.productUrl;
             modal.querySelector('#quickViewCartForm').action = trigger.dataset.cartUrl;
