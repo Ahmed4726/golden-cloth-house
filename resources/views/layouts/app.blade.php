@@ -18,6 +18,12 @@
         .ratio-4x5 { --bs-aspect-ratio: 125%; }
     </style>
 </head>
+<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-P6ZTCG4X"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+</script>
 
 <body class="bg-light">
     <nav class="navbar navbar-dark bg-dark d-lg-none sticky-top">
