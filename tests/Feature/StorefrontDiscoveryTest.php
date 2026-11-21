@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\HomepageSlide;
 use App\Models\Product;
 use DOMDocument;
 use DOMXPath;
@@ -80,6 +81,41 @@ class StorefrontDiscoveryTest extends TestCase
             ->assertSee('data-image-viewer-index="0"', false)
             ->assertSee('id="productImageViewer"', false)
             ->assertSee('aria-label="Zoom image"', false);
+    }
+
+    public function test_homepage_uses_responsive_collection_images_and_prioritizes_hero_image(): void
+    {
+        $category = Category::create([
+            'name' => 'Responsive Image Collection',
+            'slug' => 'responsive-image-collection',
+            'active' => true,
+        ]);
+        $brand = Brand::create([
+            'name' => 'Responsive Image Brand',
+            'slug' => 'responsive-image-brand',
+            'active' => true,
+        ]);
+        $product = $this->createProductWithImage(
+            'Responsive Homepage Product',
+            'responsive-homepage-product',
+            'products/responsive-homepage-product.jpg'
+        );
+        $product->update([
+            'category_id' => $category->id,
+            'brand_id' => $brand->id,
+        ]);
+        HomepageSlide::create([
+            'title' => 'Responsive Hero Slide',
+            'image_path' => 'slides/responsive-hero.jpg',
+            'active' => true,
+        ]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('fetchpriority="high"', false)
+            ->assertSee('imagesrcset=', false)
+            ->assertSee('width=320', false)
+            ->assertSee('width=480', false);
     }
 
     public function test_shop_featured_collection_image_is_stable_for_a_day_and_rotates_the_next_day(): void

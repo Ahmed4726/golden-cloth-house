@@ -112,10 +112,17 @@ class Product extends Model
         return $this->active && $this->stock_quantity >= $quantity;
     }
 
-    public function imageUrl(string $image): string
+    public function imageUrl(string $image, ?int $width = null): string
     {
         if (filter_var($image, FILTER_VALIDATE_URL)) {
             return $image;
+        }
+
+        if ($width !== null) {
+            return route('media.show', [
+                'path' => ltrim(preg_replace('#^/?storage/#', '', $image), '/'),
+                'width' => $width,
+            ]);
         }
 
         return '/storage/'.ltrim($image, '/');

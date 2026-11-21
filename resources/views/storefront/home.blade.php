@@ -50,6 +50,19 @@
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
 
+@if ($slides->first()?->image_path)
+    @push('head')
+        <link
+            rel="preload"
+            as="image"
+            href="{{ $slides->first()->imageUrl(1280) }}"
+            imagesrcset="{{ $slides->first()->imageUrl(640) }} 640w, {{ $slides->first()->imageUrl(960) }} 960w, {{ $slides->first()->imageUrl(1280) }} 1280w"
+            imagesizes="100vw"
+            fetchpriority="high"
+        >
+    @endpush
+@endif
+
 @section('content')
     <section
         id="homeHero"
@@ -64,9 +77,15 @@
                         <div class="position-absolute top-0 start-0 w-100 h-100">
                             <img
                                 class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover"
-                                src="{{ $slide->imageUrl() ?: asset('images/product-placeholder.svg') }}"
+                                src="{{ $slide->imageUrl(960) ?: asset('images/product-placeholder.svg') }}"
+                                @if ($slide->image_path)
+                                    srcset="{{ $slide->imageUrl(640) }} 640w, {{ $slide->imageUrl(960) }} 960w, {{ $slide->imageUrl(1280) }} 1280w"
+                                    sizes="100vw"
+                                @endif
                                 alt="{{ $slide->title ?: config('store.name') }}"
                                 loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                                fetchpriority="{{ $index === 0 ? 'high' : 'auto' }}"
+                                decoding="async"
                                 onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
                             >
 
@@ -207,9 +226,14 @@
                             <div class="ratio ratio-1x1 bg-light">
                                 <img
                                     class="w-100 h-100 object-fit-contain"
-                                    src="{{ $image ? $categoryProduct->imageUrl($image) : asset('images/product-placeholder.svg') }}"
+                                    src="{{ $image ? $categoryProduct->imageUrl($image, 320) : asset('images/product-placeholder.svg') }}"
+                                    @if ($image)
+                                        srcset="{{ $categoryProduct->imageUrl($image, 320) }} 320w, {{ $categoryProduct->imageUrl($image, 480) }} 480w"
+                                        sizes="(min-width: 992px) 25vw, 50vw"
+                                    @endif
                                     alt="{{ $category->name }}"
                                     loading="lazy"
+                                    decoding="async"
                                     onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
                                 >
                             </div>
@@ -277,7 +301,17 @@
                         <div class="col">
                             <a class="card h-100 text-decoration-none text-dark border-0 shadow-sm overflow-hidden" href="{{ route('shop.brand', $brand->slug) }}">
                                 <div class="ratio ratio-1x1 bg-white">
-                                    <img class="w-100 h-100 object-fit-contain" src="{{ $brandImage ? $brandProduct->imageUrl($brandImage) : asset('images/product-placeholder.svg') }}" alt="{{ $brand->name }}" loading="lazy">
+                                    <img
+                                        class="w-100 h-100 object-fit-contain"
+                                        src="{{ $brandImage ? $brandProduct->imageUrl($brandImage, 320) : asset('images/product-placeholder.svg') }}"
+                                        @if ($brandImage)
+                                            srcset="{{ $brandProduct->imageUrl($brandImage, 320) }} 320w, {{ $brandProduct->imageUrl($brandImage, 480) }} 480w"
+                                            sizes="(min-width: 992px) 25vw, 50vw"
+                                        @endif
+                                        alt="{{ $brand->name }}"
+                                        loading="lazy"
+                                        decoding="async"
+                                    >
                                 </div>
                                 <div class="card-body d-flex justify-content-between align-items-center gap-2">
                                     <h3 class="h5 mb-0 text-truncate">{{ $brand->name }}</h3>

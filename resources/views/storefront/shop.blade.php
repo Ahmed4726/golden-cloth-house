@@ -61,8 +61,12 @@
                                 <img
                                     class="w-100 h-100 object-fit-cover"
                                     src="{{ $dailyFeaturedCollection['image'] }}"
+                                    srcset="{{ $dailyFeaturedCollection['image_srcset'] }}"
+                                    sizes="(min-width: 992px) 50vw, 100vw"
                                     alt="{{ $featuredProduct->name }}"
                                     loading="eager"
+                                    fetchpriority="high"
+                                    decoding="async"
                                 >
                                 <span class="badge text-bg-light position-absolute top-0 end-0 m-3 rounded-pill shadow">
                                     Today’s pick
@@ -79,9 +83,13 @@
                             <a class="d-block w-100 h-100 text-white text-decoration-none" href="{{ $heroSlide->button_url ?: '#shop-products' }}" aria-label="{{ $heroSlide->title ?: 'Explore the featured collection' }}">
                                 <img
                                     class="w-100 h-100 object-fit-cover"
-                                    src="{{ $heroSlide->imageUrl() }}"
+                                    src="{{ $heroSlide->imageUrl(960) }}"
+                                    srcset="{{ $heroSlide->imageUrl(640) }} 640w, {{ $heroSlide->imageUrl(960) }} 960w, {{ $heroSlide->imageUrl(1280) }} 1280w"
+                                    sizes="(min-width: 992px) 50vw, 100vw"
                                     alt="{{ $heroSlide->title ?: 'Featured collection from '.config('store.name') }}"
                                     loading="eager"
+                                    fetchpriority="high"
+                                    decoding="async"
                                 >
                                 <span class="badge text-bg-light position-absolute top-0 end-0 m-3 rounded-pill shadow">
                                     30+ years

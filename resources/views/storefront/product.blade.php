@@ -3,7 +3,7 @@
 @php
     $images = $product->images();
     $imageUrls = array_map(
-        fn ($image) => $product->imageUrl($image),
+        fn ($image) => $product->imageUrl($image, 1280),
         $images
     );
     $firstImage = $images[0] ?? null;
@@ -98,7 +98,7 @@
                         <div class="carousel-inner h-100">
                             @forelse ($images as $index => $image)
                                 @php
-                                    $imageUrl = $product->imageUrl($image);
+                                    $imageUrl = $product->imageUrl($image, 960);
                                 @endphp
 
                                 <div class="carousel-item h-100 {{ $index === 0 ? 'active' : '' }}">
@@ -111,6 +111,8 @@
                                         <img
                                             class="d-block w-100 h-100 object-fit-contain bg-white product-image-zoom"
                                             src="{{ $imageUrl }}"
+                                            srcset="{{ $product->imageUrl($image, 640) }} 640w, {{ $imageUrl }} 960w, {{ $product->imageUrl($image, 1280) }} 1280w"
+                                            sizes="(min-width: 992px) 58vw, 100vw"
                                             alt="{{ $product->name }} image {{ $index + 1 }}"
                                             loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
                                             onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
@@ -155,9 +157,10 @@
                                     <div class="ratio ratio-1x1">
                                         <img
                                             class="w-100 h-100 object-fit-contain"
-                                            src="{{ $product->imageUrl($image) }}"
+                                            src="{{ $product->imageUrl($image, 320) }}"
                                             alt="{{ $product->name }} image {{ $index + 1 }}"
                                             loading="lazy"
+                                            decoding="async"
                                         >
                                     </div>
                                 </button>

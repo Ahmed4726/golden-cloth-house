@@ -23,6 +23,8 @@
     <meta name="description" content="{{ $pageDescription }}">
     <meta name="robots" content="{{ $indexable ? 'index,follow,max-image-preview:large' : 'noindex,follow' }}">
     <link rel="canonical" href="{{ $canonical }}">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
     <style>
@@ -86,6 +88,7 @@
     @if (isset($schema))
         <script type="application/ld+json">{!! $schema !!}</script>
     @endif
+    @stack('head')
 </head>
 <body class="bg-white text-dark">
     <a class="visually-hidden-focusable position-absolute top-0 start-0 p-2 bg-white text-dark z-3" href="#main-content">Skip to content</a>

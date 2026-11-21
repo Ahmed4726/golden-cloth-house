@@ -144,7 +144,12 @@ class StorefrontController extends Controller
                 ->flatMap(fn (Product $product) => collect($product->images())
                     ->map(fn (string $image) => [
                         'product' => $product,
-                        'image' => $product->imageUrl($image),
+                        'image' => $product->imageUrl($image, 960),
+                        'image_srcset' => implode(', ', [
+                            $product->imageUrl($image, 640).' 640w',
+                            $product->imageUrl($image, 960).' 960w',
+                            $product->imageUrl($image, 1280).' 1280w',
+                        ]),
                     ]))
                 ->unique('image')
                 ->values();

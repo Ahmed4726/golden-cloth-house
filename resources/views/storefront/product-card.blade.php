@@ -1,7 +1,8 @@
 @php
+    $productImages = $product->images();
     $galleryImageUrls = array_map(
-        fn ($image) => $product->imageUrl($image),
-        $product->images()
+        fn ($image) => $product->imageUrl($image, 640),
+        $productImages
     );
     $galleryImageUrls = $galleryImageUrls ?: [asset('images/product-placeholder.svg')];
     $imageUrl = $galleryImageUrls[0];
@@ -32,7 +33,7 @@
             data-bs-touch="true"
         >
             <div class="carousel-inner h-100">
-                @foreach ($galleryImageUrls as $index => $galleryImageUrl)
+                @foreach ($productImages as $index => $image)
                     <div class="carousel-item h-100 {{ $index === 0 ? 'active' : '' }}">
                         <a
                             class="d-block w-100 h-100"
@@ -41,9 +42,12 @@
                         >
                             <img
                                 class="d-block w-100 h-100 object-fit-contain bg-white product-image-zoom"
-                                src="{{ $galleryImageUrl }}"
+                                src="{{ $product->imageUrl($image, 320) }}"
+                                srcset="{{ $product->imageUrl($image, 320) }} 320w, {{ $product->imageUrl($image, 640) }} 640w"
+                                sizes="(min-width: 1200px) 25vw, (min-width: 768px) 33vw, 50vw"
                                 alt="{{ $product->name }} image {{ $index + 1 }}"
                                 loading="lazy"
+                                decoding="async"
                                 onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';"
                             >
                         </a>
