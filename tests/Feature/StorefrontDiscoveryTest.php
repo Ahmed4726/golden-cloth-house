@@ -95,6 +95,15 @@ class StorefrontDiscoveryTest extends TestCase
             ->assertSee('product-image-viewer-control-next', false);
     }
 
+    public function test_storefront_loads_bundled_stylesheets_without_blocking_cdn_stylesheets(): void
+    {
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('build/assets/app-', false)
+            ->assertDontSee('cdn.jsdelivr.net/npm/bootstrap', false)
+            ->assertDontSee('cdnjs.cloudflare.com/ajax/libs/font-awesome', false);
+    }
+
     public function test_homepage_uses_responsive_collection_images_and_prioritizes_hero_image(): void
     {
         $category = Category::create([

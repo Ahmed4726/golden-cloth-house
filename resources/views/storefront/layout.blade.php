@@ -23,10 +23,7 @@
     <meta name="description" content="{{ $pageDescription }}">
     <meta name="robots" content="{{ $indexable ? 'index,follow,max-image-preview:large' : 'noindex,follow' }}">
     <link rel="canonical" href="{{ $canonical }}">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    @vite('resources/js/app.js')
     <style>
         .product-image-zoom {
             transition: transform 350ms ease;
@@ -512,8 +509,8 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
         const productImageViewer = document.getElementById('productImageViewer');
         if (productImageViewer) {
             const productGallery = document.querySelector('[data-image-viewer-gallery]');
@@ -747,6 +744,7 @@
             quantityInput.oninput = updateWhatsAppOrderLink;
             quantityInput.onchange = updateWhatsAppOrderLink;
             updateWhatsAppOrderLink();
+        });
         });
     </script>
     @stack('scripts')
