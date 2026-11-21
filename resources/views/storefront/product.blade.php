@@ -111,7 +111,7 @@
                                         <img
                                             class="d-block w-100 h-100 object-fit-contain bg-white product-image-zoom"
                                             src="{{ $imageUrl }}"
-                                            srcset="{{ $product->imageUrl($image, 640) }} 640w, {{ $imageUrl }} 960w, {{ $product->imageUrl($image, 1280) }} 1280w"
+                                            srcset="{{ $product->imageUrl($image, 480) }} 480w, {{ $product->imageUrl($image, 640) }} 640w, {{ $imageUrl }} 960w, {{ $product->imageUrl($image, 1280) }} 1280w"
                                             sizes="(min-width: 992px) 58vw, 100vw"
                                             alt="{{ $product->name }} image {{ $index + 1 }}"
                                             loading="{{ $index === 0 ? 'eager' : 'lazy' }}"

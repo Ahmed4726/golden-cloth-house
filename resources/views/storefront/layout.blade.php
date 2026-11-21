@@ -37,21 +37,80 @@
         }
 
         .product-image-viewer-stage {
-            min-height: min(70vh, 50rem);
+            position: relative;
+            height: min(70vh, 50rem);
             overflow: auto;
         }
 
         .product-image-viewer-image {
+            display: block;
+            width: auto;
+            height: auto;
             max-width: 100%;
-            max-height: calc(100vh - 8rem);
+            max-height: calc(100dvh - 8rem);
             object-fit: contain;
             cursor: zoom-in;
-            transition: transform 200ms ease;
+        }
+
+        .product-image-viewer-stage.is-zoomed {
+            display: block;
         }
 
         .product-image-viewer-image.is-zoomed {
-            transform: scale(1.75);
+            width: 175%;
+            max-width: none;
+            max-height: none;
             cursor: zoom-out;
+        }
+
+        .product-image-viewer-control {
+            position: absolute;
+            z-index: 2;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .product-image-viewer-control-previous {
+            left: 0.75rem;
+        }
+
+        .product-image-viewer-control-next {
+            right: 0.75rem;
+        }
+
+        .product-detail-gallery .carousel-control-prev,
+        .product-detail-gallery .carousel-control-next {
+            top: 50%;
+            bottom: auto;
+            width: 2.75rem;
+            height: 2.75rem;
+            transform: translateY(-50%);
+            border-radius: 50%;
+            background-color: rgb(33 37 41 / 75%);
+            opacity: 1;
+            z-index: 2;
+        }
+
+        .product-detail-gallery .carousel-control-prev {
+            left: 0.75rem;
+        }
+
+        .product-detail-gallery .carousel-control-next {
+            right: 0.75rem;
+        }
+
+        @media (max-width: 767.98px) {
+            .product-image-viewer-stage {
+                height: calc(100dvh - 5rem);
+            }
+
+            .product-image-viewer-control-previous {
+                left: 0.5rem;
+            }
+
+            .product-image-viewer-control-next {
+                right: 0.5rem;
+            }
         }
 
         @media (hover: hover) {
@@ -374,11 +433,11 @@
                         </div>
                     </div>
                     <div class="modal-body product-image-viewer-stage d-flex align-items-center justify-content-center p-0">
-                        <button class="btn btn-dark position-absolute start-0 top-50 translate-middle-y ms-3" id="productImageViewerPrevious" type="button" aria-label="Previous image">
+                        <button class="btn btn-dark product-image-viewer-control product-image-viewer-control-previous" id="productImageViewerPrevious" type="button" aria-label="Previous image">
                             <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
                         </button>
                         <img class="product-image-viewer-image" id="productImageViewerImage" src="" alt="">
-                        <button class="btn btn-dark position-absolute end-0 top-50 translate-middle-y me-3" id="productImageViewerNext" type="button" aria-label="Next image">
+                        <button class="btn btn-dark product-image-viewer-control product-image-viewer-control-next" id="productImageViewerNext" type="button" aria-label="Next image">
                             <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                         </button>
                     </div>
@@ -462,6 +521,7 @@
             const productName = productGallery?.dataset.imageViewerTitle || 'Product';
             const viewerImage = productImageViewer.querySelector('#productImageViewerImage');
             const viewerCounter = productImageViewer.querySelector('#productImageViewerCounter');
+            const viewerStage = productImageViewer.querySelector('.product-image-viewer-stage');
             const zoomButton = productImageViewer.querySelector('#productImageViewerZoom');
             const zoomIcon = zoomButton.querySelector('i');
             const previousButton = productImageViewer.querySelector('#productImageViewerPrevious');
@@ -477,6 +537,9 @@
                 viewerImage.src = productImages[currentImageIndex];
                 viewerImage.alt = `${productName} image ${currentImageIndex + 1}`;
                 viewerImage.classList.remove('is-zoomed');
+                viewerStage.classList.remove('is-zoomed');
+                viewerStage.classList.add('d-flex');
+                viewerStage.scrollTo(0, 0);
                 zoomButton.setAttribute('aria-label', 'Zoom image');
                 zoomIcon.classList.replace('fa-magnifying-glass-minus', 'fa-magnifying-glass-plus');
                 viewerCounter.textContent = `${currentImageIndex + 1} / ${productImages.length}`;
@@ -484,6 +547,8 @@
 
             const toggleZoom = () => {
                 const isZoomed = viewerImage.classList.toggle('is-zoomed');
+                viewerStage.classList.toggle('is-zoomed', isZoomed);
+                viewerStage.classList.toggle('d-flex', !isZoomed);
                 zoomButton.setAttribute('aria-label', isZoomed ? 'Zoom out' : 'Zoom image');
                 zoomIcon.classList.toggle('fa-magnifying-glass-plus', !isZoomed);
                 zoomIcon.classList.toggle('fa-magnifying-glass-minus', isZoomed);
@@ -493,17 +558,43 @@
             nextButton.classList.toggle('d-none', productImages.length < 2);
             viewerCounter.classList.toggle('d-none', productImages.length < 2);
 
-            document.querySelectorAll('.product-image-viewer-trigger').forEach((trigger) => {
-                trigger.addEventListener('click', () => {
-                    displayImage(Number(trigger.dataset.imageViewerIndex));
-                    bootstrap.Modal.getOrCreateInstance(productImageViewer).show();
-                });
+            productGallery?.addEventListener('click', (event) => {
+                const trigger = event.target.closest('.product-image-viewer-trigger');
+
+                if (!trigger) {
+                    return;
+                }
+
+                displayImage(Number(trigger.dataset.imageViewerIndex));
+                bootstrap.Modal.getOrCreateInstance(productImageViewer).show();
             });
 
             previousButton.addEventListener('click', () => displayImage(currentImageIndex - 1));
             nextButton.addEventListener('click', () => displayImage(currentImageIndex + 1));
             zoomButton.addEventListener('click', toggleZoom);
             viewerImage.addEventListener('click', toggleZoom);
+
+            let touchStartX = null;
+            viewerStage.addEventListener('pointerdown', (event) => {
+                touchStartX = event.pointerType === 'touch' && !viewerImage.classList.contains('is-zoomed')
+                    ? event.clientX
+                    : null;
+            });
+            viewerStage.addEventListener('pointerup', (event) => {
+                if (touchStartX === null) {
+                    return;
+                }
+
+                const swipeDistance = event.clientX - touchStartX;
+                touchStartX = null;
+
+                if (Math.abs(swipeDistance) >= 50) {
+                    displayImage(currentImageIndex + (swipeDistance < 0 ? 1 : -1));
+                }
+            });
+            viewerStage.addEventListener('pointercancel', () => {
+                touchStartX = null;
+            });
         }
 
         document.querySelectorAll('.product-card-gallery, .product-detail-gallery, .quick-view-gallery').forEach((carousel) => {

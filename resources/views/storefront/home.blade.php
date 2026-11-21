@@ -56,7 +56,7 @@
             rel="preload"
             as="image"
             href="{{ $slides->first()->imageUrl(1280) }}"
-            imagesrcset="{{ $slides->first()->imageUrl(640) }} 640w, {{ $slides->first()->imageUrl(960) }} 960w, {{ $slides->first()->imageUrl(1280) }} 1280w"
+            imagesrcset="{{ $slides->first()->imageUrl(480) }} 480w, {{ $slides->first()->imageUrl(640) }} 640w, {{ $slides->first()->imageUrl(960) }} 960w, {{ $slides->first()->imageUrl(1280) }} 1280w"
             imagesizes="100vw"
             fetchpriority="high"
         >
@@ -79,7 +79,7 @@
                                 class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover"
                                 src="{{ $slide->imageUrl(960) ?: asset('images/product-placeholder.svg') }}"
                                 @if ($slide->image_path)
-                                    srcset="{{ $slide->imageUrl(640) }} 640w, {{ $slide->imageUrl(960) }} 960w, {{ $slide->imageUrl(1280) }} 1280w"
+                                    srcset="{{ $slide->imageUrl(480) }} 480w, {{ $slide->imageUrl(640) }} 640w, {{ $slide->imageUrl(960) }} 960w, {{ $slide->imageUrl(1280) }} 1280w"
                                     sizes="100vw"
                                 @endif
                                 alt="{{ $slide->title ?: config('store.name') }}"

@@ -84,7 +84,7 @@
                                 <img
                                     class="w-100 h-100 object-fit-cover"
                                     src="{{ $heroSlide->imageUrl(960) }}"
-                                    srcset="{{ $heroSlide->imageUrl(640) }} 640w, {{ $heroSlide->imageUrl(960) }} 960w, {{ $heroSlide->imageUrl(1280) }} 1280w"
+                                    srcset="{{ $heroSlide->imageUrl(480) }} 480w, {{ $heroSlide->imageUrl(640) }} 640w, {{ $heroSlide->imageUrl(960) }} 960w, {{ $heroSlide->imageUrl(1280) }} 1280w"
                                     sizes="(min-width: 992px) 50vw, 100vw"
                                     alt="{{ $heroSlide->title ?: 'Featured collection from '.config('store.name') }}"
                                     loading="eager"

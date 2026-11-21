@@ -146,6 +146,7 @@ class StorefrontController extends Controller
                         'product' => $product,
                         'image' => $product->imageUrl($image, 960),
                         'image_srcset' => implode(', ', [
+                            $product->imageUrl($image, 480).' 480w',
                             $product->imageUrl($image, 640).' 640w',
                             $product->imageUrl($image, 960).' 960w',
                             $product->imageUrl($image, 1280).' 1280w',

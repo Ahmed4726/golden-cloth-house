@@ -68,19 +68,31 @@ class StorefrontDiscoveryTest extends TestCase
             ->assertSee('Discoverable Product');
     }
 
-    public function test_product_detail_gallery_opens_an_accessible_image_viewer(): void
+    public function test_product_detail_gallery_opens_an_accessible_image_viewer_for_each_carousel_image(): void
     {
         $product = $this->createProductWithImage(
             'Zoomable Product',
             'zoomable-product',
-            'https://example.com/zoomable-product.jpg'
+            'products/zoomable-product.jpg'
         );
+        $product->update([
+            'image_urls' => [
+                'products/zoomable-product.jpg',
+                'products/zoomable-product-back.jpg',
+            ],
+        ]);
 
         $this->get(route('shop.product', $product->slug))
             ->assertOk()
             ->assertSee('data-image-viewer-index="0"', false)
+            ->assertSee('data-image-viewer-index="1"', false)
+            ->assertSee('data-bs-slide="prev"', false)
+            ->assertSee('data-bs-slide="next"', false)
+            ->assertSee('width=480', false)
             ->assertSee('id="productImageViewer"', false)
-            ->assertSee('aria-label="Zoom image"', false);
+            ->assertSee('aria-label="Zoom image"', false)
+            ->assertSee('product-image-viewer-control-previous', false)
+            ->assertSee('product-image-viewer-control-next', false);
     }
 
     public function test_homepage_uses_responsive_collection_images_and_prioritizes_hero_image(): void
