@@ -1,29 +1,16 @@
 <!doctype html>
 <html lang="en">
 <head>
-<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-P6ZTCG4X"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-</script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'Golden Cloth House' }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    @vite('resources/js/app.js')
     <style>
         .ratio-2x1 { --bs-aspect-ratio: 50%; }
         .ratio-3x4 { --bs-aspect-ratio: 133.333333%; }
         .ratio-4x5 { --bs-aspect-ratio: 125%; }
     </style>
 </head>
-<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-P6ZTCG4X"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-</script>
 
 <body class="bg-light">
     <nav class="navbar navbar-dark bg-dark d-lg-none sticky-top">
@@ -101,7 +88,19 @@
         </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { window.dataLayer.push(arguments); }
+        gtag('js', new Date());
+        window.addEventListener('load', () => {
+            window.setTimeout(() => {
+                const script = document.createElement('script');
+                script.async = true;
+                script.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-P6ZTCG4X';
+                document.head.appendChild(script);
+            }, 1500);
+        }, { once: true });
+    </script>
     @stack('scripts')
 </body>
 </html>

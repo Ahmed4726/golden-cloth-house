@@ -169,9 +169,9 @@
         @media (max-width: 640px) { .catalog-builder { padding: 14px; } .page-header, .panel-header, .builder-actions { align-items: stretch; flex-direction: column; } .progress-wrap { min-width: 0; } .builder-two-col { grid-template-columns: 1fr; } .check { margin-top: 0; } .gallery-list { grid-template-columns: repeat(3, 1fr); } .preview-modal { padding: 8px; } .preview-dialog { padding: 10px; } .preview-controls { flex-wrap: wrap; justify-content: center; } }
     </style>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    @vite('resources/js/catalog-pdf.js')
     <script>
-        (() => {
+        document.addEventListener('DOMContentLoaded', () => {
             const finalizeUrl = @json(route('catalog-imports.finalize', $catalogImport));
             const categories = @json($categories);
             const brands = @json($brands);
@@ -198,8 +198,6 @@
             let previewZoom = 1;
             let previewRendering = false;
             let loading = false;
-
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
             const escapeHtml = (value) => String(value ?? '')
                 .replaceAll('&', '&amp;')
@@ -523,6 +521,6 @@
                     button.disabled = false;
                 }
             });
-        })();
+        });
     </script>
 @endsection

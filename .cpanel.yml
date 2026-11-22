@@ -3,4 +3,6 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/goldsvhk/public_html/
     - /bin/cp -R * $DEPLOYPATH
+    - cd "$DEPLOYPATH" && php artisan images:cache --no-interaction
+    - cd "$DEPLOYPATH" && php artisan view:cache --no-interaction
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ResponsiveImageCache;
 use Illuminate\Database\Eloquent\Model;
 
 class HomepageSlide extends Model
@@ -31,10 +32,7 @@ class HomepageSlide extends Model
         }
 
         if ($width !== null) {
-            return route('media.show', [
-                'path' => $this->image_path,
-                'width' => $width,
-            ]);
+            return ResponsiveImageCache::urlFor($this->image_path, $width);
         }
 
         return '/storage/'.ltrim($this->image_path, '/');

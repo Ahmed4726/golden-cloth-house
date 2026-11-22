@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ResponsiveImageCache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -119,10 +120,7 @@ class Product extends Model
         }
 
         if ($width !== null) {
-            return route('media.show', [
-                'path' => ltrim(preg_replace('#^/?storage/#', '', $image), '/'),
-                'width' => $width,
-            ]);
+            return ResponsiveImageCache::urlFor($image, $width);
         }
 
         return '/storage/'.ltrim($image, '/');

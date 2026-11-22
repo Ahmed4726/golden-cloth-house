@@ -1,4 +1,8 @@
 {
+  "_rolldown-runtime-DK3Fl9T5.js": {
+    "file": "assets/rolldown-runtime-DK3Fl9T5.js",
+    "name": "rolldown-runtime"
+  },
   "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.ttf": {
     "file": "assets/fa-brands-400-D1LuMI3I.ttf",
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.ttf"
@@ -31,11 +35,18 @@
     "file": "assets/fa-v4compatibility-C9RhG_FT.woff2",
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
+  "node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs": {
+    "file": "assets/pdf.worker.min-rsCePomN.mjs",
+    "src": "node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs"
+  },
   "resources/js/app.js": {
-    "file": "assets/app-Cf10qRKs.js",
+    "file": "assets/app-DtAHHGGC.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
+    "imports": [
+      "_rolldown-runtime-DK3Fl9T5.js"
+    ],
     "css": [
       "assets/app-BUfMjmt6.css"
     ],
@@ -48,6 +59,18 @@
       "assets/fa-solid-900-D0aA9rwL.ttf",
       "assets/fa-v4compatibility-C9RhG_FT.woff2",
       "assets/fa-v4compatibility-CCth-dXg.ttf"
+    ]
+  },
+  "resources/js/catalog-pdf.js": {
+    "file": "assets/catalog-pdf-BEYdNHON.js",
+    "name": "catalog-pdf",
+    "src": "resources/js/catalog-pdf.js",
+    "isEntry": true,
+    "imports": [
+      "_rolldown-runtime-DK3Fl9T5.js"
+    ],
+    "assets": [
+      "assets/pdf.worker.min-rsCePomN.mjs"
     ]
   }
 }

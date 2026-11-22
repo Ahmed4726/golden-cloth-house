@@ -1,11 +1,18 @@
 <!doctype html>
 <html lang="en-PK">
 <head>
-    <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-P6ZTCG4X"></script>
     <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
+    window.addEventListener('load', () => {
+        window.setTimeout(() => {
+            const script = document.createElement('script');
+            script.async = true;
+            script.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-P6ZTCG4X';
+            document.head.appendChild(script);
+        }, 1500);
+    }, { once: true });
     </script>
     @php
         $siteName = config('store.name');

@@ -277,9 +277,9 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    @vite('resources/js/catalog-pdf.js')
     <script>
-        (() => {
+        document.addEventListener('DOMContentLoaded', () => {
             const csrf = @json(csrf_token());
             const storeUrl = @json(route('catalog-imports.store'));
             const categories = @json($categories);
@@ -399,8 +399,6 @@
                     catalogBrand.value = String(presetBrand.id);
                 }
             }
-
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
             const escapeHtml = (value) => String(value ?? '')
                 .replaceAll('&', '&amp;')
@@ -958,6 +956,6 @@
                 await page.render({ canvasContext: canvas.getContext('2d', { alpha: false }), viewport }).promise;
                 return canvas.toDataURL('image/jpeg', 0.9);
             }
-        })();
+        });
     </script>
 @endpush

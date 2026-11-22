@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Login · Golden Cloth House</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    @vite('resources/js/app.js')
 </head>
 <body class="bg-light">
     <main class="container min-vh-100 d-flex align-items-center justify-content-center py-5">

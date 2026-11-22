@@ -26,7 +26,7 @@
 </IfModule>
 
 <IfModule mod_setenvif.c>
-    SetEnvIf Request_URI "^/storage/(products|slides)/" immutable_media
+    SetEnvIf Request_URI "^/storage/(products|slides|responsive)/" immutable_media
 </IfModule>
 
 <IfModule mod_headers.c>
