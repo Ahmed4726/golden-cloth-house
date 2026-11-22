@@ -6,3 +6,4 @@ deployment:
     - cd "$DEPLOYPATH" && php artisan images:cache --no-interaction
     - cd "$DEPLOYPATH" && php artisan view:cache --no-interaction
 
+
